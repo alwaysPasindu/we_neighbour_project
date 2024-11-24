@@ -1,4 +1,3 @@
-# Software-Development-Group-Project
 # We Neighbour - Smart Community Management Platform
 
 **We Neighbour** is an innovative platform designed to improve communication, enhance security, and foster community engagement in urban apartment complexes in Sri Lanka. This project is part of the CS-103 Software Development Group Project at IIT.
