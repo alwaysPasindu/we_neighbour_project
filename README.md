@@ -33,6 +33,7 @@ Modern urban living comes with unique challenges: poor communication, lack of se
 ## Acknowledgments
 Special thanks to our project supervisor, community managers, and survey participants for their valuable insights.
 
+
 ## License
 This project is for academic purposes. Redistribution or commercial use is prohibited without prior permission.
 
