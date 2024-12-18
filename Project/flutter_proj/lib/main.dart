@@ -14,7 +14,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'We-Neighbour App',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const ProfileScreen(), // Change screen here for testing
+      // home: const ProfileScreen(), 
+      home: const DashboardScreen(), 
+      //  home: const AccountSelectionScreen(), 
+
     );
   }
 }
