@@ -11,6 +11,15 @@ class AccountSelectionScreen extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Logo Section - Centered logo just above the title
+          Container(  // Container to hold the logo
+            margin: const EdgeInsets.only(bottom: 20), // Margin to position the logo
+            child: Image.asset(  // Image asset for the logo
+              'assets/images/logo.jpeg', // Replace with the path to your logo image
+              width: 100,  // Logo width
+              height: 100, // Logo height
+            ),
+          ),
           Text('CHOOSE YOUR ACCOUNT TYPE',
               style: AppTheme.titleStyle.copyWith(color: Colors.black)),
           const SizedBox(height: 20),
