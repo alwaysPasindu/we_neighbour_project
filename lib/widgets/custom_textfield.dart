@@ -22,6 +22,7 @@ class CustomTextField extends StatelessWidget {
           fillColor: Colors.grey[300],
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
+          
             borderSide: BorderSide.none,
           ),
           suffixIcon: isPassword

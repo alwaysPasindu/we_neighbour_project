@@ -37,3 +37,5 @@ Special thanks to our project supervisor, community managers, and survey partici
 ## License
 This project is for academic purposes. Redistribution or commercial use is prohibited without prior permission.
 
+
+zabjka n 
