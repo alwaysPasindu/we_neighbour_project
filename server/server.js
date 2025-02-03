@@ -7,11 +7,9 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect('mongodb://localhost:27017/we-neighbour',{
-    useNewUrlParser:true,
-    useUnifiedTopology:true
-})  .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.error(err));
+mongoose.connect('mongodb://localhost:27017/we-neighbour')
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 
 app.get('/',(req,res) => {
