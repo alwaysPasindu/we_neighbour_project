@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'screens/login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,14 +11,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'We Neighbour',
       theme: ThemeData(
-        primaryColor: Colors.blue[700],
-        fontFamily: 'Roboto',
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: 'Roboto', // Make sure you have this font in your assets or use a different one
       ),
-      home: const LoginScreen(),
-      
+      home: const LoginPage(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
