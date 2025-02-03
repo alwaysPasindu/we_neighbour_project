@@ -24,8 +24,8 @@ class MyApp extends StatelessWidget {
         //  home: const SettingsScreen(),
         // home: const SettingsScreenLight(),
       // home: const AccountSelectionScreen(),
-      home: const ManagerProfileScreen(),
-      // home: const CompanyProfileScreen(),
+      // home: const ManagerProfileScreen(),
+      home: const CompanyProfileScreen(),
     );
   }
 }
