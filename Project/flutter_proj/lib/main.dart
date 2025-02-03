@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_proj/pages/settings_screen.dart';
 import 'package:flutter_proj/pages/settings_screen_light.dart';
 import 'pages/profile_screen.dart';
-import 'pages/dashboard_screen.dart';
 import 'pages/account_selection_screen.dart';
 import 'pages/manager_profile_screen.dart';
 import 'pages/company_profile_screen.dart';
@@ -24,9 +23,8 @@ class MyApp extends StatelessWidget {
       // home: const ProfileScreen(),
         //  home: const SettingsScreen(),
         // home: const SettingsScreenLight(),
-      // home: const DashboardScreen(),
       // home: const AccountSelectionScreen(),
-      // home: const ManagerProfileScreen(),
+      home: const ManagerProfileScreen(),
       // home: const CompanyProfileScreen(),
     );
   }

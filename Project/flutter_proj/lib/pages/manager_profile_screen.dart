@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
 import 'settings_screen.dart';
 
 class ManagerProfileScreen extends StatelessWidget {
@@ -76,17 +75,7 @@ class ManagerProfileScreen extends StatelessWidget {
                     
                     const Spacer(),
                     
-                    // Bottom Options
-                    _buildOption(
-                      'Manager Dashboard',
-                      Icons.dashboard,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-                        );
-                      },
-                    ),
+           
                     const SizedBox(height: 16),
                     _buildOption(
                       'Settings',
