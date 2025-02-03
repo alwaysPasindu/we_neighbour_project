@@ -5,6 +5,7 @@ import 'pages/profile_screen.dart';
 import 'pages/account_selection_screen.dart';
 import 'pages/manager_profile_screen.dart';
 import 'pages/company_profile_screen.dart';
+import 'pages/profile_screen_light.dart';
 
 void main() => runApp(const MyApp());
 
@@ -21,10 +22,11 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF12284C),
       ),
       // home: const ProfileScreen(),
+      // home: const ProfileScreenLight(),
         //  home: const SettingsScreen(),
-        // home: const SettingsScreenLight(),
+        home: const SettingsScreenLight(),
       // home: const AccountSelectionScreen(),
-      home: const ManagerProfileScreen(),
+      // home: const ManagerProfileScreen(),
       // home: const CompanyProfileScreen(),
     );
   }
