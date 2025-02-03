@@ -25,7 +25,10 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/logo.png
+    - assets/images/white.png
+    - assets/images/facebook.png
+    - assets/images/google.png
+    - assets/images/twitter.png
 
   # fonts:
   #   - family: Roboto
@@ -33,3 +36,4 @@ flutter:
   #       - asset: assets/fonts/Roboto-Regular.ttf
   #       - asset: assets/fonts/Roboto-Bold.ttf
   #         weight: 700
+
