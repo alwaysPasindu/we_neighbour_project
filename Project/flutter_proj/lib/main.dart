@@ -6,7 +6,6 @@ import 'pages/account_selection_screen.dart';
 import 'pages/manager_profile_screen.dart';
 import 'pages/company_profile_screen.dart';
 
-
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
@@ -25,14 +24,8 @@ class MyApp extends StatelessWidget {
         //  home: const SettingsScreen(),
         // home: const SettingsScreenLight(),
       // home: const AccountSelectionScreen(),
-<<<<<<< Updated upstream
       home: const ManagerProfileScreen(),
       // home: const CompanyProfileScreen(),
-=======
-      // home: const ManagerProfileScreen(),
-      home: const CompanyProfileScreen(),
-
->>>>>>> Stashed changes
     );
   }
 }
