@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../widgets/grid_icon.dart';
-import '../widgets/service_card.dart';
+import '../../widgets/grid_icon.dart';
+import '../../widgets/service_card.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
