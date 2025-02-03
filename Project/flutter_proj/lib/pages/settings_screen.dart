@@ -52,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     (value) => setState(() => notificationsEnabled = value),
                   ),
                   _buildSwitchTile(
-                    'Dark Mode',
+                    'Light Mode',
                     Icons.dark_mode_outlined,
                     darkModeEnabled,
                     (value) => setState(() => darkModeEnabled = value),

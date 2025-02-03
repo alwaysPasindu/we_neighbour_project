@@ -22,10 +22,10 @@ class MyApp extends StatelessWidget {
       ),
       // home: const ProfileScreen(),
         //  home: const SettingsScreen(),
-        // home: const SettingsScreenLight(),
+        home: const SettingsScreenLight(),
       // home: const AccountSelectionScreen(),
       // home: const ManagerProfileScreen(),
-      home: const CompanyProfileScreen(),
+      // home: const CompanyProfileScreen(),
     );
   }
 }

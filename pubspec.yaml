@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  provider: ^6.0.0
 
   # Add any required third-party libraries below (currently not used)
   google_fonts: ^6.2.1 # Optional: If you want to use Google Fonts
