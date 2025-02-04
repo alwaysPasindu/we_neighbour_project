@@ -7,18 +7,27 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'My Apartment App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: AppColors.primary,
-        scaffoldBackgroundColor: AppColors.background,
-      ),
-      home: const HomeScreen(),
-    );
+    return const MaterialApp();
   }
 }
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({Key? key}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return GetMaterialApp(
+//       title: 'My Apartment App',
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData(
+//         primaryColor: AppColors.primary,
+//         scaffoldBackgroundColor: AppColors.background,
+//       ),
+//       home: const HomeScreen(),
+//     );
+//   }
+// }
