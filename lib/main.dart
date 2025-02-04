@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'screens/home/home_screen.dart';
+import 'screens/resident_home_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,14 +10,38 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'My Apartment App',
+    return MaterialApp(
+      title: 'WE NEIGHBOUR',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: AppColors.primary,
-        scaffoldBackgroundColor: AppColors.background,
+        primaryColor: const Color(0xFF2E88FF),
+        scaffoldBackgroundColor: Colors.white,
+        fontFamily: 'Poppins',
       ),
-      home: const HomeScreen(),
+      home: const ResidentHomePage(),
     );
   }
 }
+
+// import 'package:flutter/material.dart';
+
+// void main() {
+//   runApp(const MyApp());
+// }
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: "app demo",
+//       home: Scaffold(
+//         appBar: AppBar(
+//           title: const Text("Good Morning, Pasindu!"),
+//           backgroundColor: Colors.amberAccent,
+//         ),
+//       ),
+//     );
+//   }
+// }
