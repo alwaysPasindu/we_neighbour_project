@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/resident_home_page.dart';
 
+
 void main() {
   runApp(const MyApp());
 }
@@ -8,9 +9,11 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+
       title: 'WE NEIGHBOUR',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -45,3 +48,16 @@ class MyApp extends StatelessWidget {
 //     );
 //   }
 // }
+
+      title: 'We Neighbour',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: 'Roboto', // Make sure you have this font in your assets or use a different one
+      ),
+      home: const LoginPage(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
