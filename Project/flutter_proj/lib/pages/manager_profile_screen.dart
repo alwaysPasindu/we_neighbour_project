@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'settings_screen.dart';
 
 class ManagerProfileScreen extends StatelessWidget {
   const ManagerProfileScreen({Key? key}) : super(key: key);
@@ -7,11 +6,10 @@ class ManagerProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF12284C), // Dark navy blue
+      backgroundColor: const Color(0xFF12284C),
       body: SafeArea(
         child: Column(
           children: [
-            // Back Button
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Align(
@@ -22,14 +20,11 @@ class ManagerProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
-            // Profile Section
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   children: [
-                    // Avatar
                     Stack(
                       children: [
                         const CircleAvatar(
@@ -56,8 +51,6 @@ class ManagerProfileScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
-                    // Name
                     const Text(
                       'John Doe',
                       style: TextStyle(
@@ -67,24 +60,15 @@ class ManagerProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    
-                    // Info Fields
                     _buildInfoField('Email', 'johndoe@gmail.com'),
                     _buildInfoField('Phone Number', '+94 71 234 3465'),
                     _buildInfoField('Apartment', '2/3 Lotus Residence Colombo 03'),
-                    
                     const Spacer(),
-                    
-           
-                    const SizedBox(height: 16),
                     _buildOption(
                       'Settings',
                       Icons.settings,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                        );
+                        Navigator.pushNamed(context, '/settings');
                       },
                     ),
                     const SizedBox(height: 32),
@@ -153,3 +137,4 @@ class ManagerProfileScreen extends StatelessWidget {
     );
   }
 }
+

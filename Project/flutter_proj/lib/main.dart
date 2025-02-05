@@ -1,33 +1,50 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_proj/pages/settings_screen.dart';
-import 'package:flutter_proj/pages/settings_screen_light.dart';
-import 'pages/profile_screen.dart';
+import 'package:provider/provider.dart';
 import 'pages/account_selection_screen.dart';
+import 'pages/profile_screen.dart';
 import 'pages/manager_profile_screen.dart';
 import 'pages/company_profile_screen.dart';
-import 'pages/profile_screen_light.dart';
+import 'pages/settings_screen.dart';
+import 'theme/app_theme.dart';
+import 'providers/theme_provider.dart';
 
-void main() => runApp(const MyApp());
+void main() => runApp(
+  ChangeNotifierProvider(
+    create: (_) => ThemeProvider(),
+    child: const MyApp(),
+  ),
+);
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'We-Neighbour App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: const Color(0xFF12284C),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        scaffoldBackgroundColor: Colors.white,
       ),
-      // home: const ProfileScreen(),
-      // home: const ProfileScreenLight(),
-        //  home: const SettingsScreen(),
-        home: const SettingsScreenLight(),
-      // home: const AccountSelectionScreen(),
-      // home: const ManagerProfileScreen(),
-      // home: const CompanyProfileScreen(),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: AppTheme.primaryColor,
+      ),
+      themeMode: themeProvider.themeMode,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const AccountSelectionScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/manager_profile': (context) => const ManagerProfileScreen(),
+        '/company_profile': (context) => const CompanyProfileScreen(),
+        '/settings': (context) => const SettingsScreen(),
+      },
     );
   }
 }
+

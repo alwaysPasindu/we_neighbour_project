@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import 'settings_screen.dart';
 
 class ProfileScreenLight extends StatelessWidget {
   const ProfileScreenLight({super.key});
@@ -8,7 +7,7 @@ class ProfileScreenLight extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Light grey background
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -19,24 +18,24 @@ class ProfileScreenLight extends StatelessWidget {
                 const SizedBox(height: 50),
                 Stack(
                   children: [
-                    CircleAvatar(
+                    const CircleAvatar(
                       radius: 50,
-                      backgroundColor: Colors.blue[100],
-                      child: Icon(Icons.person, size: 60, color: Colors.blue[800]),
+                      backgroundColor: AppTheme.accentColor,
+                      child: Icon(Icons.person, size: 60, color: Colors.white),
                     ),
                     Positioned(
                       right: 0,
                       bottom: 0,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[100],
+                        decoration: const BoxDecoration(
+                          color: AppTheme.accentColor,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.camera_alt,
                           size: 20,
-                          color: Colors.blue[800],
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -45,7 +44,7 @@ class ProfileScreenLight extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   'John Doe',
-                  style: AppTheme.titleStyle.copyWith(fontSize: 24, color: Colors.black87),
+                  style: AppTheme.titleStyle.copyWith(color: Colors.black, fontSize: 24),
                 ),
                 const SizedBox(height: 32),
                 _buildInfoField('Email', 'johndoe@gmail.com'),
@@ -60,10 +59,7 @@ class ProfileScreenLight extends StatelessWidget {
                   'Settings',
                   Icons.settings,
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                    );
+                    Navigator.pushNamed(context, '/settings');
                   },
                 ),
                 const SizedBox(height: 32),
@@ -81,8 +77,8 @@ class ProfileScreenLight extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: Colors.grey[600],
+          style: const TextStyle(
+            color: Colors.grey,
             fontSize: 16,
           ),
         ),
@@ -90,13 +86,13 @@ class ProfileScreenLight extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            color: Colors.black87,
+            color: Colors.black,
             fontSize: 16,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Divider(color: Colors.grey[300]),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Divider(color: Colors.grey),
         ),
       ],
     );
@@ -108,22 +104,22 @@ class ProfileScreenLight extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            Icon(icon, color: Colors.blue[800]),
+            Icon(icon, color: AppTheme.primaryColor),
             const SizedBox(width: 12),
             Text(
               title,
-              style: TextStyle(
-                color: Colors.black87,
+              style: const TextStyle(
+                color: Colors.black,
                 fontSize: 16,
               ),
             ),
             const Spacer(),
-            Icon(Icons.arrow_forward_ios, color: Colors.blue[800], size: 16),
+            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
           ],
         ),
       ),
