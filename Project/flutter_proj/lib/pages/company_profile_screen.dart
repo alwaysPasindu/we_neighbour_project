@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'settings_screen.dart';
 
 class CompanyProfileScreen extends StatelessWidget {
   const CompanyProfileScreen({Key? key}) : super(key: key);
@@ -11,7 +10,6 @@ class CompanyProfileScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Back Button
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Align(
@@ -22,14 +20,11 @@ class CompanyProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
-            // Profile Section
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   children: [
-                    // Company Avatar
                     Stack(
                       children: [
                         const CircleAvatar(
@@ -56,8 +51,6 @@ class CompanyProfileScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
-                    // Company Name
                     const Text(
                       'Company',
                       style: TextStyle(
@@ -67,23 +60,15 @@ class CompanyProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    
-                    // Info Fields
                     _buildInfoField('Email', 'company@gmail.com'),
                     _buildInfoField('Phone Number', '+94 71 544 3456'),
                     _buildInfoField('Address', 'ABC Company Colombo 04'),
-                    
                     const Spacer(),
-                    
-                    // Settings Option
                     _buildOption(
                       'Settings',
                       Icons.settings,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                        );
+                        Navigator.pushNamed(context, '/settings');
                       },
                     ),
                     const SizedBox(height: 32),
@@ -152,3 +137,4 @@ class CompanyProfileScreen extends StatelessWidget {
     );
   }
 }
+

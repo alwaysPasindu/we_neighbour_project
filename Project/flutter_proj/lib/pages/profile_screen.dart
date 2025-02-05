@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import 'settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -8,7 +7,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF12284C), // Dark navy blue
+      backgroundColor: const Color(0xFF12284C),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -60,10 +59,7 @@ class ProfileScreen extends StatelessWidget {
                   'Settings',
                   Icons.settings,
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                    );
+                    Navigator.pushNamed(context, '/settings');
                   },
                 ),
                 const SizedBox(height: 32),
@@ -130,3 +126,4 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
+

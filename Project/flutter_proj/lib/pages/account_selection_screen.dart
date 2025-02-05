@@ -11,27 +11,32 @@ class AccountSelectionScreen extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Logo Section - Centered logo just above the title
-          Container(  // Container to hold the logo
-            margin: const EdgeInsets.only(bottom: 20), // Margin to position the logo
-            child: Image.asset(  // Image asset for the logo
-              'assets/images/logo.jpeg', // Replace with the path to your logo image
-              width: 100,  // Logo width
-              height: 100, // Logo height
+          Container(
+            margin: const EdgeInsets.only(bottom: 20),
+            child: Image.asset(
+              'assets/images/logo.jpeg',
+              width: 100,
+              height: 100,
             ),
           ),
           Text('CHOOSE YOUR ACCOUNT TYPE',
               style: AppTheme.titleStyle.copyWith(color: Colors.black)),
           const SizedBox(height: 20),
-          _buildAccountTypeButton('Apartment Residents'),
-          _buildAccountTypeButton('Apartment Manager'),
-          _buildAccountTypeButton('Service Providers'),
+          _buildAccountTypeButton('Apartment Residents', () {
+            Navigator.pushNamed(context, '/profile');
+          }),
+          _buildAccountTypeButton('Apartment Manager', () {
+            Navigator.pushNamed(context, '/manager_profile');
+          }),
+          _buildAccountTypeButton('Service Providers', () {
+            Navigator.pushNamed(context, '/company_profile');
+          }),
         ],
       ),
     );
   }
 
-  Widget _buildAccountTypeButton(String title) {
+  Widget _buildAccountTypeButton(String title, VoidCallback onPressed) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20),
       child: ElevatedButton(
@@ -39,7 +44,7 @@ class AccountSelectionScreen extends StatelessWidget {
           backgroundColor: AppTheme.primaryColor,
           padding: const EdgeInsets.symmetric(vertical: 15),
         ),
-        onPressed: () {},
+        onPressed: onPressed,
         child: Center(
           child: Text(title, style: AppTheme.bodyStyle.copyWith(color: Colors.white)),
         ),
@@ -47,3 +52,4 @@ class AccountSelectionScreen extends StatelessWidget {
     );
   }
 }
+
