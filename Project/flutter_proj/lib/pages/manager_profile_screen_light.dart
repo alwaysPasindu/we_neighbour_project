@@ -31,7 +31,7 @@ class ManagerProfileScreenLight extends StatelessWidget {
                         const CircleAvatar(
                           radius: 50,
                           backgroundColor: AppTheme.accentColor,
-                          child: Icon(Icons.person, size: 60, color: Colors.white),
+                          backgroundImage: AssetImage('assets/images/profileImg.avif'),
                         ),
                         Positioned(
                           right: 0,

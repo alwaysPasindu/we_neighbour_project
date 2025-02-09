@@ -30,7 +30,7 @@ class ManagerProfileScreen extends StatelessWidget {
                         const CircleAvatar(
                           radius: 50,
                           backgroundColor: Color(0xFF1E3A64),
-                          child: Icon(Icons.person, size: 60, color: Colors.white70),
+                          backgroundImage: AssetImage('assets/images/profileImg.avif'),
                         ),
                         Positioned(
                           right: 0,

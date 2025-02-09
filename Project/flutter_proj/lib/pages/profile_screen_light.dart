@@ -17,12 +17,12 @@ class ProfileScreenLight extends StatelessWidget {
               children: [
                 const SizedBox(height: 50),
                 Stack(
-                  children: [
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundColor: AppTheme.accentColor,
-                      child: Icon(Icons.person, size: 60, color: Colors.white),
-                    ),
+                      children: [
+                        const CircleAvatar(
+                          radius: 50,
+                          backgroundColor: AppTheme.accentColor,
+                          backgroundImage: AssetImage('assets/images/profileImg.avif'),
+                        ),
                     Positioned(
                       right: 0,
                       bottom: 0,

@@ -28,10 +28,10 @@ class CompanyProfileScreenLight extends StatelessWidget {
                   children: [
                     Stack(
                       children: [
-                        const CircleAvatar(
+                        CircleAvatar(
                           radius: 50,
                           backgroundColor: AppTheme.accentColor,
-                          child: Icon(Icons.business, size: 60, color: Colors.white),
+                          backgroundImage: const AssetImage('assets/images/profileImg.avif'),
                         ),
                         Positioned(
                           right: 0,
