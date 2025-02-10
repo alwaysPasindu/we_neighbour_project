@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileScreenLight extends StatelessWidget {
+  const ProfileScreenLight({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF12284C),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -20,7 +20,7 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         const CircleAvatar(
                           radius: 50,
-                          backgroundColor: Color(0xFF1E3A64),
+                          backgroundColor: AppTheme.accentColor,
                           backgroundImage: AssetImage('assets/images/profileImg.avif'),
                         ),
                     Positioned(
@@ -29,13 +29,13 @@ class ProfileScreen extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: Color(0xFF1E3A64),
+                          color: AppTheme.accentColor,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.camera_alt,
                           size: 20,
-                          color: Colors.white70,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -44,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   'John Doe',
-                  style: AppTheme.titleStyle.copyWith(fontSize: 24),
+                  style: AppTheme.titleStyle.copyWith(color: Colors.black, fontSize: 24),
                 ),
                 const SizedBox(height: 32),
                 _buildInfoField('Email', 'johndoe@gmail.com'),
@@ -78,7 +78,7 @@ class ProfileScreen extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            color: Colors.white70,
+            color: Colors.grey,
             fontSize: 16,
           ),
         ),
@@ -86,13 +86,13 @@ class ProfileScreen extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontSize: 16,
           ),
         ),
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 12),
-          child: Divider(color: Colors.white24),
+          child: Divider(color: Colors.grey),
         ),
       ],
     );
@@ -104,22 +104,22 @@ class ProfileScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white24),
+          border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            Icon(icon, color: Colors.white),
+            Icon(icon, color: AppTheme.primaryColor),
             const SizedBox(width: 12),
             Text(
               title,
               style: const TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontSize: 16,
               ),
             ),
             const Spacer(),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
           ],
         ),
       ),
