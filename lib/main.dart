@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'screens/resident_home_page.dart';
-
+import 'home_page.dart';
+import 'service_page.dart';
+import 'company_profile_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -9,54 +10,63 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-
-      title: 'WE NEIGHBOUR',
-      debugShowCheckedModeBanner: false,
+      title: 'We Neighbour',
       theme: ThemeData(
-        primaryColor: const Color(0xFF2E88FF),
+        primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Poppins',
       ),
-      home: const ResidentHomePage(),
+      home: const MainPage(),
     );
   }
 }
 
-// import 'package:flutter/material.dart';
+class MainPage extends StatefulWidget {
+  const MainPage({super.key});
 
-// void main() {
-//   runApp(const MyApp());
-// }
+  @override
+  _MainPageState createState() => _MainPageState();
+}
 
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
+class _MainPageState extends State<MainPage> {
+  int _selectedIndex = 0;
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: "app demo",
-//       home: Scaffold(
-//         appBar: AppBar(
-//           title: const Text("Good Morning, Pasindu!"),
-//           backgroundColor: Colors.amberAccent,
-//         ),
-//       ),
-//     );
-//   }
-// }
+  final List<Widget> _pages = [
+    const HomePage(),
+    const ServicesPage(),
+    const CompanyProfileScreen(),
+  ];
 
-      title: 'We Neighbour',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        fontFamily: 'Roboto', // Make sure you have this font in your assets or use a different one
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_repair_service),
+            label: 'Services',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
       ),
-      home: const LoginPage(),
-      debugShowCheckedModeBanner: false,
     );
   }
 }
