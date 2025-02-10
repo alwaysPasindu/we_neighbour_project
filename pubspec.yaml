@@ -90,4 +90,6 @@ flutter:
 
   assets:
     - assets/calendar_icon.png
+    - assets/amenities_icon.png
+    - assets/health_icon.png
 
