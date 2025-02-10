@@ -1,8 +1,8 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=/Users/jehanfernando/development/flutter
-FLUTTER_APPLICATION_PATH=/Users/jehanfernando/Desktop/L5 Sem - 1/SDGP/We Neighbour/We_Neighbour-SDGP
+FLUTTER_ROOT=C:\flutter
+FLUTTER_APPLICATION_PATH=D:\Git Projects\we_neighbour_project-test2\flutter_application_1
 COCOAPODS_PARALLEL_CODE_SIGN=true
-FLUTTER_TARGET=/Users/jehanfernando/Desktop/L5 Sem - 1/SDGP/We Neighbour/We_Neighbour-SDGP/lib/main.dart
+FLUTTER_TARGET=lib\main.dart
 FLUTTER_BUILD_DIR=build
 FLUTTER_BUILD_NAME=1.0.0
 FLUTTER_BUILD_NUMBER=1
@@ -11,4 +11,4 @@ EXCLUDED_ARCHS[sdk=iphoneos*]=armv7
 DART_OBFUSCATION=false
 TRACK_WIDGET_CREATION=true
 TREE_SHAKE_ICONS=false
-PACKAGE_CONFIG=/Users/jehanfernando/Desktop/L5 Sem - 1/SDGP/We Neighbour/We_Neighbour-SDGP/.dart_tool/package_config.json
+PACKAGE_CONFIG=.dart_tool/package_config.json
