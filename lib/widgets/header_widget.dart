@@ -8,9 +8,9 @@ class HeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(15),
       decoration: const BoxDecoration(
-        color: AppColors.primary,
+        color: Color(0xFF0E69D5),
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
           bottomRight: Radius.circular(20),
@@ -27,17 +27,12 @@ class HeaderWidget extends StatelessWidget {
                   children: [
                     Image.asset(
                       'assets/images/logo.png', // Add your logo image
-                      height: 30,
+                      height: 75,
                     ),
                     const SizedBox(width: 8),
-                    const Text('WE NEIGHBOUR',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        )),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 0),
                 const Text(
                   'Hello, John...!',
                   style: AppTextStyles.greeting,

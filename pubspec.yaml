@@ -66,9 +66,9 @@ flutter:
     - assets/icons/maintenance.png
     - assets/icons/bills.png
     - assets/icons/chat.png
-    # - assets/images/painting.jpg
-    # - assets/images/plumbing.jpg
-    # - assets/images/carpentry.jpg
+    - assets/images/painting.jpg
+    - assets/images/plumbing.jpg
+    - assets/images/carpentry.jpg
 
     
   # An image asset can refer to one or more resolution-specific "variants", see
