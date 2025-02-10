@@ -4,7 +4,7 @@ import '../constants/text_styles.dart';
 
 class FeatureItem {
   final String title;
-  final String icon;
+  final Widget icon; // Change to Widget to accept both Image and Icon
   final VoidCallback onTap;
 
   FeatureItem({
@@ -20,32 +20,38 @@ class FeatureGrid extends StatelessWidget {
   final List<FeatureItem> features = [
     FeatureItem(
       title: 'AMENITIES BOOKING',
-      icon: 'assets/icons/amenities.png', // Add your icons
+      icon: Image.asset('assets/icons/amenities.png',
+          height: 32, width: 32), // Use Image.asset for image
       onTap: () {},
     ),
     FeatureItem(
       title: 'VISITOR MANAGEMENT',
-      icon: 'assets/icons/visitor.png',
-      onTap: () {},
-    ),
-    FeatureItem(
-      title: 'EVENT CALENDAR',
-      icon: 'assets/icons/calendar.png',
+      icon: Image.asset('assets/icons/visitor.png',
+          height: 32, width: 32), // Use Image.asset for image
       onTap: () {},
     ),
     FeatureItem(
       title: 'Apartment MAINTENANCE',
-      icon: 'assets/icons/maintenance.png',
+      icon: Image.asset('assets/icons/maintenance.png',
+          height: 32, width: 32), // Use Image.asset for image
+      onTap: () {},
+    ),
+    FeatureItem(
+      title: 'EVENT CALENDAR',
+      icon: Image.asset('assets/icons/calendar.png',
+          height: 32, width: 32), // Use Icon for an icon
       onTap: () {},
     ),
     FeatureItem(
       title: 'BILLS',
-      icon: 'assets/icons/bills.png',
+      icon: Image.asset('assets/icons/bills.png',
+          height: 32, width: 32), // Use Icon for an icon
       onTap: () {},
     ),
     FeatureItem(
       title: 'Chats',
-      icon: 'assets/icons/chat.png',
+      icon: Image.asset('assets/icons/chat.png',
+          height: 32, width: 32), // Use Image.asset for image
       onTap: () {},
     ),
   ];
@@ -55,7 +61,7 @@ class FeatureGrid extends StatelessWidget {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(30),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 16,
@@ -78,7 +84,7 @@ class FeatureGrid extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.cardBackground,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(32),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -87,11 +93,7 @@ class FeatureGrid extends StatelessWidget {
                 ),
               ],
             ),
-            child: Image.asset(
-              item.icon,
-              height: 32,
-              width: 32,
-            ),
+            child: item.icon, // Will display either Image.asset or Icon
           ),
           const SizedBox(height: 8),
           Text(
