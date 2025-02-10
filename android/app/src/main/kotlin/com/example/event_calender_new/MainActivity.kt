@@ -1,4 +1,4 @@
-package com.example.we_neighbour_project
+package com.example.event_calender_new
 
 import io.flutter.embedding.android.FlutterActivity
 

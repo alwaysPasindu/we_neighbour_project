@@ -10,10 +10,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Event Calendar',
+      title: 'WE Neighbour',
       theme: ThemeData(
-        primaryColor: const Color(0xFF1A2B4A),
-        scaffoldBackgroundColor: const Color(0xFF1A2B4A),
+        primaryColor: const Color(0xFF0A1A3B),
+        scaffoldBackgroundColor: const Color(0xFF0A1A3B),
       ),
       home: const EventCalendarScreen(),
     );
@@ -26,99 +26,88 @@ class EventCalendarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: SafeArea(
         child: Column(
           children: [
-            // Logo
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Text(
-                'WE\nNEIGHBOUR',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+            // Back button and logo
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () {
+                      // Handle back navigation
+                    },
+                  ),
+                  const Expanded(
+                    child: Center(
+                      child: Text(
+                        'WE\nNEIGHBOUR',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            // Event Calendar Title
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Text(
-                'Event Calendar',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                ),
+            const SizedBox(height: 20),
+
+            // Event Calendar Text
+            const Text(
+              'Event Calendar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
               ),
             ),
 
-            // Main Content Card
-            Expanded(
+            const SizedBox(height: 30),
+
+            // White Card Container
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Container(
-                margin: const EdgeInsets.all(20),
-                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                 ),
+                padding: const EdgeInsets.all(24),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Grid of options
-                    SizedBox(
-                      height: 180, // Fixed height for the grid
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: const [
-                          Expanded(
-                            child: FeatureCard(
-                              icon: 'assets/calendar.png',
-                              title: 'Google\nCalendar',
-                              color: Colors.blue,
-                            ),
-                          ),
-                          SizedBox(width: 15),
-                          Expanded(
-                            child: FeatureCard(
-                              icon: 'assets/book.png',
-                              title: 'Book\nAmenities',
-                              color: Colors.green,
-                            ),
-                          ),
-                          SizedBox(width: 15),
-                          Expanded(
-                            child: FeatureCard(
-                              icon: 'assets/health.png',
-                              title: 'Health &\nWellness',
-                              color: Colors.lightBlue,
-                            ),
-                          ),
-                        ],
-                      ),
+                    // Icons Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildFeatureColumn(
+                          'assets/calendar_icon.png',
+                          'Google\nCalendar',
+                        ),
+                        _buildFeatureColumn(
+                          'assets/amenities_icon.png',
+                          'Book\nAmenities',
+                        ),
+                        _buildFeatureColumn(
+                          'assets/health_icon.png',
+                          'Health &\nWellness',
+                        ),
+                      ],
                     ),
 
-                    const Spacer(),
+                    const SizedBox(height: 30),
+
                     // Buttons
-                    ActionButton(
-                      title: 'Add / Remove Event',
-                      onPressed: () {},
-                    ),
-                    const SizedBox(height: 12),
-                    ActionButton(
-                      title: 'Manage RSVPs',
-                      onPressed: () {},
-                    ),
+                    _buildButton('Add / Remove Event'),
+                    const SizedBox(height: 16),
+                    _buildButton('Manage RSVPs'),
                   ],
                 ),
               ),
@@ -128,80 +117,51 @@ class EventCalendarScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class FeatureCard extends StatelessWidget {
-  final String icon;
-  final String title;
-  final Color color;
-
-  const FeatureCard({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildFeatureColumn(String iconPath, String label) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 80,
           height: 80,
-          padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: Colors.blue.shade100,
             borderRadius: BorderRadius.circular(15),
           ),
           child: Image.asset(
-            icon,
-            color: color,
+            iconPath,
+            width: 40,
+            height: 40,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          title,
+          label,
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
     );
   }
-}
 
-class ActionButton extends StatelessWidget {
-  final String title;
-  final VoidCallback onPressed;
-
-  const ActionButton({
-    super.key,
-    required this.title,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
+  Widget _buildButton(String text) {
+    return Container(
       width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1A2B4A),
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      height: 50,
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A1A3B),
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: Center(
         child: Text(
-          title,
+          text,
           style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
