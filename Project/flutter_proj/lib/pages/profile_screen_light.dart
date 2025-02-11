@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'settings_screen.dart';
 
 class ProfileScreenLight extends StatelessWidget {
   const ProfileScreenLight({super.key});
@@ -7,65 +8,57 @@ class ProfileScreenLight extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+      appBar: AppBar(title: const Text('Profile')),
+      body: Center(
+        child: Column(
+          children: [
+            const SizedBox(height: 50),
+            Stack(
               children: [
-                const SizedBox(height: 50),
-                Stack(
-                      children: [
-                        const CircleAvatar(
-                          radius: 50,
-                          backgroundColor: AppTheme.accentColor,
-                          backgroundImage: AssetImage('assets/images/profileImg.avif'),
-                        ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppTheme.accentColor,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          size: 20,
-                          color: Colors.white,
-                        ),
-                      ),
+                const CircleAvatar(
+                  radius: 50,
+                  backgroundColor: AppTheme.accentColor,
+                  backgroundImage: AssetImage('assets/images/profileImg.avif'),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.accentColor,
+                      shape: BoxShape.circle,
                     ),
-                  ],
+                    child: const Icon(
+                      Icons.camera_alt,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'John Doe',
-                  style: AppTheme.titleStyle.copyWith(color: Colors.black, fontSize: 24),
-                ),
-                const SizedBox(height: 32),
-                _buildInfoField('Email', 'johndoe@gmail.com'),
-                _buildInfoField('Phone Number', '+94 71 234 3465'),
-                _buildInfoField('Apartment', '2/3 Lotus Residence Colombo 03'),
-                const SizedBox(height: 40),
-                _buildOption('Event Participation', Icons.event),
-                const SizedBox(height: 16),
-                _buildOption('Maintenance Requests', Icons.build),
-                const SizedBox(height: 16),
-                _buildOption(
-                  'Settings',
-                  Icons.settings,
-                  onTap: () {
-                    Navigator.pushNamed(context, '/settings');
-                  },
-                ),
-                const SizedBox(height: 32),
               ],
             ),
-          ),
+            const SizedBox(height: 16),
+            Text(
+              'John Doe',
+              style: AppTheme.titleStyle.copyWith(color: Colors.black, fontSize: 24),
+            ),
+            const SizedBox(height: 32),
+            _buildInfoField('Email', 'johndoe@gmail.com'),
+            const SizedBox(height: 16),
+            _buildProfileOption(
+              context,
+              'Settings',
+              Icons.settings,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
@@ -82,7 +75,7 @@ class ProfileScreenLight extends StatelessWidget {
             fontSize: 16,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         Text(
           value,
           style: const TextStyle(
@@ -98,7 +91,7 @@ class ProfileScreenLight extends StatelessWidget {
     );
   }
 
-  Widget _buildOption(String title, IconData icon, {VoidCallback? onTap}) {
+  Widget _buildProfileOption(BuildContext context, String title, IconData icon, {VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -126,4 +119,3 @@ class ProfileScreenLight extends StatelessWidget {
     );
   }
 }
-

@@ -1,69 +1,57 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'screens/login_page.dart';
-=======
-import 'screens/resident_home_page.dart';
->>>>>>> 1a42624737af69eebe041baaa5bb19f5f5d8902b
+import 'package:provider/provider.dart';
+import 'pages/account_selection_screen.dart';
+import 'pages/profile_screen.dart';
+import 'pages/profile_screen_light.dart';
+import 'pages/manager_profile_screen.dart';
+import 'pages/manager_profile_screen_light.dart';
+import 'pages/company_profile_screen.dart';
+import 'pages/company_profile_screen_light.dart';
+import 'pages/settings_screen.dart';
+import 'theme/app_theme.dart';
+import 'providers/theme_provider.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(
+      ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: const MyApp(),
+      ),
+    );
 
 class MyApp extends StatelessWidget {
-<<<<<<< HEAD
   const MyApp({super.key});
-=======
-  const MyApp({Key? key}) : super(key: key);
->>>>>>> 1a42624737af69eebe041baaa5bb19f5f5d8902b
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
-<<<<<<< HEAD
-      title: 'We Neighbour',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        fontFamily: 'Roboto', // Make sure you have this font in your assets or use a different one
-      ),
-      home: const LoginPage(),
       debugShowCheckedModeBanner: false,
-    );
-  }
-}
-=======
-      title: 'WE NEIGHBOUR',
-      debugShowCheckedModeBanner: false,
+      title: 'We-Neighbour App',
       theme: ThemeData(
-        primaryColor: const Color(0xFF2E88FF),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Poppins',
       ),
-      home: const ResidentHomePage(),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: AppTheme.primaryColor,
+      ),
+      themeMode: themeProvider.themeMode,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const AccountSelectionScreen(),
+        '/profile': (context) =>
+            themeProvider.isDarkMode ? const ProfileScreen() : const ProfileScreenLight(),
+        '/manager_profile': (context) => themeProvider.isDarkMode
+            ? const ManagerProfileScreen()
+            : const ManagerProfileScreenLight(),
+        '/company_profile': (context) => themeProvider.isDarkMode
+            ? const CompanyProfileScreen()
+            : const CompanyProfileScreenLight(),
+        '/settings': (context) => const SettingsScreen(),
+      },
     );
   }
 }
-
-// import 'package:flutter/material.dart';
-
-// void main() {
-//   runApp(const MyApp());
-// }
-
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: "app demo",
-//       home: Scaffold(
-//         appBar: AppBar(
-//           title: const Text("Good Morning, Pasindu!"),
-//           backgroundColor: Colors.amberAccent,
-//         ),
-//       ),
-//     );
-//   }
-// }
->>>>>>> 1a42624737af69eebe041baaa5bb19f5f5d8902b

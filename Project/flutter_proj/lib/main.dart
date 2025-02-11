@@ -12,11 +12,11 @@ import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 
 void main() => runApp(
-  ChangeNotifierProvider(
-    create: (_) => ThemeProvider(),
-    child: const MyApp(),
-  ),
-);
+      ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: const MyApp(),
+      ),
+    );
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -42,12 +42,16 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const AccountSelectionScreen(),
-        '/profile': (context) => themeProvider.isDarkMode ? const ProfileScreen() : const ProfileScreenLight(),
-        '/manager_profile': (context) => themeProvider.isDarkMode ? const ManagerProfileScreen() : const ManagerProfileScreenLight(),
-        '/company_profile': (context) => themeProvider.isDarkMode ? const CompanyProfileScreen() : const CompanyProfileScreenLight(),
+        '/profile': (context) =>
+            themeProvider.isDarkMode ? const ProfileScreen() : const ProfileScreenLight(),
+        '/manager_profile': (context) => themeProvider.isDarkMode
+            ? const ManagerProfileScreen()
+            : const ManagerProfileScreenLight(),
+        '/company_profile': (context) => themeProvider.isDarkMode
+            ? const CompanyProfileScreen()
+            : const CompanyProfileScreenLight(),
         '/settings': (context) => const SettingsScreen(),
       },
     );
   }
 }
-
