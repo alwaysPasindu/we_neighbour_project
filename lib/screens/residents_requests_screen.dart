@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../components/app_bar.dart';
 import '../constants/colors.dart';
 
-class VisitorLogScreen extends StatelessWidget {
-  const VisitorLogScreen({super.key});
+class ResidentsRequestsScreen extends StatelessWidget {
+  const ResidentsRequestsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class VisitorLogScreen extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24.0),
               child: Text(
-                'Visitor Log',
+                'Residents\' Requests',
                 style: TextStyle(
                   color: AppColors.white,
                   fontSize: 32,
@@ -23,7 +23,7 @@ class VisitorLogScreen extends StatelessWidget {
                 ),
               ),
             ),
-            // Add your visitor log list here
+            // Add your residents' requests list here
           ],
         ),
       ),
