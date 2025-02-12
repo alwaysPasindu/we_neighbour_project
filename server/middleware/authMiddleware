@@ -1,12 +1,12 @@
 const jwt = require('jsonwebtoken');
 
-module.exports = function(req, res, next){
+exports.authenticate = function(req, res, next){
     const token = req.header('x-auth-token');
     if(!token) return res.status(401).json({message:"No token, authorization failed"});
 
     try{
         const decoded = jwt.verify(token, process.env.JWT_SCECRET);
-        Req.user = decoded;
+        req.user = decoded;
 
         next();
 

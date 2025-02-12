@@ -15,9 +15,10 @@ app.get('/',(req,res) => {
     res.send('Backend is running');
 });
 
-const residentRoutes = require('./routes/residentRoutes');
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth',authRoutes);
+
+const residentRoutes = require('./routes/residentRoutes');
 app.use('/api/residents', residentRoutes);
 
 
