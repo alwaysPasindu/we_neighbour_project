@@ -1,23 +1,11 @@
-<<<<<<< HEAD
 name: we_neighbour
 description: A Flutter login screen for the We Neighbour app.
 publish_to: 'none'
-=======
-name: my_test
-description: "A new Flutter project."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
->>>>>>> 1a42624737af69eebe041baaa5bb19f5f5d8902b
 
 version: 1.0.0+1
 
 environment:
-<<<<<<< HEAD
   sdk: ">=3.0.0 <4.0.0"
-=======
-  sdk: ^3.6.1
->>>>>>> 1a42624737af69eebe041baaa5bb19f5f5d8902b
 
 dependencies:
   flutter:
@@ -26,6 +14,7 @@ dependencies:
   # Add any required third-party libraries below (currently not used)
   google_fonts: ^6.2.1 # Optional: If you want to use Google Fonts
   flutter_svg: ^2.0.9  # Optional: For SVG images if required
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
@@ -41,17 +30,3 @@ flutter:
     - assets/images/facebook.png
     - assets/images/google.png
     - assets/images/twitter.png
-
-  # fonts:
-  #   - family: Roboto
-  #     fonts:
-  #       - asset: assets/fonts/Roboto-Regular.ttf
-  #       - asset: assets/fonts/Roboto-Bold.ttf
-  #         weight: 700
-<<<<<<< HEAD
-
-=======
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
->>>>>>> 1a42624737af69eebe041baaa5bb19f5f5d8902b
