@@ -25,11 +25,15 @@ class _LoginPageState extends State<LoginPage> {
     final email = _emailController.text;
     final password = _passwordController.text;
     print('Login attempted with: $email');
+    // Navigate to account selection screen after successful login
+    Navigator.pushReplacementNamed(context, '/account_selection');
   }
 
   void _handleSocialLogin(String platform) {
     // TODO: Implement social login logic
     print('$platform login attempted');
+    // Navigate to account selection screen after successful login
+    Navigator.pushReplacementNamed(context, '/account_selection');
   }
 
   @override
@@ -56,7 +60,6 @@ class _LoginPageState extends State<LoginPage> {
                       height: 170,
                     ),
                     const SizedBox(height: 16),
-                    
                   ],
                 ),
               ),
