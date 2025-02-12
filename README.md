@@ -1,38 +1,12 @@
-# We Neighbour - Smart Community Management Platform
-
-**We Neighbour** is an innovative platform designed to improve communication, enhance security, and foster community engagement in urban apartment complexes in Sri Lanka. This project is part of the CS-103 Software Development Group Project at IIT.
+# We-Neighbour App
 
 ## Overview
 
-Modern urban living comes with unique challenges: poor communication, lack of security, and limited interaction among residents. **We Neighbour** bridges these gaps with a feature-rich mobile app, helping residents and management streamline their operations and connect better.
+We-Neighbour is a Flutter-based mobile application designed to facilitate community interaction and management within residential complexes. This branch (userprofiles) focuses on implementing user profiles for different types of users: residents, apartment managers, and service providers.
 
-## Key Features
-- **Resource Sharing:** Facilitate borrowing and lending items within the community.
-- **Profile Verification:** Securely verify residents' identities and roles.
-- **Safety Alerts & Maintenance Requests:** Instantly notify residents about emergencies or track repair requests.
-- **Event Management:** Unified calendar for community events and amenity reservations.
-- **Visitor Management:** QR code-based guest passes for easy visitor access.
-- **Verified Services Directory:** Access a list of approved local service providers.
-- **Community Forum:** Discuss ideas and issues with fellow residents.
-- **Centralized Notices:** Real-time push notifications for important updates.
+## Features
 
-## Technology
-- **Frontend:** Flutter for cross-platform mobile app development.
-- **Cloud Hosting:** AWS/Firebase for robust deployment.
-- **APIs:** Google Calendar for event scheduling, QR Code API for visitor management.
-- **Real-Time Communication:** Socket.io for instant notifications.
-
-### Contributors
-- <a href="https://github.com/alwaysPasindu"> Pasindu Dilshan </a>
-- <a href="https://github.com/NimeshDeepamal"> Nimesh Deepamal</a>
-- <a href="https://github.com/Jehanfernando02"> Jehan Fernando </a>
-- <a href="https://github.com/chamuditha6"> Chamuditha Nonis</a>
-- <a href="https://github.com/sahanrandeepa">Sahan Randeepa</a>
-- <a href="https://github.com/saranidinethma">Sarani Dinethma</a>
-
-## Acknowledgments
-Special thanks to our project supervisor, community managers, and survey participants for their valuable insights.
-
-## License
-This project is for academic purposes. Redistribution or commercial use is prohibited without prior permission.
-
+- **Account Selection**: Users can choose their account type (Apartment Residents, Apartment Manager, or Service Providers).
+- **User Profiles**: Customized profiles for each user type with relevant information display.
+- **Theme Switching**: Users can switch between light and dark themes.
+- **Responsive Design**: The app is designed to work on various screen sizes.
