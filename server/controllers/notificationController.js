@@ -29,3 +29,15 @@ exports.getManagementNotifications = async(req,res) => {
     }
 };
 
+//remove management notifications
+exports.removeManagementNotification = async (req,res) =>{
+    try{
+        const{id} = req.params;
+        await ManagementNotification.findByIdAndDelete(id);
+        res.json({message:"Management notification removed successfully!"});
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message: "Server Error"});
+    }
+
+};
