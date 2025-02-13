@@ -72,3 +72,15 @@ exports.getAllCommunityNotifications = async(req,res) => {
         res.status(500).json({message:"Server Error"});
     }
 };
+
+//remove a community notification
+exports.removeCommunityNotification = async(req,res) => {
+    try{
+        const{id} = req.params;
+        await  CommunityNotification.findByIdAndDelete(id);
+        res.json({message:"Community Notification removed successfully!"});
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+};
