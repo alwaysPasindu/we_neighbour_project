@@ -59,4 +59,16 @@ exports.createCommunityNotifications = async(req,res) => {
         console.error(error);
         res.status(500).json({message:"Server Error"});
     }
+
 }
+
+//display community notifications
+exports.getAllCommunityNotifications = async(req,res) => {
+    try{
+        const notifications = await CommunityNotification.find().sort({createdAt:-1}).populate('createdBy','name');
+        res.json(notifications);
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+};
