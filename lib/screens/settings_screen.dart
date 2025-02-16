@@ -45,7 +45,7 @@ class SettingsScreen extends StatelessWidget {
                     'Dark Mode',
                     Icons.dark_mode_outlined,
                     themeProvider.isDarkMode,
-                    (value) => themeProvider.toggleTheme(value),
+                    (value) => themeProvider.toggleTheme(),
                     context,
                   ),
                   _buildSettingTile('Rate App', Icons.star_outline, context),
