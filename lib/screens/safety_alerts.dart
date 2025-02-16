@@ -1,4 +1,3 @@
-// lib/screens/safety_alerts_screen.dart
 import 'package:flutter/material.dart';
 
 class SafetyAlertsScreen extends StatelessWidget {
@@ -26,15 +25,11 @@ class SafetyAlertsScreen extends StatelessWidget {
             ),
 
             // Logo
-            const Text(
-              'WE\nNEIGHBOUR',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                height: 1.2,
-              ),
+            Image.asset(
+              'assets/we_neighbour_logo.png',
+              width: 150, // Adjust the width as needed
+              height: 100, // Adjust the height as needed
+              fit: BoxFit.contain,
             ),
 
             const SizedBox(height: 40),
