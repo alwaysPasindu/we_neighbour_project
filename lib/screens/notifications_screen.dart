@@ -4,6 +4,8 @@ import '../constants/colors.dart';
 import 'management_notifications_screen.dart';
 import 'community_notifications_screen.dart';
 
+import 'package:flutter/material.dart';
+
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
@@ -35,7 +37,8 @@ class NotificationsScreen extends StatelessWidget {
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ManagementNotificationsScreen(),
+                        builder: (context) =>
+                            const ManagementNotificationsScreen(),
                       ),
                     ),
                   ),
@@ -45,7 +48,8 @@ class NotificationsScreen extends StatelessWidget {
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const CommunityNotificationsScreen(),
+                        builder: (context) =>
+                            const CommunityNotificationsScreen(),
                       ),
                     ),
                   ),
@@ -53,27 +57,12 @@ class NotificationsScreen extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 48.0),
-              child: Column(
-                children: [
-                  Text(
-                    'WE',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'NEIGHBOUR',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+            Padding(
+              padding: const EdgeInsets.only(bottom: 48.0),
+              child: Image.asset(
+                'assets/we_neighbour_logo.jpeg', // Make sure to replace this with the correct path to your logo
+                width: 80, // Adjust the width as needed
+                height: 80, // Adjust the height as needed
               ),
             ),
           ],
