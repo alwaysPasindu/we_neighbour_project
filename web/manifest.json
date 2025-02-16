@@ -1,6 +1,6 @@
 {
-    "name": "my_test",
-    "short_name": "my_test",
+    "name": "safety_alerts",
+    "short_name": "safety_alerts",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
