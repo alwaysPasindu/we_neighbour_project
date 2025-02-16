@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/settings_screen.dart';
 import 'providers/theme_provider.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   runApp(
@@ -17,34 +19,30 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return MaterialApp(
-          title: 'My App',
-          theme: ThemeData.light().copyWith(
-            // Customize light theme
-            primaryColor: Colors.blue,
-            scaffoldBackgroundColor: Colors.white,
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-            ),
-            // Add more customizations as needed
-          ),
-          darkTheme: ThemeData.dark().copyWith(
-            // Customize dark theme
-            primaryColor: Colors.indigo,
-            scaffoldBackgroundColor: Colors.grey[900],
-            appBarTheme: AppBarTheme(
-              backgroundColor: Colors.grey[800],
-              foregroundColor: Colors.white,
-            ),
-            // Add more customizations as needed
-          ),
-          themeMode: themeProvider.themeMode,
-          home: const SettingsScreen(),
-        );
-      },
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'We-Neighbour App',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.accentColor),
+        scaffoldBackgroundColor: AppTheme.backgroundColor,
+        textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
+        primaryColor: AppTheme.primaryColor,
+        iconTheme: const IconThemeData(color: AppTheme.primaryColor),
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppTheme.accentColor,
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: AppTheme.primaryColor,
+        textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)
+            .apply(bodyColor: Colors.white, displayColor: Colors.white),
+        primaryColor: AppTheme.accentColor,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      themeMode: themeProvider.themeMode,
+      home: const SettingsScreen(),
     );
   }
 }

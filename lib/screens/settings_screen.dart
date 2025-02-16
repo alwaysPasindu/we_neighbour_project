@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
+import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -26,10 +27,10 @@ class SettingsScreen extends StatelessWidget {
                   const SizedBox(width: 16),
                   Text(
                     'Settings',
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.titleLarge?.color,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                    style: AppTheme.titleStyle.copyWith(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : AppTheme.primaryColor,
                     ),
                   ),
                 ],
@@ -76,9 +77,8 @@ class SettingsScreen extends StatelessWidget {
       leading: Icon(icon, color: textColor ?? Theme.of(context).iconTheme.color),
       title: Text(
         title,
-        style: TextStyle(
+        style: AppTheme.bodyStyle.copyWith(
           color: textColor ?? Theme.of(context).textTheme.bodyMedium?.color,
-          fontSize: 16,
         ),
       ),
       onTap: () {
@@ -99,15 +99,14 @@ class SettingsScreen extends StatelessWidget {
       leading: Icon(icon, color: Theme.of(context).iconTheme.color),
       title: Text(
         title,
-        style: TextStyle(
+        style: AppTheme.bodyStyle.copyWith(
           color: Theme.of(context).textTheme.bodyMedium?.color,
-          fontSize: 16,
         ),
       ),
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: Theme.of(context).colorScheme.secondary,
+        activeColor: AppTheme.accentColor,
       ),
     );
   }
