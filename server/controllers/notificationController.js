@@ -84,3 +84,23 @@ exports.removeCommunityNotification = async(req,res) => {
         res.status(500).json({message:"Server Error"});
     }
 };
+
+//remove notification when swipe
+exports.removeCommunityNotificationsFromUser = async(req,res) => {
+    try{
+        const{id} = req.params;
+        const userId = req.user.id;
+
+        const notification = await CommunityNotification.findById(id);
+        
+        if (!notification.removedFor.includes(userId)) {
+            notification.removedFor.push(userId);
+            await notification.save();
+        }
+
+        res.json({ message: "Notification removed for current user" });
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+};
