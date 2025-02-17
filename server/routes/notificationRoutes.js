@@ -18,6 +18,8 @@ router.delete('/management/:id',authenticate,isManager,removeManagementNotificat
 
 router.post('/Community',authenticate,isResident,createCommunityNotification);
 router.get('/Community',authenticate,getCommunityNotifications);
+router.put('/Community/:id',authenticate,editCommunityNotification);
+router.delete('/Community/:id',authenticate,removeCommunityNotification);
 router.delete('/Community/:id',authenticate,isManager,removeCommunityNotification);
 router.delete('/Community/:id/remove-for-user',authenticate, removeCommunityNotificationsFromUser);
 

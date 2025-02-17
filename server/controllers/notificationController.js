@@ -60,7 +60,7 @@ exports.createCommunityNotifications = async(req,res) => {
         res.status(500).json({message:"Server Error"});
     }
 
-}
+};
 
 //display community notifications
 exports.getAllCommunityNotifications = async(req,res) => {
@@ -102,5 +102,28 @@ exports.removeCommunityNotificationsFromUser = async(req,res) => {
     }catch(error){
         console.error(error);
         res.status(500).json({message:"Server Error"});
+    }
+};
+
+exports.editCommunityNotification = async(req,res) => {
+    try{
+        const{id} = req.params;
+        const{title,message} = req.body;
+        const userId = req.user.id;
+
+        const notification = await CommunityNotification.findById(id);
+
+        if(notification.createdBy.toString() !== userId){
+            return res.status(403).json({message:"You are not authorized to edit this notification"});
+        }
+
+        notification.title = title || notification.title;
+        notification.message = message || notification.message;
+        await notification.save();
+
+        res.json({message:"Notification updated successfully!", notification});
+    } catch (error){
+        console.error(error);
+        res.status(500).json ({message:"Server Error"});
     }
 };
