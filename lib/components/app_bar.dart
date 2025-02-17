@@ -5,9 +5,9 @@ class CustomAppBar extends StatelessWidget {
   final VoidCallback? onBackPressed;
 
   const CustomAppBar({
-    super.key,
+    Key? key,
     this.onBackPressed,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,8 @@ class CustomAppBar extends StatelessWidget {
           const Spacer(),
           Image.asset(
             'assets/we_neighbour_logo.jpeg',
-            height: 40,
+            height: 100, 
+            width: 100,  
           ),
         ],
       ),
