@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'pages/account_selection_screen.dart';
 import 'pages/profile_screen.dart';
-import 'pages/profile_screen_light.dart';
 import 'pages/manager_profile_screen.dart';
-import 'pages/manager_profile_screen_light.dart';
 import 'pages/company_profile_screen.dart';
-import 'pages/company_profile_screen_light.dart';
 import 'pages/settings_screen.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
@@ -39,12 +35,11 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppTheme.primaryColor,
       ),
       themeMode: themeProvider.themeMode,
-      initialRoute: '/',
+      initialRoute: '/profile', // Set the initial route to the profile screen
       routes: {
-        '/': (context) => const AccountSelectionScreen(),
-        '/profile': (context) => themeProvider.isDarkMode ? const ProfileScreen() : const ProfileScreenLight(),
-        '/manager_profile': (context) => themeProvider.isDarkMode ? const ManagerProfileScreen() : const ManagerProfileScreenLight(),
-        '/company_profile': (context) => themeProvider.isDarkMode ? const CompanyProfileScreen() : const CompanyProfileScreenLight(),
+        '/profile': (context) => const ProfileScreen(),
+        '/manager_profile': (context) => const ManagerProfileScreen(),
+        '/company_profile': (context) => const CompanyProfileScreen(),
         '/settings': (context) => const SettingsScreen(),
       },
     );

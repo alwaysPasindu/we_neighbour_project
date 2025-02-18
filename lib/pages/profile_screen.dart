@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -6,8 +8,11 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF12284C),
+      backgroundColor: isDarkMode ? const Color(0xFF12284C) : Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -17,25 +22,25 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 50),
                 Stack(
-                      children: [
-                        const CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Color(0xFF1E3A64),
-                          backgroundImage: AssetImage('assets/images/profileImg.avif'),
-                        ),
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: isDarkMode ? const Color(0xFF1E3A64) : AppTheme.accentColor,
+                      backgroundImage: const AssetImage('assets/images/profileImg.avif'),
+                    ),
                     Positioned(
                       right: 0,
                       bottom: 0,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF1E3A64),
+                        decoration: BoxDecoration(
+                          color: isDarkMode ? const Color(0xFF1E3A64) : AppTheme.accentColor,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.camera_alt,
                           size: 20,
-                          color: Colors.white70,
+                          color: isDarkMode ? Colors.white70 : Colors.white,
                         ),
                       ),
                     ),
@@ -44,20 +49,24 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   'John Doe',
-                  style: AppTheme.titleStyle.copyWith(fontSize: 24),
+                  style: AppTheme.titleStyle.copyWith(
+                    color: isDarkMode ? Colors.white : Colors.black,
+                    fontSize: 24,
+                  ),
                 ),
                 const SizedBox(height: 32),
-                _buildInfoField('Email', 'johndoe@gmail.com'),
-                _buildInfoField('Phone Number', '+94 71 234 3465'),
-                _buildInfoField('Apartment', '2/3 Lotus Residence Colombo 03'),
+                _buildInfoField('Email', 'johndoe@gmail.com', isDarkMode),
+                _buildInfoField('Phone Number', '+94 71 234 3465', isDarkMode),
+                _buildInfoField('Apartment', '2/3 Lotus Residence Colombo 03', isDarkMode),
                 const SizedBox(height: 40),
-                _buildOption('Event Participation', Icons.event),
+                _buildOption('Event Participation', Icons.event, isDarkMode),
                 const SizedBox(height: 16),
-                _buildOption('Maintenance Requests', Icons.build),
+                _buildOption('Maintenance Requests', Icons.build, isDarkMode),
                 const SizedBox(height: 16),
                 _buildOption(
                   'Settings',
                   Icons.settings,
+                  isDarkMode,
                   onTap: () {
                     Navigator.pushNamed(context, '/settings');
                   },
@@ -71,55 +80,55 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoField(String label, String value) {
+  Widget _buildInfoField(String label, String value, bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white70 : Colors.grey,
             fontSize: 16,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
             fontSize: 16,
           ),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Divider(color: Colors.white24),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Divider(color: isDarkMode ? Colors.white24 : Colors.grey),
         ),
       ],
     );
   }
 
-  Widget _buildOption(String title, IconData icon, {VoidCallback? onTap}) {
+  Widget _buildOption(String title, IconData icon, bool isDarkMode, {VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white24),
+          border: Border.all(color: isDarkMode ? Colors.white24 : Colors.grey),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            Icon(icon, color: Colors.white),
+            Icon(icon, color: isDarkMode ? Colors.white : AppTheme.primaryColor),
             const SizedBox(width: 12),
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
                 fontSize: 16,
               ),
             ),
             const Spacer(),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+            Icon(Icons.arrow_forward_ios, color: isDarkMode ? Colors.white : Colors.grey, size: 16),
           ],
         ),
       ),
