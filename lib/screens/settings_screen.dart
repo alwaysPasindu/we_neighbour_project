@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import '../constants/colors.dart';
-import '../constants/text_styles.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  final bool isDarkMode;
+  final ValueChanged<bool> onThemeChanged;
+
+  const SettingsScreen({
+    Key? key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -18,15 +23,16 @@ class SettingsScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                    icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 16),
                   Text(
                     'Settings',
-                    style: AppTextStyles.greeting.copyWith(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.titleLarge?.color,
                       fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
@@ -38,16 +44,24 @@ class SettingsScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
-                  _buildSettingTile('Rate App', Icons.star_outline),
-                  _buildSettingTile('Share App', Icons.share_outlined),
-                  _buildSettingTile('Privacy Policy', Icons.lock_outline),
-                  _buildSettingTile('Terms and Conditions', Icons.description_outlined),
-                  _buildSettingTile('Cookies Policy', Icons.cookie_outlined),
-                  _buildSettingTile('Contact', Icons.mail_outline),
-                  _buildSettingTile('Feedback', Icons.chat_bubble_outline),
+                  _buildSwitchTile(
+                    'Dark Mode',
+                    Icons.dark_mode_outlined,
+                    isDarkMode,
+                    onThemeChanged,
+                    context,
+                  ),
+                  _buildSettingTile('Rate App', Icons.star_outline, context),
+                  _buildSettingTile('Share App', Icons.share_outlined, context),
+                  _buildSettingTile('Privacy Policy', Icons.lock_outline, context),
+                  _buildSettingTile('Terms and Conditions', Icons.description_outlined, context),
+                  _buildSettingTile('Cookies Policy', Icons.cookie_outlined, context),
+                  _buildSettingTile('Contact', Icons.mail_outline, context),
+                  _buildSettingTile('Feedback', Icons.chat_bubble_outline, context),
                   _buildSettingTile(
                     'Logout',
                     Icons.logout,
+                    context,
                     textColor: Colors.red,
                   ),
                 ],
@@ -59,20 +73,45 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingTile(String title, IconData icon, {Color? textColor}) {
+  Widget _buildSettingTile(String title, IconData icon, BuildContext context, {Color? textColor}) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      leading: Icon(icon, color: textColor ?? AppColors.textPrimary),
+      leading: Icon(icon, color: textColor ?? Theme.of(context).iconTheme.color),
       title: Text(
         title,
-        style: AppTextStyles.serviceTitle.copyWith(
-          color: textColor ?? AppColors.textPrimary,
+        style: TextStyle(
+          color: textColor ?? Theme.of(context).textTheme.bodyMedium?.color,
           fontSize: 16,
         ),
       ),
       onTap: () {
         // Handle tap for each setting
       },
+    );
+  }
+
+  Widget _buildSwitchTile(
+    String title,
+    IconData icon,
+    bool value,
+    ValueChanged<bool> onChanged,
+    BuildContext context,
+  ) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      leading: Icon(icon, color: Theme.of(context).iconTheme.color),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: Theme.of(context).textTheme.bodyMedium?.color,
+          fontSize: 16,
+        ),
+      ),
+      trailing: Switch(
+        value: value,
+        onChanged: onChanged,
+        activeColor: Theme.of(context).colorScheme.secondary,
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_page.dart';
 import 'screens/account_type_page.dart';
 import 'screens/resident_signup_page.dart';
@@ -15,12 +16,38 @@ import 'constants/colors.dart';
 // Enum to represent user types
 enum UserType { resident, manager, serviceProvider }
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final isDarkMode = prefs.getBool('isDarkMode') ?? false;
+  runApp(MyApp(isDarkMode: isDarkMode));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  final bool isDarkMode;
+
+  const MyApp({Key? key, required this.isDarkMode}) : super(key: key);
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late bool _isDarkMode;
+
+  @override
+  void initState() {
+    super.initState();
+    _isDarkMode = widget.isDarkMode;
+  }
+
+  void toggleTheme(bool value) async {
+    setState(() {
+      _isDarkMode = value;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkMode', value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +58,12 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.background,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      darkTheme: ThemeData.dark().copyWith(
+        primaryColor: AppColors.primary,
+        scaffoldBackgroundColor: Colors.grey[900],
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginPage(),
@@ -40,16 +73,19 @@ class MyApp extends StatelessWidget {
         '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
         '/home': (context) {
           final args = ModalRoute.of(context)?.settings.arguments;
-          final userType = args is UserType ? args : UserType.resident; // Default to resident if no type is provided
+          final userType = args is UserType ? args : UserType.resident;
           return HomeScreen(userType: userType);
         },
         '/event-calendar': (context) => const EventCalendarScreen(),
-        '/settings': (context) => const SettingsScreen(),
+        '/settings': (context) => SettingsScreen(
+          isDarkMode: _isDarkMode,
+          onThemeChanged: toggleTheme,
+        ),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/profile') {
           final args = settings.arguments;
-          final userType = args is UserType ? args : UserType.resident; // Default to resident if no type is provided
+          final userType = args is UserType ? args : UserType.resident;
           switch (userType) {
             case UserType.resident:
               return MaterialPageRoute(builder: (_) => const ResidentProfileScreen());
