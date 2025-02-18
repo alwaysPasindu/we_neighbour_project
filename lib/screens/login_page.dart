@@ -41,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
           ClipPath(
             clipper: WaveClipper(),
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.45,
+              height: MediaQuery.of(context).size.height * 0.35,
               decoration: const BoxDecoration(
                 color: Color(0xFF4285F4),
               ),
@@ -65,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
           // Login Form
           SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -78,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 25),
                   
                   // Email TextField
                   Container(
@@ -199,12 +199,12 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                   
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 0),
                   const Text(
                     'Sign in with another account',
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 0),
+                  const SizedBox(height: 10),
                   
                   // Social login buttons
                   Row(
