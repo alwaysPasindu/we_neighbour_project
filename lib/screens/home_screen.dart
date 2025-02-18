@@ -1,70 +1,90 @@
 import 'package:flutter/material.dart';
-import '../widgets/header_widget.dart';
-import '../widgets/feature_grid.dart';
-import '../widgets/service_card.dart';
-import '../widgets/bottom_navigation.dart';
+import '../widgets/feature_column.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          const HeaderWidget(),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  FeatureGrid(),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    height: 200,
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      scrollDirection: Axis.horizontal,
-                      children: const [
-                        ServiceCard(
-                          title:
-                              'High-quality painting services for a fresh new look',
-                          image: 'assets/images/painting.jpg',
-                          company: 'ABC Company',
-                        ),
-                        ServiceCard(
-                          title: 'Expert plumbing services for all your needs',
-                          image: 'assets/images/plumbing.jpg',
-                          company: 'ABC Company',
-                        ),
-                        ServiceCard(
-                          title:
-                              'Professional carpentry work for repairs and improvements',
-                          image: 'assets/images/carpentry.jpg',
-                          company: 'ABC Company',
-                        ),
-                      ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Image.asset(
+                      'assets/we_neighbour_logo.png',
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.contain,
                     ),
+                    const CircleAvatar(
+                      radius: 24,
+                      backgroundImage: AssetImage('assets/profile_picture.png'),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Welcome Text
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Welcome, John!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Feature Grid
+              GridView.count(
+                crossAxisCount: 3,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                children: [
+                  FeatureColumn(
+                    iconPath: 'assets/calendar_icon.png',
+                    label: 'Event\nCalendar',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/event-calendar');
+                    },
+                  ),
+                  FeatureColumn(
+                    iconPath: 'assets/amenities_icon.png',
+                    label: 'Book\nAmenities',
+                    onTap: () {
+                      // Handle Book Amenities tap
+                    },
+                  ),
+                  FeatureColumn(
+                    iconPath: 'assets/health_icon.png',
+                    label: 'Health &\nWellness',
+                    onTap: () {
+                      // Handle Health & Wellness tap
+                    },
+                  ),
+                  // Add more FeatureColumn widgets for other features
                 ],
               ),
-            ),
+
+              // Add more sections as needed for the home screen
+            ],
           ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigation(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        ),
       ),
     );
   }
