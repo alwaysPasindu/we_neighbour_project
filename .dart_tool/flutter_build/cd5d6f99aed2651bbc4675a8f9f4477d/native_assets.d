@@ -1,0 +1,1 @@
+ /Users/saranidinethma/development/we_neighbour_project/.dart_tool/flutter_build/cd5d6f99aed2651bbc4675a8f9f4477d/native_assets.yaml: 
