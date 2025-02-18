@@ -73,8 +73,8 @@ exports.getAllCommunityNotifications = async(req,res) => {
     }
 };
 
-//remove a community notification
-exports.removeCommunityNotification = async(req,res) => {
+//remove a community notification - remove from manager
+exports.removeCommunityNotificationByManager = async(req,res) => {
     try{
         const{id} = req.params;
         await  CommunityNotification.findByIdAndDelete(id);
@@ -85,7 +85,28 @@ exports.removeCommunityNotification = async(req,res) => {
     }
 };
 
-//remove notification when swipe
+//delete community notification from created resident
+exports.deleteCommunityNotification = async(req,res) => {
+    try{
+        const{id} = req.params;
+        const userId = req.user.id;
+
+        const notification = await CommunityNotification.findById(id);
+
+        if (notification.createdBy.toString() !== userId) {
+            return res.status(403).json({ message: "You are not authorized to delete this notification" });
+        }
+
+        await CommunityNotification.findByIdAndDelete(id);
+        res.json({ message: "Notification deleted successfully!" });
+    }catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+    
+};
+
+//remove notification when swipe - only current user
 exports.removeCommunityNotificationsFromUser = async(req,res) => {
     try{
         const{id} = req.params;
@@ -105,6 +126,7 @@ exports.removeCommunityNotificationsFromUser = async(req,res) => {
     }
 };
 
+//edit community notifications
 exports.editCommunityNotification = async(req,res) => {
     try{
         const{id} = req.params;
