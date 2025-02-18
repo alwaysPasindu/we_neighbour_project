@@ -28,5 +28,8 @@ app.use('/api/managers',managerRoutes);
 const serviceProviderRoutes = require('./routes/serviceProviderRoutes');
 app.use('/api/service-providers', serviceProviderRoutes);
 
+const notificarionRoutes = require('./routes/notificationRoutes');
+app.use('/api/notifications',notificarionRoutes);
+
 
 app.listen(PORT, () => console.log('Server running on http://localhost:${PORT}'));

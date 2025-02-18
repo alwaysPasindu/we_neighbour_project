@@ -2,10 +2,10 @@ const express = require('express');
 const {authenticate, isManager, isResident} = require('../middleware/authMiddleware');
 const{
     createManagementNotification,
-    getManagementNotifications,
+    getManagementNotification,
     removeManagementNotification,
     createCommunityNotification,
-    getCommunityNotifications,
+    getAllCommunityNotifications,
     removeCommunityNotificationByManager,
     removeCommunityNotificationsFromUser,
     editCommunityNotification,
@@ -15,15 +15,15 @@ const{
 const router = express.Router();
 
 router.post('/management',authenticate,isManager,createManagementNotification);
-router.get('/Management',authenticate,getManagementNotifications);
+router.get('/management',authenticate,getManagementNotification);
 router.delete('/management/:id',authenticate,isManager,removeManagementNotification);
 
-router.post('/Community',authenticate,isResident,createCommunityNotification);
-router.get('/Community',authenticate,getCommunityNotifications);
-router.put('/Community/:id',authenticate,editCommunityNotification);
+router.post('/community',authenticate,isResident,createCommunityNotification);
+router.get('/community',authenticate,getAllCommunityNotifications);
+router.put('/community/:id',authenticate,editCommunityNotification);
 
-router.delete('/Community/:id',authenticate,deleteCommunityNotification);
-router.delete('/Community/:id',authenticate,isManager,removeCommunityNotificationByManager);
-router.delete('/Community/:id/remove-for-user',authenticate, removeCommunityNotificationsFromUser);
+router.delete('/community/:id',authenticate,deleteCommunityNotification);
+router.delete('/community/remove-by-manager/:id',authenticate,isManager,removeCommunityNotificationByManager);
+router.delete('/community/:id/remove-for-user',authenticate, removeCommunityNotificationsFromUser);
 
 module.exports = router;

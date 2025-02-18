@@ -1,6 +1,6 @@
 const ManagementNotification = require('../models/ManagementNotifications');
 const CommunityNotification = require('../models/CommunityNotification');
-const CommunityNotification = require('../models/CommunityNotification');
+
 
 //create Management notifications
 exports.createManagementNotification = async(req,res) => {
@@ -9,7 +9,7 @@ exports.createManagementNotification = async(req,res) => {
         const notification = new ManagementNotification({
             title,
             message,
-            createBy: req.user.id,
+            createdBy: req.user.id,
         });
         await notification.save();
         res.status(201).json({message:"Management Notification created successfully!"});
@@ -44,13 +44,13 @@ exports.removeManagementNotification = async (req,res) =>{
 };
 
 //create a community notification
-exports.createCommunityNotifications = async(req,res) => {
+exports.createCommunityNotification = async(req,res) => {
     try{
         const{title,message} = req.body;
         const notification = new CommunityNotification({
             title,
             message,
-            createBy: req.user.id,
+            createdBy: req.user.id,
 
         })
         await notification.save();
