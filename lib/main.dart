@@ -10,7 +10,9 @@ import 'screens/resident_profile_screen.dart';
 import 'screens/manager_profile_screen.dart';
 import 'screens/service_provider_profile_screen.dart';
 import 'constants/colors.dart';
-import 'models/user_type.dart';
+
+// Enum to represent user types
+enum UserType { resident, manager, serviceProvider }
 
 void main() {
   runApp(const MyApp());
@@ -35,13 +37,11 @@ class MyApp extends StatelessWidget {
         '/resident-signup': (context) => const ResidentSignUpPage(),
         '/manager-signup': (context) => const ManagerSignUpPage(),
         '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
+        '/home': (context) => const HomeScreen(),
         '/event-calendar': (context) => const EventCalendarScreen(),
       },
       onGenerateRoute: (settings) {
-        if (settings.name == '/home') {
-          final UserType userType = settings.arguments as UserType;
-          return MaterialPageRoute(builder: (_) => HomeScreen(userType: userType));
-        } else if (settings.name == '/profile') {
+        if (settings.name == '/profile') {
           final UserType userType = settings.arguments as UserType;
           switch (userType) {
             case UserType.resident:
