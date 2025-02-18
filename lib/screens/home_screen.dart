@@ -19,14 +19,15 @@ class HomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Image.asset(
-                      'assets/we_neighbour_logo.png',
+                      'assets/images/logo.png',
                       width: 100,
                       height: 100,
                       fit: BoxFit.contain,
                     ),
                     const CircleAvatar(
                       radius: 24,
-                      backgroundImage: AssetImage('assets/profile_picture.png'),
+                      backgroundImage:
+                          AssetImage('assets/images/profile_picture.png'),
                     ),
                   ],
                 ),
@@ -57,21 +58,21 @@ class HomeScreen extends StatelessWidget {
                 crossAxisSpacing: 16,
                 children: [
                   FeatureColumn(
-                    iconPath: 'assets/calendar_icon.png',
+                    iconPath: 'assets/images/calendar_icon.png',
                     label: 'Event\nCalendar',
                     onTap: () {
                       Navigator.pushNamed(context, '/event-calendar');
                     },
                   ),
                   FeatureColumn(
-                    iconPath: 'assets/amenities_icon.png',
+                    iconPath: 'assets/images/amenities_icon.png',
                     label: 'Book\nAmenities',
                     onTap: () {
                       // Handle Book Amenities tap
                     },
                   ),
                   FeatureColumn(
-                    iconPath: 'assets/health_icon.png',
+                    iconPath: 'assets/images/health_icon.png',
                     label: 'Health &\nWellness',
                     onTap: () {
                       // Handle Health & Wellness tap

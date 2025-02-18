@@ -25,7 +25,7 @@ class EventCalendarScreen extends StatelessWidget {
                   Expanded(
                     child: Center(
                       child: Image.asset(
-                        'assets/we_neighbour_logo.png',
+                        'assets/images/logo.png',
                         width: 100,
                         height: 100,
                         fit: BoxFit.contain,
@@ -67,21 +67,21 @@ class EventCalendarScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         FeatureColumn(
-                          iconPath: 'assets/calendar_icon.png',
+                          iconPath: 'assets/images/calendar_icon.png',
                           label: 'Google\nCalendar',
                           onTap: () {
                             // Handle Google Calendar tap
                           },
                         ),
                         FeatureColumn(
-                          iconPath: 'assets/amenities_icon.png',
+                          iconPath: 'assets/images/amenities_icon.png',
                           label: 'Book\nAmenities',
                           onTap: () {
                             // Handle Book Amenities tap
                           },
                         ),
                         FeatureColumn(
-                          iconPath: 'assets/health_icon.png',
+                          iconPath: 'assets/images/health_icon.png',
                           label: 'Health &\nWellness',
                           onTap: () {
                             // Handle Health & Wellness tap
