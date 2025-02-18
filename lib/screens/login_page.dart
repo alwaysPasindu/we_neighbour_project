@@ -177,12 +177,13 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text('New user?'),
-                      TextButton(
-                        onPressed: () {
-                          // TODO: Navigate to register page
-                        },
-                        child: const Text('Register'),
-                      ),
+                   // In your LoginPage, update the Register button:
+ TextButton(
+  onPressed: () {
+    Navigator.pushNamed(context, '/account-type');
+  },
+  child: const Text('Register'),
+ ),
                     ],
                   ),
                   
@@ -191,19 +192,19 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       Expanded(child: Divider()),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        padding: EdgeInsets.symmetric(horizontal: 10),
                         child: Text('OR'),
                       ),
                       Expanded(child: Divider()),
                     ],
                   ),
                   
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   const Text(
                     'Sign in with another account',
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 0),
                   
                   // Social login buttons
                   Row(

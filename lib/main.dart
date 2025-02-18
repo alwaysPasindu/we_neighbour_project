@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'screens/login_page.dart';
+import 'screens/account_type_page.dart';
+import 'screens/resident_signup_page.dart';
+import 'screens/manager_signup_page.dart';
+import 'screens/service_provider_signup_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,9 +19,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
-        fontFamily: 'Roboto', // Make sure you have this font in your assets or use a different one
+        scaffoldBackgroundColor: Colors.white,
       ),
-      home: const LoginPage(),
+      routes: {
+        '/': (context) => const LoginPage(),
+        '/account-type': (context) => const AccountTypePage(),
+        '/resident-signup': (context) => const ResidentSignUpPage(),
+        '/manager-signup': (context) => const ManagerSignUpPage(),
+        '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
+      },
       debugShowCheckedModeBanner: false,
     );
   }
