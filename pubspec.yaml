@@ -40,10 +40,10 @@ flutter:
     - assets/images/painting.jpg
     - assets/images/plumbing.jpg
     - assets/images/carpentry.jpg
-    - assets/calendar_icon.png
-    - assets/amenities_icon.png
-    - assets/health_icon.png
-    - assets/we_neighbour_logo.png
+    - assets/images/calendar_icon.png
+    - assets/images/amenities_icon.png
+    - assets/images/health_icon.png
+    - assets/images/we_neighbour_logo.png
 
 
   # fonts:
