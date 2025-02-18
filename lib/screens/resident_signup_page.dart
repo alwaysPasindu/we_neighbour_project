@@ -44,7 +44,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
       print('Contact: ${_contactController.text}');
       print('Address: ${_addressController.text}');
       print('Apartment: $_selectedApartment');
-    
+      
       // Navigate to home screen after successful signup
       Navigator.pushReplacementNamed(context, '/home');
     }
@@ -96,7 +96,6 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo
                   Center(
                     child: Image.asset(
                       'assets/images/logo.png',
@@ -104,9 +103,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                       fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 0),
-
-                  // Sign Up Text
+                  const SizedBox(height: 24),
                   const Text(
                     'Resident Sign Up',
                     style: TextStyle(
@@ -115,21 +112,17 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 15),
-
-                  // Form Fields
+                  const SizedBox(height: 24),
                   _buildTextField(
                     hint: 'Name',
                     controller: _nameController,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'NIC',
                     controller: _nicController,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Email',
                     controller: _emailController,
@@ -145,21 +138,17 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Contact No',
                     controller: _contactController,
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Address',
                     controller: _addressController,
                   ),
                   const SizedBox(height: 16),
-
-                  // Apartment Dropdown
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
@@ -196,7 +185,6 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Password',
                     controller: _passwordController,
@@ -212,8 +200,6 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                     },
                   ),
                   const SizedBox(height: 32),
-
-                  // Sign Up Button
                   ElevatedButton(
                     onPressed: _handleSignUp,
                     style: ElevatedButton.styleFrom(
@@ -232,9 +218,8 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-
-                   Row(
+                  const SizedBox(height: 16),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
@@ -244,11 +229,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/',
-                          (route) => false,
-                        ),
+                        onTap: () => Navigator.pushReplacementNamed(context, '/'),
                         child: const Text(
                           'Sign in',
                           style: TextStyle(

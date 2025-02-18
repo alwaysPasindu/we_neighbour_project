@@ -22,15 +22,16 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         scaffoldBackgroundColor: Colors.white,
       ),
-    routes: {
-    '/': (context) => LoginPage(),
-    '/account-type': (context) => AccountTypePage(),
-    '/resident-signup': (context) => ResidentSignUpPage(),
-    '/manager-signup': (context) => ManagerSignUpPage(),
-    '/service-provider-signup': (context) => ServiceProviderSignUpPage(),
-    '/home': (context) => HomeScreen(),
-  },
+      routes: {
+        '/': (context) => LoginPage(),
+        '/account-type': (context) => AccountTypePage(),
+        '/resident-signup': (context) => ResidentSignUpPage(),
+        '/manager-signup': (context) => ManagerSignUpPage(),
+        '/service-provider-signup': (context) => ServiceProviderSignUpPage(),
+        '/home': (context) => HomeScreen(),
+      },
       debugShowCheckedModeBanner: false,
     );
   }
 }
+

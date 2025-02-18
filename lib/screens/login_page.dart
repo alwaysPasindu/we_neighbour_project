@@ -25,11 +25,17 @@ class _LoginPageState extends State<LoginPage> {
     final email = _emailController.text;
     final password = _passwordController.text;
     print('Login attempted with: $email');
+    
+    // Navigate to home screen after successful login
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   void _handleSocialLogin(String platform) {
     // TODO: Implement social login logic
     print('$platform login attempted');
+    
+    // Navigate to home screen after successful social login
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   @override
@@ -37,7 +43,6 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Custom wave background with logo
           ClipPath(
             clipper: WaveClipper(),
             child: Container(
@@ -46,23 +51,14 @@ class _LoginPageState extends State<LoginPage> {
                 color: Color(0xFF4285F4),
               ),
               child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Logo
-                    Image.asset(
-                      'assets/images/white.png',
-                      width: 170,
-                      height: 170,
-                    ),
-                    const SizedBox(height: 16),
-                    
-                  ],
+                child: Image.asset(
+                  'assets/images/white.png',
+                  width: 170,
+                  height: 170,
                 ),
               ),
             ),
           ),
-          // Login Form
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -79,8 +75,6 @@ class _LoginPageState extends State<LoginPage> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
-                  
-                  // Email TextField
                   Container(
                     decoration: BoxDecoration(
                       color: const Color.fromARGB(255, 212, 210, 210),
@@ -96,8 +90,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
-                  // Password TextField
                   Container(
                     decoration: BoxDecoration(
                       color: const Color.fromARGB(255, 212, 210, 210),
@@ -125,8 +117,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
-                  // Remember me and Forgot password
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -152,8 +142,6 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  
-                  // Login button
                   ElevatedButton(
                     onPressed: _handleLogin,
                     style: ElevatedButton.styleFrom(
@@ -171,23 +159,18 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-                  
-                  // Register link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text('New user?'),
-                   // In your LoginPage, update the Register button:
- TextButton(
-  onPressed: () {
-    Navigator.pushNamed(context, '/account-type');
-  },
-  child: const Text('Register'),
- ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/account-type');
+                        },
+                        child: const Text('Register'),
+                      ),
                     ],
                   ),
-                  
-                  // OR divider
                   const Row(
                     children: [
                       Expanded(child: Divider()),
@@ -198,15 +181,12 @@ class _LoginPageState extends State<LoginPage> {
                       Expanded(child: Divider()),
                     ],
                   ),
-                  
                   const SizedBox(height: 10),
                   const Text(
                     'Sign in with another account',
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 0),
-                  
-                  // Social login buttons
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -277,3 +257,4 @@ class WaveClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
+
