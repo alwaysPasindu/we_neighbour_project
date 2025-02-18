@@ -17,6 +17,7 @@ class BottomNavigation extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
+      backgroundColor: AppColors.cardBackground,
       selectedItemColor: AppColors.primary,
       unselectedItemColor: AppColors.textSecondary,
       items: const [
@@ -25,16 +26,12 @@ class BottomNavigation extends StatelessWidget {
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.chat),
-          label: 'Chat',
+          icon: Icon(Icons.search),
+          label: 'Search',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.dashboard),
-          label: 'Services',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.access_time),
-          label: 'History',
+          icon: Icon(Icons.notifications),
+          label: 'Notifications',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person),
@@ -44,3 +41,4 @@ class BottomNavigation extends StatelessWidget {
     );
   }
 }
+

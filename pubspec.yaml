@@ -1,5 +1,5 @@
 name: we_neighbour
-description: A Flutter login screen for the We Neighbour app.
+description: A Flutter app for the We Neighbour community.
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -10,15 +10,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  # Add any required third-party libraries below (currently not used)
-  google_fonts: ^6.2.1 # Optional: If you want to use Google Fonts
-  flutter_svg: ^2.0.9  # Optional: For SVG images if required
+  provider: ^6.0.2  # Added provider package
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.9
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints: ^3.0.0
 
 flutter:
@@ -29,7 +27,6 @@ flutter:
     - assets/images/facebook.png
     - assets/images/google.png
     - assets/images/twitter.png
-    - assets/images/logo.png
     - assets/images/logo.png
     - assets/icons/amenities.png
     - assets/icons/visitor.png
@@ -45,7 +42,7 @@ flutter:
     - assets/images/health_icon.png
     - assets/images/we_neighbour_logo.png
 
-
+  # Uncomment and update this section if you want to use custom fonts
   # fonts:
   #   - family: Roboto
   #     fonts:
