@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import '../constants/colors.dart';
+import '../main.dart'; // Import this to use UserType
 
 class BottomNavigation extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final UserType userType;
 
   const BottomNavigation({
     Key? key,
     required this.currentIndex,
     required this.onTap,
+    required this.userType,
   }) : super(key: key);
 
   @override

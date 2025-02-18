@@ -3,9 +3,12 @@ import '../widgets/header_widget.dart';
 import '../widgets/feature_grid.dart';
 import '../widgets/service_card.dart';
 import '../widgets/bottom_navigation.dart';
+import '../main.dart'; // Import this to use UserType
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final UserType userType;
+
+  const HomeScreen({Key? key, required this.userType}) : super(key: key);
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -13,6 +16,20 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    if (index == 3) { // Profile tab
+      Navigator.pushNamed(
+        context,
+        '/profile',
+        arguments: widget.userType,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       scrollDirection: Axis.horizontal,
                       children: const [
                         ServiceCard(
-                          title:
-                              'High-quality painting services for a fresh new look',
+                          title: 'High-quality painting services for a fresh new look',
                           image: 'assets/images/painting.jpg',
                           company: 'ABC Company',
                         ),
@@ -44,8 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           company: 'ABC Company',
                         ),
                         ServiceCard(
-                          title:
-                              'Professional carpentry work for repairs and improvements',
+                          title: 'Professional carpentry work for repairs and improvements',
                           image: 'assets/images/carpentry.jpg',
                           company: 'ABC Company',
                         ),
@@ -60,11 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: BottomNavigation(
         currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        onTap: _onTabTapped,
+        userType: widget.userType,
       ),
     );
   }

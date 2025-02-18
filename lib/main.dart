@@ -9,6 +9,7 @@ import 'screens/event_calendar_screen.dart';
 import 'screens/resident_profile_screen.dart';
 import 'screens/manager_profile_screen.dart';
 import 'screens/service_provider_profile_screen.dart';
+import 'screens/settings_screen.dart';
 import 'constants/colors.dart';
 
 // Enum to represent user types
@@ -37,12 +38,18 @@ class MyApp extends StatelessWidget {
         '/resident-signup': (context) => const ResidentSignUpPage(),
         '/manager-signup': (context) => const ManagerSignUpPage(),
         '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments;
+          final userType = args is UserType ? args : UserType.resident; // Default to resident if no type is provided
+          return HomeScreen(userType: userType);
+        },
         '/event-calendar': (context) => const EventCalendarScreen(),
+        '/settings': (context) => const SettingsScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/profile') {
-          final UserType userType = settings.arguments as UserType;
+          final args = settings.arguments;
+          final userType = args is UserType ? args : UserType.resident; // Default to resident if no type is provided
           switch (userType) {
             case UserType.resident:
               return MaterialPageRoute(builder: (_) => const ResidentProfileScreen());
