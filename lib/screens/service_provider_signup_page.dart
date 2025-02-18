@@ -32,13 +32,9 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
       print('Email: ${_emailController.text}');
       print('Service Type: ${_serviceTypeController.text}');
       print('Contact: ${_contactController.text}');
-      
-      // Navigate back to login page after successful signup
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/',
-        (route) => false,
-      );
+    
+      // Navigate to home screen after successful signup
+      Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
@@ -153,7 +149,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                       if (value == null || value.isEmpty) {
                         return 'Password is required';
                       }
-                      if (value.length < 6) {
+                      if (value!.length < 6) {
                         return 'Password must be at least 6 characters';
                       }
                       return null;
@@ -217,3 +213,4 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
     );
   }
 }
+

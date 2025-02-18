@@ -38,9 +38,9 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
       print('Contact: ${_contactController.text}');
       print('Address: ${_addressController.text}');
       print('Apartment Name: ${_apartmentNameController.text}');
-      
-      // Navigate to login page after successful signup
-      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    
+      // Navigate to home screen after successful signup
+      Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
@@ -167,7 +167,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                       if (value == null || value.isEmpty) {
                         return 'Password is required';
                       }
-                      if (value.length < 6) {
+                      if (value!.length < 6) {
                         return 'Password must be at least 6 characters';
                       }
                       return null;
@@ -231,3 +231,4 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
     );
   }
 }
+

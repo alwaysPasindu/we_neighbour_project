@@ -44,9 +44,9 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
       print('Contact: ${_contactController.text}');
       print('Address: ${_addressController.text}');
       print('Apartment: $_selectedApartment');
-      
-      // Navigate to login page after successful signup
-      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    
+      // Navigate to home screen after successful signup
+      Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
@@ -268,3 +268,4 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
     );
   }
 }
+
