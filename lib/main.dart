@@ -21,16 +21,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
-        scaffoldBackgroundColor:
-            const Color(0xFF0A1A3B), // Dark blue background
+        scaffoldBackgroundColor: const Color(0xFF0A1A3B), // Dark blue background
       ),
       routes: {
         '/': (context) => const LoginPage(),
         '/account-type': (context) => const AccountTypePage(),
         '/resident-signup': (context) => const ResidentSignUpPage(),
         '/manager-signup': (context) => const ManagerSignUpPage(),
-        '/service-provider-signup': (context) =>
-            const ServiceProviderSignUpPage(),
+        '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
         '/home': (context) => const HomeScreen(),
         '/event-calendar': (context) => const EventCalendarScreen(),
       },
@@ -38,3 +36,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
