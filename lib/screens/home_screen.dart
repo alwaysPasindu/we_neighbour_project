@@ -3,7 +3,7 @@ import '../widgets/header_widget.dart';
 import '../widgets/feature_grid.dart';
 import '../widgets/service_card.dart';
 import '../widgets/bottom_navigation.dart';
-import '../main.dart'; // Import this to use UserType
+import '../main.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserType userType;
@@ -81,4 +81,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-

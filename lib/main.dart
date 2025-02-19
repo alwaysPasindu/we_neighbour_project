@@ -13,7 +13,6 @@ import 'screens/service_provider_profile_screen.dart';
 import 'screens/settings_screen.dart';
 import 'constants/colors.dart';
 
-// Enum to represent user types
 enum UserType { resident, manager, serviceProvider }
 
 void main() async {
@@ -101,4 +100,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-

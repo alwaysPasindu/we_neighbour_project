@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../constants/colors.dart';
 import '../constants/text_styles.dart';
+import '../screens/event_calendar_screen.dart';
 
 class FeatureItem {
   final String title;
-  final Widget icon; // Change to Widget to accept both Image and Icon
+  final Widget icon;
   final VoidCallback onTap;
 
   FeatureItem({
@@ -17,47 +18,58 @@ class FeatureItem {
 class FeatureGrid extends StatelessWidget {
   FeatureGrid({Key? key}) : super(key: key);
 
-  final List<FeatureItem> features = [
-    FeatureItem(
-      title: 'AMENITIES BOOKING',
-      icon: Image.asset('assets/icons/amenities.png',
-          height: 32, width: 32), // Use Image.asset for image
-      onTap: () {},
-    ),
-    FeatureItem(
-      title: 'VISITOR MANAGEMENT',
-      icon: Image.asset('assets/icons/visitor.png',
-          height: 32, width: 32), // Use Image.asset for image
-      onTap: () {},
-    ),
-    FeatureItem(
-      title: 'Apartment MAINTENANCE',
-      icon: Image.asset('assets/icons/maintenance.png',
-          height: 32, width: 32), // Use Image.asset for image
-      onTap: () {},
-    ),
-    FeatureItem(
-      title: 'EVENT CALENDAR',
-      icon: Image.asset('assets/icons/calendar.png',
-          height: 32, width: 32), // Use Icon for an icon
-      onTap: () {},
-    ),
-    FeatureItem(
-      title: 'BILLS',
-      icon: Image.asset('assets/icons/bills.png',
-          height: 32, width: 32), // Use Icon for an icon
-      onTap: () {},
-    ),
-    FeatureItem(
-      title: 'Chats',
-      icon: Image.asset('assets/icons/chat.png',
-          height: 32, width: 32), // Use Image.asset for image
-      onTap: () {},
-    ),
-  ];
+  late final List<FeatureItem> features;
 
   @override
   Widget build(BuildContext context) {
+    features = [
+      FeatureItem(
+        title: 'AMENITIES BOOKING',
+        icon: Image.asset('assets/icons/amenities.png', height: 32, width: 32),
+        onTap: () {
+          // TODO: Implement amenities booking navigation
+        },
+      ),
+      FeatureItem(
+        title: 'VISITOR MANAGEMENT',
+        icon: Image.asset('assets/icons/visitor.png', height: 32, width: 32),
+        onTap: () {
+          // TODO: Implement visitor management navigation
+        },
+      ),
+      FeatureItem(
+        title: 'Apartment MAINTENANCE',
+        icon: Image.asset('assets/icons/maintenance.png', height: 32, width: 32),
+        onTap: () {
+          // TODO: Implement maintenance navigation
+        },
+      ),
+      FeatureItem(
+        title: 'EVENT CALENDAR',
+        icon: Image.asset('assets/icons/calendar.png', height: 32, width: 32),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const EventCalendarScreen()),
+          );
+        },
+      ),
+      FeatureItem(
+        title: 'BILLS',
+        icon: Image.asset('assets/icons/bills.png', height: 32, width: 32),
+        onTap: () {
+          // TODO: Implement bills navigation
+        },
+      ),
+      FeatureItem(
+        title: 'Chats',
+        icon: Image.asset('assets/icons/chat.png', height: 32, width: 32),
+        onTap: () {
+          // TODO: Implement chats navigation
+        },
+      ),
+    ];
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -93,7 +105,7 @@ class FeatureGrid extends StatelessWidget {
                 ),
               ],
             ),
-            child: item.icon, // Will display either Image.asset or Icon
+            child: item.icon,
           ),
           const SizedBox(height: 8),
           Text(

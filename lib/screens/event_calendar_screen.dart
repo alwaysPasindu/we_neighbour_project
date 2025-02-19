@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import '../widgets/feature_column.dart';
 import '../widgets/custom_button.dart';
+import '../constants/colors.dart';
+import '../constants/text_styles.dart';
 
 class EventCalendarScreen extends StatelessWidget {
-  const EventCalendarScreen({super.key});
+  const EventCalendarScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 0, 18, 152),
       body: SafeArea(
+
         child: Column(
           children: [
             // Back button and logo
@@ -17,7 +21,7 @@ class EventCalendarScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
                     onPressed: () {
                       Navigator.pop(context);
                     },
@@ -39,23 +43,19 @@ class EventCalendarScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Event Calendar Text
-            const Text(
+            Text(
               'Event Calendar',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTextStyles.greeting.copyWith(color: const Color.fromARGB(255, 255, 255, 255)),
             ),
 
             const SizedBox(height: 30),
 
             // White Card Container
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            Expanded(
               child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 padding: const EdgeInsets.all(24),
