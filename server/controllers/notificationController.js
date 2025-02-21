@@ -65,7 +65,18 @@ exports.createCommunityNotification = async(req,res) => {
 //display community notifications
 exports.getAllCommunityNotifications = async(req,res) => {
     try{
-        const notifications = await CommunityNotification.find().sort({createdAt:-1}).populate('createdBy','name');
+        const userId = req.user.id;
+
+        //const notifications = await CommunityNotification.find().sort({createdAt:-1}).populate('createdBy','name');
+        
+        const notifications = await CommunityNotification.find({
+            removedFor: { $nin: [userId] }, 
+          })
+            .sort({ createdAt: -1 }) 
+            .populate('createdBy', 'name'); 
+      
+          res.json(notifications);
+        
         res.json(notifications);
     }catch(error){
         console.error(error);
