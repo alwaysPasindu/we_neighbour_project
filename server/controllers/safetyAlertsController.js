@@ -17,3 +17,14 @@ exports.createSafetyAlerts = async(req,res) => {
     }
 };
 
+//display safety alerts
+exports.getSafetyAlerts = async(req,res) => {
+    try{
+        const safetyAlerts = await SafetyAlerts.find().sort({createdAt:-1}).populate('createdBy','name');
+        res.json(safetyAlerts);
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+};
+
