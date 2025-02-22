@@ -28,3 +28,15 @@ exports.getSafetyAlerts = async(req,res) => {
     }
 };
 
+//delete safety alert
+exports.deleteSafetyAlerts = async(req,res) => {
+    try{
+        const{id} = req.params;
+        await SafetyAlerts.findByIdAndDelete(id);
+        res.json({message: "Safety Alert deleted succuessfully!"});
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+        
+    }
+};
