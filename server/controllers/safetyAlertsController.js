@@ -7,7 +7,7 @@ exports.createSafetyAlert = async(req,res) => {
         const safetyAlerts = new SafetyAlerts({
             title,
             description,
-            createdBy: req.userid,
+            createdBy: req.user.id,
         });
         await safetyAlerts.save();
         res.status(201).json({message:"Safety  Alert Created successfully!"});

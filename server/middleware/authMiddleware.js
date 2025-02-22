@@ -24,7 +24,7 @@ exports.isResident = function(req, res, next){
 
 exports.isManager = function(req,res,next){
     if(req.user.role != 'Manager'){
-        return res.status(403).json({message:"Access denied. Not authorized as a Service Provider."});
+        return res.status(403).json({message:"Access denied. Not authorized as a Manager."});
     }
     next();
 };

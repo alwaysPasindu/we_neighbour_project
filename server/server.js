@@ -31,5 +31,8 @@ app.use('/api/service-providers', serviceProviderRoutes);
 const notificarionRoutes = require('./routes/notificationRoutes');
 app.use('/api/notifications',notificarionRoutes);
 
+const safetyAlerts = require('./routes/safetyRoutes');
+app.use('/api/safety-alerts',safetyAlerts);
+
 
 app.listen(PORT, () => console.log('Server running on http://localhost:${PORT}'));

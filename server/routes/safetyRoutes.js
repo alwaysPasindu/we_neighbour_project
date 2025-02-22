@@ -9,8 +9,8 @@ const{
 
 const router = express.Router();
 
-router.post('/safety-alerts',authenticate,isManager,createSafetyAlert);
-router.get('/safety-alerts',authenticate,getSafetyAlerts);
-router.delete('/safety-alerts/:id',authenticate,isManager,deleteSafetyAlert);
+router.post('/create-alerts',authenticate,isManager,createSafetyAlert);
+router.get('/get-alerts',authenticate,getSafetyAlerts);
+router.delete('/delete-alerts/:id',authenticate,isManager,deleteSafetyAlert);
 
 module.exports = router;
