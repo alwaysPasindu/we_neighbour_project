@@ -1,7 +1,7 @@
 const SafetyAlerts = require('../models/SafetyAlerts');
 
 //Create Safety alerts
-exports.createSafetyAlerts = async(req,res) => {
+exports.createSafetyAlert = async(req,res) => {
     try{
         const{title, description} = req.body;
         const safetyAlerts = new SafetyAlerts({
@@ -29,7 +29,7 @@ exports.getSafetyAlerts = async(req,res) => {
 };
 
 //delete safety alert
-exports.deleteSafetyAlerts = async(req,res) => {
+exports.deleteSafetyAlert = async(req,res) => {
     try{
         const{id} = req.params;
         await SafetyAlerts.findByIdAndDelete(id);
