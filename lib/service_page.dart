@@ -4,7 +4,11 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
-import 'models/service.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:provider/provider.dart';
+import '../models/service.dart';
+import '../providers/theme_provider.dart';
 
 class ServicesPage extends StatefulWidget {
   const ServicesPage({Key? key}) : super(key: key);
@@ -26,63 +30,176 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   Future<void> _loadServices() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? servicesJson = prefs.getString('services');
-    if (servicesJson != null) {
-      final List<dynamic> decodedServices = jsonDecode(servicesJson);
-      setState(() {
-        _allServices = decodedServices.map((service) => Service.fromJson(service)).toList();
-        _filteredServices = List.from(_allServices);
-      });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? servicesJson = prefs.getString('services');
+      if (servicesJson != null) {
+        final List<dynamic> decodedServices = jsonDecode(servicesJson);
+        setState(() {
+          _allServices = decodedServices.map((service) => Service.fromJson(service)).toList();
+          _filteredServices = List.from(_allServices);
+        });
+      }
+    } catch (e) {
+      print('Error loading services: $e');
     }
   }
 
   Future<void> _saveServices() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String servicesJson = jsonEncode(_allServices.map((service) => service.toJson()).toList());
-    await prefs.setString('services', servicesJson);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String servicesJson = jsonEncode(_allServices.map((service) => service.toJson()).toList());
+      await prefs.setString('services', servicesJson);
+    } catch (e) {
+      print('Error saving services: $e');
+    }
+  }
+
+  Future<String> _saveImageToAppDirectory(XFile file) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${path.basename(file.path)}';
+      final savedImage = File('${appDir.path}/$fileName');
+      
+      await file.saveTo(savedImage.path);
+      
+      return savedImage.path;
+    } catch (e) {
+      print('Error saving image: $e');
+      throw Exception('Failed to save image');
+    }
+  }
+
+  Widget _buildServiceImage(String imagePath) {
+    return FutureBuilder<bool>(
+      future: File(imagePath).exists(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.data == true) {
+            return Image.file(
+              File(imagePath),
+              height: 120,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                print('Error loading image: $error');
+                return _buildPlaceholderImage();
+              },
+            );
+          } else {
+            print('Image file does not exist: $imagePath');
+            return _buildPlaceholderImage();
+          }
+        } else {
+          return const CircularProgressIndicator();
+        }
+      },
+    );
+  }
+
+  Widget _buildPlaceholderImage() {
+    final isDarkMode = Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark;
+    return Container(
+      height: 120,
+      width: double.infinity,
+      color: isDarkMode ? const Color(0xFF404040) : const Color(0xFFD7D7D7),
+      child: Icon(
+        Icons.image_not_supported,
+        size: 40,
+        color: isDarkMode ? Colors.grey[400] : const Color(0xFF202020),
+      ),
+    );
   }
 
   void _addNewService() {
+    final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).themeMode == ThemeMode.dark;
+    
     showDialog(
       context: context,
       builder: (BuildContext context) {
         String title = '';
         String description = '';
         String companyName = '';
-        List<String> imagePaths = [];
+        List<XFile> imageFiles = [];
 
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Add New Service'),
+              backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
+              title: Text(
+                'Add New Service',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
-                      decoration: const InputDecoration(labelText: 'Title'),
+                      decoration: InputDecoration(
+                        labelText: 'Title',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
+                          ),
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
                       onChanged: (value) => title = value,
                     ),
                     TextField(
-                      decoration: const InputDecoration(labelText: 'Description'),
+                      decoration: InputDecoration(
+                        labelText: 'Description',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
+                          ),
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
                       onChanged: (value) => description = value,
                     ),
                     TextField(
-                      decoration: const InputDecoration(labelText: 'Company Name'),
+                      decoration: InputDecoration(
+                        labelText: 'Company Name',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
+                          ),
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
                       onChanged: (value) => companyName = value,
                     ),
                     const SizedBox(height: 16),
-                    if (imagePaths.isNotEmpty)
+                    if (imageFiles.isNotEmpty)
                       Container(
                         height: 100,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
+                          border: Border.all(
+                            color: isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: imagePaths.length,
+                          itemCount: imageFiles.length,
                           itemBuilder: (context, index) {
                             return Stack(
                               children: [
@@ -91,7 +208,7 @@ class _ServicesPageState extends State<ServicesPage> {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: Image.file(
-                                      File(imagePaths[index]),
+                                      File(imageFiles[index].path),
                                       height: 80,
                                       width: 80,
                                       fit: BoxFit.cover,
@@ -105,7 +222,7 @@ class _ServicesPageState extends State<ServicesPage> {
                                     icon: const Icon(Icons.close, color: Colors.red),
                                     onPressed: () {
                                       setState(() {
-                                        imagePaths.removeAt(index);
+                                        imageFiles.removeAt(index);
                                       });
                                     },
                                   ),
@@ -119,26 +236,36 @@ class _ServicesPageState extends State<ServicesPage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
+                          border: Border.all(
+                            color: isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text('No images selected'),
+                        child: Text(
+                          'No images selected',
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
                       ),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
-                      onPressed: imagePaths.length >= 5 
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isDarkMode ? const Color(0xFF004CFF) : const Color(0xFF0C78F8),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: imageFiles.length >= 5 
                           ? null 
                           : () async {
                               final ImagePicker picker = ImagePicker();
                               try {
                                 final List<XFile> pickedFiles = await picker.pickMultiImage();
                                 if (pickedFiles.isNotEmpty) {
-                                  // Limit the number of images that can be added
-                                  final int remainingSlots = 5 - imagePaths.length;
+                                  final int remainingSlots = 5 - imageFiles.length;
                                   final List<XFile> limitedFiles = pickedFiles.take(remainingSlots).toList();
                                   
                                   setState(() {
-                                    imagePaths.addAll(limitedFiles.map((file) => file.path));
+                                    imageFiles.addAll(limitedFiles);
                                   });
 
                                   if (pickedFiles.length > remainingSlots) {
@@ -150,15 +277,15 @@ class _ServicesPageState extends State<ServicesPage> {
                               } catch (e) {
                                 print('Error picking images: $e');
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Error selecting images. Please try again.')),
+                                  const SnackBar(content: Text('Error selecting images')),
                                 );
                               }
                             },
                       icon: const Icon(Icons.add_photo_alternate),
                       label: Text(
-                        imagePaths.length >= 5 
+                        imageFiles.length >= 5 
                             ? 'Maximum images reached' 
-                            : 'Select Images (${imagePaths.length}/5)'
+                            : 'Select Images (${imageFiles.length}/5)'
                       ),
                     ),
                   ],
@@ -166,27 +293,50 @@ class _ServicesPageState extends State<ServicesPage> {
               ),
               actions: [
                 TextButton(
-                  child: const Text('Cancel'),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 TextButton(
-                  child: const Text('Add'),
-                  onPressed: () {
-                    if (title.isNotEmpty && description.isNotEmpty && imagePaths.isNotEmpty && companyName.isNotEmpty) {
-                      final newService = Service(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        title: title,
-                        description: description,
-                        imagePaths: imagePaths,
-                        userId: currentUserId,
-                        companyName: companyName,
-                      );
-                      setState(() {
-                        _allServices.insert(0, newService);
-                        _filteredServices = List.from(_allServices);
-                      });
-                      _saveServices();
-                      Navigator.of(context).pop();
+                  child: Text(
+                    'Add',
+                    style: TextStyle(
+                      color: isDarkMode ? const Color(0xFF004CFF) : const Color(0xFF0C78F8),
+                    ),
+                  ),
+                  onPressed: () async {
+                    if (title.isNotEmpty && description.isNotEmpty && imageFiles.isNotEmpty && companyName.isNotEmpty) {
+                      try {
+                        List<String> imagePaths = [];
+                        for (var file in imageFiles) {
+                          final String savedPath = await _saveImageToAppDirectory(file);
+                          imagePaths.add(savedPath);
+                        }
+                        
+                        final newService = Service(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          title: title,
+                          description: description,
+                          imagePaths: imagePaths,
+                          userId: currentUserId,
+                          companyName: companyName,
+                        );
+
+                        setState(() {
+                          _allServices.insert(0, newService);
+                          _filteredServices = List.from(_allServices);
+                        });
+                        await _saveServices();
+                        Navigator.of(context).pop();
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error saving service: $e')),
+                        );
+                      }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Please fill all fields and select at least one image')),
@@ -204,9 +354,18 @@ class _ServicesPageState extends State<ServicesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Services'),
+        title: Text(
+          'Services',
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFF4B7DFF),
       ),
       body: Column(
         children: [
@@ -215,12 +374,27 @@ class _ServicesPageState extends State<ServicesPage> {
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Search services...',
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(
+                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: isDarkMode ? const Color(0xFF2C2C2C) : const Color(0xFFFCF9F9),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: isDarkMode ? Colors.grey[800]! : Colors.grey[300]!,
+                  ),
+                ),
+              ),
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
               ),
               onChanged: (query) {
                 setState(() {
@@ -256,6 +430,7 @@ class _ServicesPageState extends State<ServicesPage> {
                     );
                   },
                   child: Card(
+                    color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -264,20 +439,7 @@ class _ServicesPageState extends State<ServicesPage> {
                       children: [
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                          child: Image.file(
-                            File(service.imagePaths.first),
-                            height: 120,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                height: 120,
-                                width: double.infinity,
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.image_not_supported, size: 40),
-                              );
-                            },
-                          ),
+                          child: _buildServiceImage(service.imagePaths.first),
                         ),
                         Padding(
                           padding: const EdgeInsets.all(12),
@@ -286,9 +448,10 @@ class _ServicesPageState extends State<ServicesPage> {
                             children: [
                               Text(
                                 service.title,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
+                                  color: isDarkMode ? Colors.white : const Color(0xFF202020),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -297,7 +460,7 @@ class _ServicesPageState extends State<ServicesPage> {
                               Text(
                                 service.description,
                                 style: TextStyle(
-                                  color: Colors.grey[600],
+                                  color: isDarkMode ? Colors.grey[400] : const Color(0xFF1E1E1E),
                                   fontSize: 12,
                                 ),
                                 maxLines: 2,
@@ -317,7 +480,8 @@ class _ServicesPageState extends State<ServicesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addNewService,
-        child: const Icon(Icons.add),
+        backgroundColor: isDarkMode ? const Color(0xFF004CFF) : const Color(0xFF0C78F8),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -327,15 +491,64 @@ class ServiceDetailsPage extends StatelessWidget {
   final Service service;
 
   const ServiceDetailsPage({
-    Key? key,
+    super.key,
     required this.service,
-  }) : super(key: key);
+  });
+
+  Widget _buildServiceImage(String imagePath) {
+    return FutureBuilder<bool>(
+      future: File(imagePath).exists(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.data == true) {
+            return Image.file(
+              File(imagePath),
+              fit: BoxFit.cover,
+              width: double.infinity,
+              errorBuilder: (context, error, stackTrace) {
+                print('Error loading image: $error');
+                return _buildPlaceholderImage(context);
+              },
+            );
+          } else {
+            print('Image file does not exist: $imagePath');
+            return _buildPlaceholderImage(context);
+          }
+        } else {
+          return const CircularProgressIndicator();
+        }
+      },
+    );
+  }
+
+  Widget _buildPlaceholderImage(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark;
+    return Container(
+      color: isDarkMode ? const Color(0xFF404040) : const Color(0xFFD7D7D7),
+      child: Icon(
+        Icons.image_not_supported,
+        size: 40,
+        color: isDarkMode ? Colors.grey[400] : const Color(0xFF202020),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(service.title),
+        title: Text(
+          service.title,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFF004CFF),
+        iconTheme: IconThemeData(
+          color: isDarkMode ? Colors.white : Colors.white,
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -347,22 +560,14 @@ class ServiceDetailsPage extends StatelessWidget {
                 slideTransform: const CubeTransform(),
                 slideIndicator: CircularSlideIndicator(
                   padding: const EdgeInsets.only(bottom: 32),
+                  indicatorBackgroundColor: isDarkMode ? Colors.grey[800]! : Colors.grey[300]!,
+                  currentIndicatorColor: isDarkMode ? Colors.white : const Color(0xFF004CFF),
                 ),
                 unlimitedMode: true,
                 children: service.imagePaths.map((imagePath) {
                   return Builder(
                     builder: (BuildContext context) {
-                      return Image.file(
-                        File(imagePath),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.image_not_supported, size: 40),
-                          );
-                        },
-                      );
+                      return _buildServiceImage(imagePath);
                     },
                   );
                 }).toList(),
@@ -375,9 +580,10 @@ class ServiceDetailsPage extends StatelessWidget {
                 children: [
                   Text(
                     service.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : const Color(0xFF202020),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -385,25 +591,17 @@ class ServiceDetailsPage extends StatelessWidget {
                     service.description,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey[600],
+                      color: isDarkMode ? Colors.grey[400] : const Color(0xFF1E1E1E),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Provided by: ${service.companyName}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : const Color(0xFF202020),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Booking functionality to be implemented')),
-                      );
-                    },
-                    child: const Text('Book Now'),
                   ),
                 ],
               ),
@@ -414,4 +612,3 @@ class ServiceDetailsPage extends StatelessWidget {
     );
   }
 }
-
