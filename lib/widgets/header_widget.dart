@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../constants/colors.dart';
 import 'package:we_neighbour/notification_page.dart';
 import '../constants/text_styles.dart';
 
@@ -27,7 +26,7 @@ class HeaderWidget extends StatelessWidget {
                 Row(
                   children: [
                     Image.asset(
-                      'assets/logo.jpeg', 
+                      'assets/images/logo.png', 
                       height: 75,
                     ),
                     const SizedBox(width: 8),
@@ -35,7 +34,7 @@ class HeaderWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 0),
                 const Text(
-                  'Hello, John...!',
+                  'Hello, Company...!',
                   style: AppTextStyles.greeting,
                 ),
               ],
