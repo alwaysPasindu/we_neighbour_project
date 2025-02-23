@@ -3,13 +3,13 @@ const bcrypt = require('bcrypt');
 
 exports.registerResident = async (req, res) => {
   try {
-            const { name,nic,email,password,phone,address,apartmentName } = req.body;
+            const { name,nic,email,password,phone,address,apartmentComplexName,apartmentCode } = req.body;
             if (!name || !email || !password) {
             return res.status(400).json({ message: "Please provide all required fields." });
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
-            const newResident = new Resident({name,nic,email,password:hashedPassword,phone,address,apartmentName});
+            const newResident = new Resident({name,nic,email,password:hashedPassword,phone,address,apartmentComplexName,apartmentCode});
             await newResident.save();
 
             res.status(201).json({ message: "Resident registered successfully!" });
