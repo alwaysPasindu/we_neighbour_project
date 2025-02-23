@@ -23,3 +23,13 @@ exports.createComplaint = async(req,res) => {
         res.status(500).json({message:"Server Error"});
     }
 };
+
+exports.getComplaints = async(req,res) => {
+    try{
+        const complaint = await Complaint.find().sort({createdAt:-1}).populate('resident','name'); 
+        res.json(complaint);
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+};
