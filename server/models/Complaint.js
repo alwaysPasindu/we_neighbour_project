@@ -9,7 +9,8 @@ const ComplaintSchema = new mongoose.Schema({
         required:true,
     },
     apartmentCode: {type:String, required:true},
-    createdAt:{type:String, default: Date.now},
+    createdAt:{type:Date, default: Date.now},
+    
 });
 
 module.exports = mongoose.model('Complaint', ComplaintSchema);

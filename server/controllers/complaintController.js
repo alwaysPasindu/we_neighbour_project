@@ -24,6 +24,7 @@ exports.createComplaint = async(req,res) => {
     }
 };
 
+//Get all complaints
 exports.getComplaints = async(req,res) => {
     try{
         const complaint = await Complaint.find().sort({createdAt:-1}).populate('resident','name'); 
