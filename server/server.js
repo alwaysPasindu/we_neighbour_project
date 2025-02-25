@@ -38,6 +38,6 @@ const complaintsRoutes = require('./routes/complaintRoutes');
 app.use('/api/complaints',complaintsRoutes);
 
 const visitorRoutes = require('./routes/visitorRoutes');
-app.use('./api/visitor', visitorRoutes);
+app.use('/api/visitor', visitorRoutes);
 
 app.listen(PORT, () => console.log('Server running on http://localhost:${PORT}'));

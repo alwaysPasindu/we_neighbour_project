@@ -16,7 +16,7 @@ exports.generateQRCodeData = async(req,res) => {
         const qrData = {
             residentName: resident.name,
             apartmentCode: resident.apartmentCode,
-            numberOfVisitors,
+            numOfVisitors,
             visitorNames,
             phone: resident.phone,
         };
