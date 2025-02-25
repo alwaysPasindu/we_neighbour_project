@@ -109,18 +109,14 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
       child: TextFormField(
         controller: controller,
-        keyboardType: keyboardType ?? TextInputType.visiblePassword,
+        keyboardType: keyboardType,
         obscureText: obscureText,
         enableSuggestions: false,
         autocorrect: false,
-        enableInteractiveSelection: false,
-        textInputAction: TextInputAction.none,
+        textInputAction: TextInputAction.next,
         smartDashesType: SmartDashesType.disabled,
         smartQuotesType: SmartQuotesType.disabled,
-        spellCheckConfiguration: SpellCheckConfiguration.disabled(),
-        inputFormatters: inputFormatters ?? [
-          FilteringTextInputFormatter.deny(RegExp(r'[•]')),
-        ],
+        inputFormatters: inputFormatters,
         style: const TextStyle(color: Colors.black87),
         decoration: InputDecoration(
           hintText: hint,
@@ -172,7 +168,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   _buildTextField(
                     hint: 'Name',
                     controller: _nameController,
-                    keyboardType: TextInputType.visiblePassword,
+                    keyboardType: TextInputType.name,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
                     ],
@@ -191,7 +187,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   _buildTextField(
                     hint: 'NIC',
                     controller: _nicController,
-                    keyboardType: TextInputType.visiblePassword,
+                    keyboardType: TextInputType.text,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9Vv]')),
                     ],
@@ -210,7 +206,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   _buildTextField(
                     hint: 'Email',
                     controller: _emailController,
-                    keyboardType: TextInputType.visiblePassword,
+                    keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Email is required';
@@ -226,7 +222,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   _buildTextField(
                     hint: 'Contact No',
                     controller: _contactController,
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.phone,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                     ],
@@ -245,7 +241,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   _buildTextField(
                     hint: 'Address',
                     controller: _addressController,
-                    keyboardType: TextInputType.visiblePassword,
+                    keyboardType: TextInputType.streetAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Address is required';
@@ -308,7 +304,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         return 'Password is required';
                       }
                       if (!_isStrongPassword(value)) {
-                        return 'Password must contain at least 8 characters, including uppercase, lowercase, number and special character';
+                        return 'Password must contain uppercase, lowercase, number and special character';
                       }
                       return null;
                     },

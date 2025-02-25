@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ManagerSignUpPage extends StatefulWidget {
   const ManagerSignUpPage({super.key});
@@ -29,9 +30,29 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
     super.dispose();
   }
 
+  bool _isValidName(String name) {
+    return RegExp(r'^[a-zA-Z\s]+$').hasMatch(name);
+  }
+
+  bool _isValidNIC(String nic) {
+    return RegExp(r'^\d{9}[Vv]$|^\d{12}$').hasMatch(nic);
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  bool _isValidContact(String contact) {
+    return RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
+  }
+
+  bool _isStrongPassword(String password) {
+    return RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+        .hasMatch(password);
+  }
+
   void _handleSignUp() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement sign up logic
       print('Name: ${_nameController.text}');
       print('NIC: ${_nicController.text}');
       print('Email: ${_emailController.text}');
@@ -39,7 +60,6 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
       print('Address: ${_addressController.text}');
       print('Apartment Name: ${_apartmentNameController.text}');
       
-      // Navigate to login page after successful signup
       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
     }
   }
@@ -50,6 +70,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
     TextInputType? keyboardType,
     bool obscureText = false,
     String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -60,19 +81,24 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
         controller: controller,
         keyboardType: keyboardType,
         obscureText: obscureText,
+        enableSuggestions: false,
+        autocorrect: false,
+        textInputAction: TextInputAction.next,
+        smartDashesType: SmartDashesType.disabled,
+        smartQuotesType: SmartQuotesType.disabled,
+        inputFormatters: inputFormatters,
+        style: const TextStyle(color: Colors.black87),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[600]),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
-          errorStyle: const TextStyle(height: 0),
+          errorStyle: const TextStyle(
+            color: Colors.red,
+            fontSize: 12,
+          ),
         ),
-        validator: validator ?? (value) {
-          if (value == null || value.isEmpty) {
-            return 'This field is required';
-          }
-          return null;
-        },
+        validator: validator,
       ),
     );
   }
@@ -90,7 +116,6 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo
                   Center(
                     child: Image.asset(
                       'assets/images/logo.png',
@@ -98,9 +123,8 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                       fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(height: 0),
+                  const SizedBox(height: 24),
 
-                  // Sign Up Text
                   const Text(
                     'Manager Sign Up',
                     style: TextStyle(
@@ -111,16 +135,41 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Form Fields
                   _buildTextField(
                     hint: 'Name',
                     controller: _nameController,
+                    keyboardType: TextInputType.name,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Name is required';
+                      }
+                      if (!_isValidName(value)) {
+                        return 'Please enter a valid name (letters only)';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
                   _buildTextField(
                     hint: 'NIC',
                     controller: _nicController,
+                    keyboardType: TextInputType.text,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9Vv]')),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'NIC is required';
+                      }
+                      if (!_isValidNIC(value)) {
+                        return 'Please enter a valid NIC number';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -132,8 +181,8 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                       if (value == null || value.isEmpty) {
                         return 'Email is required';
                       }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email';
+                      if (!_isValidEmail(value)) {
+                        return 'Please enter a valid email address';
                       }
                       return null;
                     },
@@ -144,18 +193,50 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                     hint: 'Contact No',
                     controller: _contactController,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Contact number is required';
+                      }
+                      if (!_isValidContact(value)) {
+                        return 'Please enter a valid contact number';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
                   _buildTextField(
                     hint: 'Address',
                     controller: _addressController,
+                    keyboardType: TextInputType.streetAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Address is required';
+                      }
+                      if (value.length < 5) {
+                        return 'Please enter a valid address';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
                   _buildTextField(
                     hint: 'Apartment Name',
                     controller: _apartmentNameController,
+                    keyboardType: TextInputType.text,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Apartment name is required';
+                      }
+                      if (value.length < 3) {
+                        return 'Please enter a valid apartment name';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -163,19 +244,19 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                     hint: 'Password',
                     controller: _passwordController,
                     obscureText: true,
+                    keyboardType: TextInputType.visiblePassword,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Password is required';
                       }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
+                      if (!_isStrongPassword(value)) {
+                        return 'Password must contain uppercase, lowercase, number and special character';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 20),
 
-                  // Sign Up Button
                   ElevatedButton(
                     onPressed: _handleSignUp,
                     style: ElevatedButton.styleFrom(
@@ -196,7 +277,6 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Sign In Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

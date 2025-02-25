@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ServiceProviderSignUpPage extends StatefulWidget {
   const ServiceProviderSignUpPage({super.key});
@@ -25,15 +26,26 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
     super.dispose();
   }
 
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  bool _isValidContact(String contact) {
+    return RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
+  }
+
+  bool _isStrongPassword(String password) {
+    return RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+        .hasMatch(password);
+  }
+
   void _handleSignUp() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement sign up logic
       print('Company Name: ${_companyNameController.text}');
       print('Email: ${_emailController.text}');
       print('Service Type: ${_serviceTypeController.text}');
       print('Contact: ${_contactController.text}');
       
-      // Navigate back to login page after successful signup
       Navigator.pushNamedAndRemoveUntil(
         context,
         '/provider-home',
@@ -48,6 +60,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
     TextInputType? keyboardType,
     bool obscureText = false,
     String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -58,19 +71,24 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
         controller: controller,
         keyboardType: keyboardType,
         obscureText: obscureText,
+        enableSuggestions: false,
+        autocorrect: false,
+        textInputAction: TextInputAction.next,
+        smartDashesType: SmartDashesType.disabled,
+        smartQuotesType: SmartQuotesType.disabled,
+        inputFormatters: inputFormatters,
+        style: const TextStyle(color: Colors.black87),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[600]),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
-          errorStyle: const TextStyle(height: 0),
+          errorStyle: const TextStyle(
+            color: Colors.red,
+            fontSize: 12,
+          ),
         ),
-        validator: validator ?? (value) {
-          if (value == null || value.isEmpty) {
-            return 'This field is required';
-          }
-          return null;
-        },
+        validator: validator,
       ),
     );
   }
@@ -88,7 +106,6 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo
                   Center(
                     child: Image.asset(
                       'assets/images/logo.png',
@@ -98,9 +115,8 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Sign Up Text
                   const Text(
-                    'Sign Up',
+                    'Service Provider Sign Up',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -109,10 +125,22 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Form Fields
                   _buildTextField(
                     hint: 'Company Name/Your Name',
                     controller: _companyNameController,
+                    keyboardType: TextInputType.name,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Company name is required';
+                      }
+                      if (value.length < 2) {
+                        return 'Please enter a valid company name';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -124,8 +152,8 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                       if (value == null || value.isEmpty) {
                         return 'Email is required';
                       }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email';
+                      if (!_isValidEmail(value)) {
+                        return 'Please enter a valid email address';
                       }
                       return null;
                     },
@@ -135,6 +163,16 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                   _buildTextField(
                     hint: 'Service Type',
                     controller: _serviceTypeController,
+                    keyboardType: TextInputType.text,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Service type is required';
+                      }
+                      if (value.length < 3) {
+                        return 'Please enter a valid service type';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -142,6 +180,18 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                     hint: 'Contact No',
                     controller: _contactController,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Contact number is required';
+                      }
+                      if (!_isValidContact(value)) {
+                        return 'Please enter a valid contact number';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -149,19 +199,19 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                     hint: 'Password',
                     controller: _passwordController,
                     obscureText: true,
+                    keyboardType: TextInputType.visiblePassword,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Password is required';
                       }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
+                      if (!_isStrongPassword(value)) {
+                        return 'Password must contain uppercase, lowercase, number and special character';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 32),
 
-                  // Sign Up Button
                   ElevatedButton(
                     onPressed: _handleSignUp,
                     style: ElevatedButton.styleFrom(
@@ -182,7 +232,6 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Sign In Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -217,15 +266,3 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
