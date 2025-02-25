@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:we_neighbour/company_profile_screen.dart';
-import 'package:we_neighbour/home_page.dart';
-import 'package:we_neighbour/service_page.dart';
+import 'package:we_neighbour/screens/company_profile_screen.dart';
+import 'package:we_neighbour/screens/provider_home_page.dart';
+import 'package:we_neighbour/screens/service_page.dart';
 import 'providers/theme_provider.dart';
-import 'widgets/bottom_navigation.dart';
+import 'widgets/provider_bottom_navigation.dart';
 
 void main() {
   runApp(
