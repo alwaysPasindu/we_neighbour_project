@@ -26,14 +26,14 @@ class FeatureGrid extends StatelessWidget {
     features = [
       FeatureItem(
         title: 'AMENITIES BOOKING',
-        icon: Image.asset('assets/icons/amenities.png', height: 32, width: 32),
+        icon: Image.asset('assets/icons/amenities.png', height: 28, width: 28),
         onTap: () {
           // TODO: Implement amenities booking navigation
         },
       ),
       FeatureItem(
         title: 'VISITOR MANAGEMENT',
-        icon: Image.asset('assets/icons/visitor.png', height: 32, width: 32),
+        icon: Image.asset('assets/icons/visitor.png', height: 28, width: 28),
         onTap: () {
           Navigator.push(
             context,
@@ -43,14 +43,14 @@ class FeatureGrid extends StatelessWidget {
       ),
       FeatureItem(
         title: 'Apartment MAINTENANCE',
-        icon: Image.asset('assets/icons/maintenance.png', height: 32, width: 32),
+        icon: Image.asset('assets/icons/maintenance.png', height: 28, width: 28),
         onTap: () {
           // TODO: Implement maintenance navigation
         },
       ),
       FeatureItem(
         title: 'EVENT CALENDAR',
-        icon: Image.asset('assets/icons/calendar.png', height: 32, width: 32),
+        icon: Image.asset('assets/icons/calendar.png', height: 28, width: 28),
         onTap: () {
           Navigator.push(
             context,
@@ -60,33 +60,37 @@ class FeatureGrid extends StatelessWidget {
       ),
       FeatureItem(
         title: 'BILLS',
-        icon: Image.asset('assets/icons/bills.png', height: 32, width: 32),
+        icon: Image.asset('assets/icons/bills.png', height: 28, width: 28),
         onTap: () {
           // TODO: Implement bills navigation
         },
       ),
       FeatureItem(
         title: 'Chats',
-        icon: Image.asset('assets/icons/chat.png', height: 32, width: 32),
+        icon: Image.asset('assets/icons/chat.png', height: 28, width: 28),
         onTap: () {
           // TODO: Implement chats navigation
         },
       ),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(30),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.85, // Adjusted to accommodate the content
+        ),
+        itemCount: features.length,
+        itemBuilder: (context, index) {
+          return _buildFeatureItem(features[index]);
+        },
       ),
-      itemCount: features.length,
-      itemBuilder: (context, index) {
-        return _buildFeatureItem(features[index]);
-      },
     );
   }
 
@@ -94,28 +98,33 @@ class FeatureGrid extends StatelessWidget {
     return GestureDetector(
       onTap: item.onTap,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.cardBackground,
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
                   blurRadius: 4,
-                  offset: const Offset(0, 9),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: item.icon,
           ),
-          const SizedBox(height: 8),
-          Text(
-            item.title,
-            style: AppTextStyles.featureTitle,
-            textAlign: TextAlign.center,
+          const SizedBox(height: 6),
+          Flexible(
+            child: Text(
+              item.title,
+              style: AppTextStyles.featureTitle,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
