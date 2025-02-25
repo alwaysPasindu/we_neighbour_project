@@ -60,6 +60,7 @@ class AccountTypePage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 0, 0, 0),
                     height: 1.2,
                     letterSpacing: 0.5,
                   ),

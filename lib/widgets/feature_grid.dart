@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:we_neighbour/screens/visitor_management_screen.dart';
 import '../constants/colors.dart';
 import '../constants/text_styles.dart';
 import '../screens/event_calendar_screen.dart';
@@ -34,7 +35,10 @@ class FeatureGrid extends StatelessWidget {
         title: 'VISITOR MANAGEMENT',
         icon: Image.asset('assets/icons/visitor.png', height: 32, width: 32),
         onTap: () {
-          // TODO: Implement visitor management navigation
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const VisitorManagementScreen()),
+          );
         },
       ),
       FeatureItem(

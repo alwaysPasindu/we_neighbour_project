@@ -21,7 +21,7 @@ class EventCalendarScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                    icon: const Icon(Icons.arrow_back, color: Color.fromARGB(255, 196, 196, 196)),
                     onPressed: () {
                       Navigator.pop(context);
                     },

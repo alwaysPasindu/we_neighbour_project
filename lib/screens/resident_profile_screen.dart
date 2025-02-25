@@ -19,7 +19,7 @@ class ResidentProfileScreen extends StatelessWidget {
                 const SizedBox(height: 50),
                 _buildProfileImage(),
                 const SizedBox(height: 16),
-                Text('John Doe', style: AppTextStyles.greeting),
+                Text('John Doe ', style: AppTextStyles.greeting),
                 const SizedBox(height: 32),
                 _buildInfoField('Email', 'johndoe@gmail.com'),
                 _buildInfoField('Phone Number', '+94 71 234 3465'),
