@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -29,7 +30,6 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Get the account type from the navigation arguments
     final args = ModalRoute.of(context)?.settings.arguments as String?;
     if (args != null) {
       _accountType = args;
@@ -60,9 +60,29 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
+  bool _isValidName(String name) {
+    return RegExp(r'^[a-zA-Z\s]+$').hasMatch(name);
+  }
+
+  bool _isValidNIC(String nic) {
+    return RegExp(r'^\d{9}[Vv]$|^\d{12}$').hasMatch(nic);
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  bool _isValidContact(String contact) {
+    return RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
+  }
+
+  bool _isStrongPassword(String password) {
+    return RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+        .hasMatch(password);
+  }
+
   void _handleSignUp() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement your sign up logic here
       print('Name: ${_nameController.text}');
       print('NIC: ${_nicController.text}');
       print('Email: ${_emailController.text}');
@@ -70,7 +90,6 @@ class _SignUpPageState extends State<SignUpPage> {
       print('Address: ${_addressController.text}');
       print('Apartment: $_selectedApartment');
       
-      // Navigate to login page after successful signup
       Navigator.pop(context);
     }
   }
@@ -81,6 +100,7 @@ class _SignUpPageState extends State<SignUpPage> {
     TextInputType? keyboardType,
     bool obscureText = false,
     String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -89,21 +109,30 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
       child: TextFormField(
         controller: controller,
-        keyboardType: keyboardType,
+        keyboardType: keyboardType ?? TextInputType.visiblePassword,
         obscureText: obscureText,
+        enableSuggestions: false,
+        autocorrect: false,
+        enableInteractiveSelection: false,
+        textInputAction: TextInputAction.none,
+        smartDashesType: SmartDashesType.disabled,
+        smartQuotesType: SmartQuotesType.disabled,
+        spellCheckConfiguration: SpellCheckConfiguration.disabled(),
+        inputFormatters: inputFormatters ?? [
+          FilteringTextInputFormatter.deny(RegExp(r'[•]')),
+        ],
+        style: const TextStyle(color: Colors.black87),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[600]),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
-          errorStyle: const TextStyle(height: 0),
+          errorStyle: const TextStyle(
+            color: Colors.red,
+            fontSize: 12,
+          ),
         ),
-        validator: validator ?? (value) {
-          if (value == null || value.isEmpty) {
-            return 'This field is required';
-          }
-          return null;
-        },
+        validator: validator,
       ),
     );
   }
@@ -121,7 +150,6 @@ class _SignUpPageState extends State<SignUpPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo
                   Center(
                     child: Image.asset(
                       'assets/images/logo.png',
@@ -131,7 +159,6 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Sign Up Text
                   Text(
                     _getTitle,
                     style: const TextStyle(
@@ -142,29 +169,54 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Form Fields
                   _buildTextField(
                     hint: 'Name',
                     controller: _nameController,
+                    keyboardType: TextInputType.visiblePassword,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Name is required';
+                      }
+                      if (!_isValidName(value)) {
+                        return 'Please enter a valid name (letters only)';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
                   _buildTextField(
                     hint: 'NIC',
                     controller: _nicController,
+                    keyboardType: TextInputType.visiblePassword,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9Vv]')),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'NIC is required';
+                      }
+                      if (!_isValidNIC(value)) {
+                        return 'Please enter a valid NIC number';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
                   _buildTextField(
                     hint: 'Email',
                     controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
+                    keyboardType: TextInputType.visiblePassword,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Email is required';
                       }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email';
+                      if (!_isValidEmail(value)) {
+                        return 'Please enter a valid email address';
                       }
                       return null;
                     },
@@ -174,17 +226,38 @@ class _SignUpPageState extends State<SignUpPage> {
                   _buildTextField(
                     hint: 'Contact No',
                     controller: _contactController,
-                    keyboardType: TextInputType.phone,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Contact number is required';
+                      }
+                      if (!_isValidContact(value)) {
+                        return 'Please enter a valid contact number';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
                   _buildTextField(
                     hint: 'Address',
                     controller: _addressController,
+                    keyboardType: TextInputType.visiblePassword,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Address is required';
+                      }
+                      if (value.length < 5) {
+                        return 'Please enter a valid address';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
 
-                  // Apartment Dropdown
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
@@ -193,13 +266,16 @@ class _SignUpPageState extends State<SignUpPage> {
                     child: DropdownButtonFormField<String>(
                       value: _selectedApartment,
                       hint: Text(
-                        'Apartment Name',
+                        'Select Apartment',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       decoration: const InputDecoration(
                         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                         border: InputBorder.none,
-                        errorStyle: TextStyle(height: 0),
+                        errorStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                        ),
                       ),
                       items: _apartments.map((String apartment) {
                         return DropdownMenuItem<String>(
@@ -226,19 +302,19 @@ class _SignUpPageState extends State<SignUpPage> {
                     hint: 'Password',
                     controller: _passwordController,
                     obscureText: true,
+                    keyboardType: TextInputType.visiblePassword,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Password is required';
                       }
-                      if (value!.length < 6) {
-                        return 'Password must be at least 6 characters';
+                      if (!_isStrongPassword(value)) {
+                        return 'Password must contain at least 8 characters, including uppercase, lowercase, number and special character';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 32),
 
-                  // Sign Up Button
                   ElevatedButton(
                     onPressed: _handleSignUp,
                     style: ElevatedButton.styleFrom(
@@ -259,7 +335,6 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Sign In Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
