@@ -49,3 +49,31 @@ exports.generateQRCodeData = async(req,res) => {
         res.status(500).json({message:"Server Error"});
     }
 };
+
+exports.checkVisitor = async (req,res) => {
+    try{
+        const{id} = req.params;
+        const{action} = req.body;
+
+        const visitor = await Visitor.findById(id);
+
+        if(!visitor){
+            return res.status(404).json({message:"Visitor not found"});
+        }
+
+        if(action === 'confirm'){
+            visitor.status = 'Confirmed';
+        }else if (action === 'reject'){
+            visitor.status = 'Rejected';
+        }else{
+            return res.status(400).json({message:"Invalid action."})
+        }
+        await visitor.save();
+
+        res.json({ message: `Visitor ${action}ed successfully!` });
+
+    }catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
