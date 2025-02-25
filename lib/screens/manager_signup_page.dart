@@ -46,11 +46,11 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
     return RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
   }
 
-  bool _isStrongPassword(String password) {
-    return RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
-        .hasMatch(password);
-  }
-
+    bool _isStrongPassword(String password) {
+  return password.length >= 6 && 
+         password.contains(RegExp(r'[0-9]')) && 
+         password.contains(RegExp(r'[a-zA-Z]'));
+}
   void _handleSignUp() {
     if (_formKey.currentState!.validate()) {
       print('Name: ${_nameController.text}');
@@ -250,7 +250,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                         return 'Password is required';
                       }
                       if (!_isStrongPassword(value)) {
-                        return 'Password must contain uppercase, lowercase, number and special character';
+                        return 'Password must be at least 6 characters with a letter and number';
                       }
                       return null;
                     },
