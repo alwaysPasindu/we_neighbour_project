@@ -28,6 +28,7 @@ exports.generateQRCodeData = async(req,res) => {
             apartmentCode:resident.apartmentCode,
             numOfVisitors,
             visitorNames,
+            phone: resident.phone,
         });
         await visitor.save();
         
@@ -37,7 +38,7 @@ exports.generateQRCodeData = async(req,res) => {
         //genaraete qr img
         const qrSvg = qr.imageSync(qrString, {type:'svg'});
         const filePath = path.join(__dirname,'../public', `${visitor._id}.svg`);
-        fs.writerFileSync(filePath, qrSvg);
+        fs.writeFileSync(filePath, qrSvg);
 
         res.json({
             qrData,
