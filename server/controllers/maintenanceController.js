@@ -37,3 +37,19 @@ exports.getPendingrequests = async(req,res) =>{
         res.status(500).json({message:"Server Error"});
     }
 };
+
+//mark maintenance requests
+exports.markRequests = async(req,res) =>{
+    try{
+        const{id} =req.params;
+        const request = Maintenance.findById(id);
+
+        request.status = 'Done';
+        await request.save();
+
+        res.json({message:"Maintenance request marked as done"});
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+}
