@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:we_neighbour/screens/visitor_management_screen.dart';
+import 'package:we_neighbour/screens/provider/provider_profile_screen.dart';
 
 // Screen imports
 import 'screens/login_page.dart';
 import 'screens/account_type_page.dart';
 import 'screens/resident_signup_page.dart';
 import 'screens/manager_signup_page.dart';
-import 'screens/service_provider_signup_page.dart';
+import 'screens/provider/provider_signup_page.dart';
 import 'screens/home_screen.dart';
-import 'screens/event_calendar_screen.dart';
 import 'screens/resident_profile_screen.dart';
 import 'screens/manager_profile_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/provider_home_page.dart';
-import 'screens/company_profile_screen.dart';
-import 'screens/service_page.dart';
+import 'screens/provider/provider_home_page.dart';
+import 'screens/provider/service_page.dart';
 
 // Provider and Constants
 import 'providers/theme_provider.dart';
@@ -39,7 +37,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -48,15 +46,32 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'We Neighbour',
           theme: ThemeData(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary,
+              secondary: Colors.blue,
+            ),
             primaryColor: AppColors.primary,
-            primarySwatch: Colors.blue,
             scaffoldBackgroundColor: AppColors.background,
             visualDensity: VisualDensity.adaptivePlatformDensity,
+            // Add other light theme customizations
+            appBarTheme: AppBarTheme(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
           ),
           darkTheme: ThemeData.dark().copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: AppColors.primary,
+              secondary: Colors.blue,
+            ),
             primaryColor: AppColors.primary,
             scaffoldBackgroundColor: Colors.grey[900],
             visualDensity: VisualDensity.adaptivePlatformDensity,
+            // Add other dark theme customizations
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.grey[900],
+              foregroundColor: Colors.white,
+            ),
           ),
           themeMode: themeProvider.themeMode,
           initialRoute: '/',
@@ -67,28 +82,27 @@ class MyApp extends StatelessWidget {
             '/manager-signup': (context) => const ManagerSignUpPage(),
             '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
             '/provider-home': (context) => const MainPage(),
+            '/service': (context) => const ServicesPage(),
+            '/login': (context) => const LoginPage(),
             '/home': (context) {
               final args = ModalRoute.of(context)?.settings.arguments;
               final userType = args is UserType ? args : UserType.resident;
               return HomeScreen(userType: userType);
             },
-
-            '/settings': (context) => SettingsScreen(
-              isDarkMode: themeProvider.isDarkMode,
-              onThemeChanged: themeProvider.toggleTheme,
-            ),
+            '/settings': (context) => const SettingsScreen(), // Updated to use const constructor
           },
           onGenerateRoute: (settings) {
             if (settings.name == '/profile') {
               final args = settings.arguments;
               final userType = args is UserType ? args : UserType.resident;
+              
               switch (userType) {
                 case UserType.resident:
                   return MaterialPageRoute(builder: (_) => const ResidentProfileScreen());
                 case UserType.manager:
                   return MaterialPageRoute(builder: (_) => const ManagerProfileScreen());
                 case UserType.serviceProvider:
-                  return MaterialPageRoute(builder: (_) => const MainPage());
+                  return MaterialPageRoute(builder: (_) => const CompanyProfileScreen());
               }
             }
             return null;
@@ -104,7 +118,7 @@ class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
   @override
-  _MainPageState createState() => _MainPageState();
+  State<MainPage> createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {

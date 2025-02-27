@@ -7,7 +7,7 @@ import 'dart:io';
 import 'provider_settings_screen.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
-  const CompanyProfileScreen({Key? key}) : super(key: key);
+  const CompanyProfileScreen({super.key});
 
   @override
   _CompanyProfileScreenState createState() => _CompanyProfileScreenState();

@@ -6,42 +6,93 @@ class BottomNavigation extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
   final UserType userType;
+  final bool isDarkMode;
 
   const BottomNavigation({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
     required this.userType,
-  }) : super(key: key);
+    required this.isDarkMode,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: AppColors.cardBackground,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textSecondary,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
+    return Container(
+      decoration: BoxDecoration(
+        color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode 
+              ? Colors.black.withOpacity(0.3)
+              : Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onTap,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: isDarkMode 
+          ? AppColors.darkTextSecondary 
+          : AppColors.textSecondary,
+        selectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.primary,
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: 'Search',
+        unselectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.normal,
+          color: isDarkMode 
+            ? AppColors.darkTextSecondary 
+            : AppColors.textSecondary,
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.notifications),
-          label: 'Notifications',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Profile',
-        ),
-      ],
+        items: [
+          _buildNavigationBarItem(
+            icon: Icons.home_outlined,
+            activeIcon: Icons.home,
+            label: 'Home',
+          ),
+          _buildNavigationBarItem(
+            icon: Icons.chat_bubble_outline,
+            activeIcon: Icons.chat_bubble,
+            label: 'Chat',
+          ),
+          _buildNavigationBarItem(
+            icon: Icons.share_outlined,
+            activeIcon: Icons.share,
+            label: 'Resource',
+          ),
+          _buildNavigationBarItem(
+            icon: Icons.dashboard_outlined,
+            activeIcon: Icons.dashboard,
+            label: 'Service',
+          ),
+          _buildNavigationBarItem(
+            icon: Icons.person_outline,
+            activeIcon: Icons.person,
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+
+  BottomNavigationBarItem _buildNavigationBarItem({
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+  }) {
+    return BottomNavigationBarItem(
+      icon: Icon(icon),
+      activeIcon: Icon(activeIcon),
+      label: label,
     );
   }
 }
-

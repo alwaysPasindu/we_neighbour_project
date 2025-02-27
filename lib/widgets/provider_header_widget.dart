@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:we_neighbour/screens/notification_page.dart';
+import 'package:we_neighbour/screens/provider/provider_notification_page.dart';
 import '../constants/text_styles.dart';
 
 class HeaderWidget extends StatelessWidget {
-  const HeaderWidget({Key? key}) : super(key: key);
+  const HeaderWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class HeaderWidget extends StatelessWidget {
                   children: [
                     Image.asset(
                       'assets/images/logo.png', 
-                      height: 75,
+                      height: 90,
                     ),
                     const SizedBox(width: 8),
                   ],

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import '../../models/service.dart';
-import '../../providers/theme_provider.dart';
+import '../../../models/service.dart';
+import '../../../providers/theme_provider.dart';
 
 class ServiceDetailsPage extends StatelessWidget {
   final Service service;

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class ManagerSignUpPage extends StatefulWidget {
   const ManagerSignUpPage({super.key});
@@ -53,48 +51,18 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
          password.contains(RegExp(r'[0-9]')) && 
          password.contains(RegExp(r'[a-zA-Z]'));
 }
-
-
-void _handleSignUp() async {
-  if (_formKey.currentState!.validate()) {
-    // Gather form data
-    final Map<String, String> userData = {
-      'name': _nameController.text,
-      'nic': _nicController.text,
-      'email': _emailController.text,
-      'contact': _contactController.text,
-      'address': _addressController.text,
-      'apartmentName': _apartmentNameController.text,
-      'password': _passwordController.text,
-    };
-
-    try {
-      // Send POST request to backend
-      final response = await http.post(
-        Uri.parse('http://localhost:3000/api/signup/manager'), // Replace with your backend URL
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(userData),
-      );
-
-      // Handle response
-      if (response.statusCode == 201) {
-        // Success: Navigate to home screen
-        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-      } else {
-        // Error: Show error message
-        final errorMessage = jsonDecode(response.body)['error'];
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $errorMessage')),
-        );
-      }
-    } catch (e) {
-      // Network or other errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to connect to server')),
-      );
+  void _handleSignUp() {
+    if (_formKey.currentState!.validate()) {
+      print('Name: ${_nameController.text}');
+      print('NIC: ${_nicController.text}');
+      print('Email: ${_emailController.text}');
+      print('Contact: ${_contactController.text}');
+      print('Address: ${_addressController.text}');
+      print('Apartment Name: ${_apartmentNameController.text}');
+      
+      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
     }
   }
-}
 
   Widget _buildTextField({
     required String hint,

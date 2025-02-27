@@ -5,7 +5,7 @@ import '../constants/text_styles.dart';
 import '../providers/theme_provider.dart';
 
 class ManagerProfileScreen extends StatelessWidget {
-  const ManagerProfileScreen({Key? key}) : super(key: key);
+  const ManagerProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +38,7 @@ class ManagerProfileScreen extends StatelessWidget {
                     _buildProfileImage(isDarkMode),
                     const SizedBox(height: 16),
                     Text(
-                      'John Doe ',
+                      'John Doe',
                       style: AppTextStyles.greeting.copyWith(
                         color: isDarkMode ? Colors.white : AppColors.textPrimary,
                       ),

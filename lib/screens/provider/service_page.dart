@@ -6,12 +6,12 @@ import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
-import 'ServiceDetailsPage.dart';
-import '../../models/service.dart';
-import '../../providers/theme_provider.dart';
+import 'service_detailsPage.dart';
+import '../../../models/service.dart';
+import '../../../providers/theme_provider.dart';
 
 class ServicesPage extends StatefulWidget {
-  const ServicesPage({Key? key}) : super(key: key);
+  const ServicesPage({super.key});
 
   @override
   _ServicesPageState createState() => _ServicesPageState();

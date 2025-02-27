@@ -17,7 +17,12 @@ class FeatureItem {
 }
 
 class FeatureGrid extends StatelessWidget {
-  FeatureGrid({Key? key}) : super(key: key);
+  final bool isDarkMode;
+
+  FeatureGrid({
+    Key? key, 
+    required this.isDarkMode,
+  }) : super(key: key);
 
   late final List<FeatureItem> features;
 
@@ -26,14 +31,28 @@ class FeatureGrid extends StatelessWidget {
     features = [
       FeatureItem(
         title: 'AMENITIES BOOKING',
-        icon: Image.asset('assets/icons/amenities.png', height: 28, width: 28),
+        icon: Image.asset(
+          isDarkMode 
+            ? 'assets/icons/amenities.png'    //for dark mode
+            : 'assets/icons/amenities.png', 
+          height: 28, 
+          width: 28,
+          color: isDarkMode ? AppColors.darkTextPrimary : null,
+        ),
         onTap: () {
           // TODO: Implement amenities booking navigation
         },
       ),
       FeatureItem(
         title: 'VISITOR MANAGEMENT',
-        icon: Image.asset('assets/icons/visitor.png', height: 28, width: 28),
+        icon: Image.asset(
+          isDarkMode 
+            ? 'assets/icons/visitor.png'   //for dark mode
+            : 'assets/icons/visitor.png', 
+          height: 28, 
+          width: 28,
+          color: isDarkMode ? AppColors.darkTextPrimary : null,
+        ),
         onTap: () {
           Navigator.push(
             context,
@@ -43,14 +62,28 @@ class FeatureGrid extends StatelessWidget {
       ),
       FeatureItem(
         title: 'Apartment MAINTENANCE',
-        icon: Image.asset('assets/icons/maintenance.png', height: 28, width: 28),
+        icon: Image.asset(
+          isDarkMode 
+            ? 'assets/icons/maintenance.png'    //for dark mode
+            : 'assets/icons/maintenance.png', 
+          height: 28, 
+          width: 28,
+          color: isDarkMode ? AppColors.darkTextPrimary : null,
+        ),
         onTap: () {
           // TODO: Implement maintenance navigation
         },
       ),
       FeatureItem(
         title: 'EVENT CALENDAR',
-        icon: Image.asset('assets/icons/calendar.png', height: 28, width: 28),
+        icon: Image.asset(
+          isDarkMode 
+            ? 'assets/icons/calendar.png'    //for dark mode
+            : 'assets/icons/calendar.png', 
+          height: 28, 
+          width: 28,
+          color: isDarkMode ? AppColors.darkTextPrimary : null,
+        ),
         onTap: () {
           Navigator.push(
             context,
@@ -60,14 +93,28 @@ class FeatureGrid extends StatelessWidget {
       ),
       FeatureItem(
         title: 'BILLS',
-        icon: Image.asset('assets/icons/bills.png', height: 28, width: 28),
+        icon: Image.asset(
+          isDarkMode 
+            ? 'assets/icons/bills.png'   //for dark mode
+            : 'assets/icons/bills.png', 
+          height: 28, 
+          width: 28,
+          color: isDarkMode ? AppColors.darkTextPrimary : null,
+        ),
         onTap: () {
           // TODO: Implement bills navigation
         },
       ),
       FeatureItem(
         title: 'Chats',
-        icon: Image.asset('assets/icons/chat.png', height: 28, width: 28),
+        icon: Image.asset(
+          isDarkMode 
+            ? 'assets/icons/chat.png'    //for dark mode
+            : 'assets/icons/chat.png', 
+          height: 28, 
+          width: 28,
+          color: isDarkMode ? AppColors.darkTextPrimary : null,
+        ),
         onTap: () {
           // TODO: Implement chats navigation
         },
@@ -104,11 +151,13 @@ class FeatureGrid extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.cardBackground,
+              color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: isDarkMode 
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.black.withOpacity(0.1),
                   blurRadius: 4,
                   offset: const Offset(0, 4),
                 ),
@@ -120,7 +169,9 @@ class FeatureGrid extends StatelessWidget {
           Flexible(
             child: Text(
               item.title,
-              style: AppTextStyles.featureTitle,
+              style: isDarkMode 
+                ? AppTextStyles.getFeatureTitleStyle(true)
+                : AppTextStyles.featureTitle,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
