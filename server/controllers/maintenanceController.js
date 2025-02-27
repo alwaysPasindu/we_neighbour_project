@@ -53,3 +53,15 @@ exports.markRequests = async(req,res) =>{
         res.status(500).json({message:"Server Error"});
     }
 }
+
+//display marked maintenance requests
+exports.getCompletedRequests = async(req,res) => {
+    try{
+        const request = await Maintenance.find({status:'Done'}).sort({createdAt:-1}).select('-residentName -apartmentCode').populate('ratings.resident','name');
+
+        res.json(request);
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+}
