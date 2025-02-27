@@ -65,3 +65,28 @@ exports.getCompletedRequests = async(req,res) => {
         res.status(500).json({message:"Server Error"});
     }
 }
+
+//maintenance rating
+exports.rateMaintenanceRequest = async(req,res) => {
+    try{
+        const{id} = req.params;
+        const{stars} = req.body;
+        const residentId = req.user.id;
+        
+        const existingRatings = request.ratings.find(
+            (rating) => rating.resident.toString() === residentId
+        );
+
+        if(existingRatings) {
+            return res.status(400).json({message:"You have already rated this request"});
+        }
+
+        request.ratings.push({resident:residentId, stars});
+        await request.save();
+
+        res.json({message:"Rating added successfully"});
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+};
