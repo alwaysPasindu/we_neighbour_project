@@ -72,10 +72,7 @@ class FeatureGrid extends StatelessWidget {
           color: isDarkMode ? AppColors.darkTextPrimary : null,
         ),
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MaintenanceScreen()),
-          );
+         
         },
       ),
       FeatureItem(
