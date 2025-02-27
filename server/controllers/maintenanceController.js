@@ -26,4 +26,14 @@ exports.createMaintenanceRequest = async(req,res) =>{
     }
 };
 
+//get pending maintenance requests
+exports.getPendingrequests = async(req,res) =>{
+    try{
+        const request = await Maintenance.find({status:'Pending'}).sort({createdAt:-1}).populate('resident','name apartmentCode');
 
+        res.json(request);
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+};
