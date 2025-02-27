@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:we_neighbour/screens/visitor_management_screen.dart';
+import '../screens/visitor_management_screen.dart';
 import '../constants/colors.dart';
 import '../constants/text_styles.dart';
 import '../screens/event_calendar_screen.dart';
+import '../screens/maintenance_screen.dart'; // Add this import
 
 class FeatureItem {
   final String title;
@@ -33,7 +34,7 @@ class FeatureGrid extends StatelessWidget {
         title: 'AMENITIES BOOKING',
         icon: Image.asset(
           isDarkMode 
-            ? 'assets/icons/amenities.png'    //for dark mode
+            ? 'assets/icons/amenities.png'    
             : 'assets/icons/amenities.png', 
           height: 28, 
           width: 28,
@@ -47,7 +48,7 @@ class FeatureGrid extends StatelessWidget {
         title: 'VISITOR MANAGEMENT',
         icon: Image.asset(
           isDarkMode 
-            ? 'assets/icons/visitor.png'   //for dark mode
+            ? 'assets/icons/visitor.png'   
             : 'assets/icons/visitor.png', 
           height: 28, 
           width: 28,
@@ -64,21 +65,24 @@ class FeatureGrid extends StatelessWidget {
         title: 'Apartment MAINTENANCE',
         icon: Image.asset(
           isDarkMode 
-            ? 'assets/icons/maintenance.png'    //for dark mode
+            ? 'assets/icons/maintenance.png'    
             : 'assets/icons/maintenance.png', 
           height: 28, 
           width: 28,
           color: isDarkMode ? AppColors.darkTextPrimary : null,
         ),
         onTap: () {
-          // TODO: Implement maintenance navigation
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MaintenanceScreen()),
+          );
         },
       ),
       FeatureItem(
         title: 'EVENT CALENDAR',
         icon: Image.asset(
           isDarkMode 
-            ? 'assets/icons/calendar.png'    //for dark mode
+            ? 'assets/icons/calendar.png'    
             : 'assets/icons/calendar.png', 
           height: 28, 
           width: 28,
@@ -92,24 +96,27 @@ class FeatureGrid extends StatelessWidget {
         },
       ),
       FeatureItem(
-        title: 'BILLS',
+        title: 'Maintenance Request',
         icon: Image.asset(
           isDarkMode 
-            ? 'assets/icons/bills.png'   //for dark mode
-            : 'assets/icons/bills.png', 
+            ? 'assets/icons/maintenance.png'   
+            : 'assets/icons/maintenance.png', 
           height: 28, 
           width: 28,
           color: isDarkMode ? AppColors.darkTextPrimary : null,
         ),
         onTap: () {
-          // TODO: Implement bills navigation
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MaintenanceScreen()),
+          );
         },
       ),
       FeatureItem(
         title: 'Chats',
         icon: Image.asset(
           isDarkMode 
-            ? 'assets/icons/chat.png'    //for dark mode
+            ? 'assets/icons/chat.png'    
             : 'assets/icons/chat.png', 
           height: 28, 
           width: 28,

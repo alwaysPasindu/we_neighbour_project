@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/screens/provider/provider_profile_screen.dart';
+import 'package:we_neighbour/screens/maintenance_screen.dart'; // Add this import
 
 // Screen imports
 import 'screens/login_page.dart';
@@ -53,7 +54,6 @@ class MyApp extends StatelessWidget {
             primaryColor: AppColors.primary,
             scaffoldBackgroundColor: AppColors.background,
             visualDensity: VisualDensity.adaptivePlatformDensity,
-            // Add other light theme customizations
             appBarTheme: AppBarTheme(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -67,7 +67,6 @@ class MyApp extends StatelessWidget {
             primaryColor: AppColors.primary,
             scaffoldBackgroundColor: Colors.grey[900],
             visualDensity: VisualDensity.adaptivePlatformDensity,
-            // Add other dark theme customizations
             appBarTheme: AppBarTheme(
               backgroundColor: Colors.grey[900],
               foregroundColor: Colors.white,
@@ -84,12 +83,13 @@ class MyApp extends StatelessWidget {
             '/provider-home': (context) => const MainPage(),
             '/service': (context) => const ServicesPage(),
             '/login': (context) => const LoginPage(),
+            '/maintenance': (context) => const MaintenanceScreen(), // Add this route
             '/home': (context) {
               final args = ModalRoute.of(context)?.settings.arguments;
               final userType = args is UserType ? args : UserType.resident;
               return HomeScreen(userType: userType);
             },
-            '/settings': (context) => const SettingsScreen(), // Updated to use const constructor
+            '/settings': (context) => const SettingsScreen(),
           },
           onGenerateRoute: (settings) {
             if (settings.name == '/profile') {
