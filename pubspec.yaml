@@ -50,6 +50,7 @@ flutter:
     - assets/images/amenities_icon.png
     - assets/images/health_icon.png
     - assets/images/we_neighbour_logo.png
+    - assets/images/logo_dark.png
 
   # Uncomment and update this section if you want to use custom fonts
   # fonts:
