@@ -26,7 +26,7 @@ class ProfileScreen extends StatelessWidget {
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: isDarkMode ? const Color(0xFF1E3A64) : AppTheme.accentColor,
-                      backgroundImage: const AssetImage('assets/images/profileImg.avif'),
+                      child: const Icon(Icons.person, size: 50, color: Colors.white),
                     ),
                     Positioned(
                       right: 0,
@@ -49,9 +49,10 @@ class ProfileScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   'John Doe',
-                  style: AppTheme.titleStyle.copyWith(
+                  style: TextStyle(
                     color: isDarkMode ? Colors.white : Colors.black,
                     fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -59,9 +60,23 @@ class ProfileScreen extends StatelessWidget {
                 _buildInfoField('Phone Number', '+94 71 234 3465', isDarkMode),
                 _buildInfoField('Apartment', '2/3 Lotus Residence Colombo 03', isDarkMode),
                 const SizedBox(height: 40),
-                _buildOption('Event Participation', Icons.event, isDarkMode),
+                _buildOption(
+                  'Event Participation',
+                  Icons.event,
+                  isDarkMode,
+                  onTap: () {
+                    Navigator.pushNamed(context, '/events');
+                  },
+                ),
                 const SizedBox(height: 16),
-                _buildOption('Maintenance Requests', Icons.build, isDarkMode),
+                _buildOption(
+                  'Maintenance Requests',
+                  Icons.build,
+                  isDarkMode,
+                  onTap: () {
+                    Navigator.pushNamed(context, '/maintenance');
+                  },
+                ),
                 const SizedBox(height: 16),
                 _buildOption(
                   'Settings',
@@ -135,4 +150,3 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
-
