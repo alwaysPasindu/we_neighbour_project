@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
+import 'package:we_neighbour/screens/contact_screen.dart';
+import 'package:we_neighbour/screens/cookies_policy_screen.dart';
+import 'package:we_neighbour/screens/feedback_screen.dart';
+import 'package:we_neighbour/screens/privacy_policy_screen.dart';
+import 'package:we_neighbour/screens/rate_app_screen.dart';
+import 'package:we_neighbour/screens/share_app_screen.dart';
+import 'package:we_neighbour/screens/terms_conditions_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -123,31 +130,66 @@ class SettingsScreen extends StatelessWidget {
       onTap: () async {
         switch (title) {
           case 'Rate App':
-            // Implement rate app functionality
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const RateAppScreen(),
+              ),
+            );
             break;
             
           case 'Share App':
-            // Implement share app functionality
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ShareAppScreen(),
+              ),
+            );
             break;
             
           case 'Privacy Policy':
-            // Navigate to privacy policy page
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PrivacyPolicyScreen(),
+              ),
+            );
             break;
             
           case 'Terms and Conditions':
-            // Navigate to terms page
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const TermsConditionsScreen(),
+              ),
+            );
             break;
             
           case 'Cookies Policy':
-            // Navigate to cookies policy page
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CookiesPolicyScreen(),
+              ),
+            );
             break;
             
           case 'Contact':
-            // Navigate to contact page
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ContactScreen(),
+              ),
+            );
             break;
             
           case 'Feedback':
-            // Navigate to feedback page
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const FeedbackScreen(),
+              ),
+            );
             break;
             
           case 'Logout':
