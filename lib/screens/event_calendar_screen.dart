@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/feature_column.dart';
 import '../widgets/custom_button.dart';
 
 class EventCalendarScreen extends StatelessWidget {
   const EventCalendarScreen({super.key});
+
+  // Function to open Google Calendar
+  Future<void> _openGoogleCalendar() async {
+    // Google Calendar URL
+    final Uri url = Uri.parse('https://calendar.google.com/');
+
+    // Try to launch the URL
+    if (!await launchUrl(
+      url,
+      mode: LaunchMode.externalApplication,
+    )) {
+      throw Exception('Could not launch $url');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,9 +84,7 @@ class EventCalendarScreen extends StatelessWidget {
                         FeatureColumn(
                           iconPath: 'assets/calendar_icon.png',
                           label: 'Google\nCalendar',
-                          onTap: () {
-                            // Handle Google Calendar tap
-                          },
+                          onTap: _openGoogleCalendar, // Use the function here
                         ),
                         FeatureColumn(
                           iconPath: 'assets/amenities_icon.png',
