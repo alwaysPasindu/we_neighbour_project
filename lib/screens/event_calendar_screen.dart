@@ -1,28 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import '../widgets/feature_column.dart';
 import '../widgets/custom_button.dart';
+import '../services/firebase_service.dart';
 
 class EventCalendarScreen extends StatelessWidget {
-  const EventCalendarScreen({super.key});
+  EventCalendarScreen({Key? key}) : super(key: key);
 
-  // Function to open Google Calendar
+  final FirebaseService _firebaseService = FirebaseService();
+
   Future<void> _openGoogleCalendar() async {
-    // Google Calendar URL
     final Uri url = Uri.parse('https://calendar.google.com/');
-
-    // Try to launch the URL
-    if (!await launchUrl(
-      url,
-      mode: LaunchMode.externalApplication,
-    )) {
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
+  }
+
+  void _addEvent(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String newEventTitle = "";
+        DateTime selectedDate = DateTime.now();
+
+        return AlertDialog(
+          title: Text('Add New Event'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                onChanged: (value) {
+                  newEventTitle = value;
+                },
+                decoration: InputDecoration(hintText: "Event Title"),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                child: Text("Select Date"),
+                onPressed: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime(2101),
+                  );
+                  if (picked != null && picked != selectedDate) {
+                    selectedDate = picked;
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Add'),
+              onPressed: () {
+                if (newEventTitle.isNotEmpty) {
+                  _firebaseService.addEvent(newEventTitle, selectedDate);
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Event Calendar'),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -65,7 +123,34 @@ class EventCalendarScreen extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // White Card Container
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _firebaseService.getEvents(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Something went wrong');
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
+
+                  return ListView(
+                    children:
+                        snapshot.data!.docs.map((DocumentSnapshot document) {
+                      Map<String, dynamic> data =
+                          document.data()! as Map<String, dynamic>;
+                      DateTime date = (data['date'] as Timestamp).toDate();
+                      return ListTile(
+                        title: Text(data['title']),
+                        subtitle: Text(DateFormat('yyyy-MM-dd').format(date)),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+            ),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Container(
@@ -84,7 +169,7 @@ class EventCalendarScreen extends StatelessWidget {
                         FeatureColumn(
                           iconPath: 'assets/calendar_icon.png',
                           label: 'Google\nCalendar',
-                          onTap: _openGoogleCalendar, // Use the function here
+                          onTap: _openGoogleCalendar,
                         ),
                         FeatureColumn(
                           iconPath: 'assets/amenities_icon.png',
@@ -107,10 +192,8 @@ class EventCalendarScreen extends StatelessWidget {
 
                     // Buttons
                     CustomButton(
-                      text: 'Add / Remove Event',
-                      onPressed: () {
-                        // Handle Add/Remove Event
-                      },
+                      text: 'Add Event',
+                      onPressed: () => _addEvent(context),
                     ),
                     const SizedBox(height: 16),
                     CustomButton(
