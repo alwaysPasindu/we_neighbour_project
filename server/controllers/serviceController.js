@@ -21,11 +21,24 @@ exports.createService = async (req,res) => {
             serviceProvider:serviceProviderId,
             serviceProviderName:serviceProvider.name,
         });
-        await newService.save();
+        await service.save();
 
         res.status(201).json({message:"Service created Successfully"});
     }catch(error){
         console.error(error);
         res.status(500).json({message:"Server Error"});
+    }
+};
+
+//get all services
+exports.getService = async(req,res) => {
+    try{
+        const services = await Service.find().sort({createdAt:-1}).populate('serviceProvider', 'name');
+
+        res.json(services);
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+        
     }
 };
