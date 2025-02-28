@@ -40,4 +40,7 @@ app.use('/api/complaints',complaintsRoutes);
 const visitorRoutes = require('./routes/visitorRoutes');
 app.use('/api/visitor', visitorRoutes);
 
+const maintenanceRoutes = require('./routes/maintenanceRoutes');
+app.use('/api/maintenance',maintenanceRoutes);
+
 app.listen(PORT, () => console.log('Server running on http://localhost:${PORT}'));

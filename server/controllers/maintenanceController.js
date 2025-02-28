@@ -42,7 +42,7 @@ exports.getPendingrequests = async(req,res) =>{
 exports.markRequests = async(req,res) =>{
     try{
         const{id} =req.params;
-        const request = Maintenance.findById(id);
+        const request = await Maintenance.findById(id);
 
         request.status = 'Done';
         await request.save();
@@ -59,7 +59,17 @@ exports.getCompletedRequests = async(req,res) => {
     try{
         const request = await Maintenance.find({status:'Done'}).sort({createdAt:-1}).select('-residentName -apartmentCode').populate('ratings.resident','name');
 
-        res.json(request);
+        const requestsWithAverageRatings = request.map((request) => {
+            const totalStars = request.ratings.reduce((sum, rating) => sum + rating.stars, 0);
+            const numberOfRatings = request.ratings.length;
+            const averageRating = numberOfRatings > 0 ? totalStars / numberOfRatings : 0;
+
+            return{
+                ...request.toObject(),
+                averageRating: parseFloat(averageRating.toFixed(2)),
+            };
+        });
+        res.json(requestsWithAverageRatings);
     }catch(error){
         console.error(error);
         res.status(500).json({message:"Server Error"});
@@ -72,7 +82,7 @@ exports.rateMaintenanceRequest = async(req,res) => {
         const{id} = req.params;
         const{stars} = req.body;
         const residentId = req.user.id;
-        
+        const request = await Maintenance.findById(id);
         const existingRatings = request.ratings.find(
             (rating) => rating.resident.toString() === residentId
         );
@@ -80,6 +90,8 @@ exports.rateMaintenanceRequest = async(req,res) => {
         if(existingRatings) {
             return res.status(400).json({message:"You have already rated this request"});
         }
+
+        
 
         request.ratings.push({resident:residentId, stars});
         await request.save();
