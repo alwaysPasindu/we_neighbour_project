@@ -1,0 +1,30 @@
+const mongoose = require('mongoose');
+
+const ServiceSchema = new mongoose.Schema({
+    title:{type:String, required:true},
+    description :{type:String, required:true},
+    images: [{type:String}],
+    location:{
+        type: {
+            type:String,
+            enum:['Point'], 
+            required:true,
+        }, 
+        coordinates:{
+            type:[number], 
+            required:true,
+        },
+    },
+    availableHours:{type:String, required:true},
+    serviceProvider:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'ServiceProvider',
+        requierd:true,
+    },
+    serviceProviderName:{type:String, required:true},
+    createdAt:{type:Date, default:Date.now},
+});
+
+ServiceSchema.index({location:'2dsphere'});
+
+module.exports = mongoose.model('Service', ServiceSchema);
