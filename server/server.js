@@ -46,4 +46,7 @@ app.use('/api/maintenance',maintenanceRoutes);
 const serviceRoutes = require('./routes/serviceRoutes');
 app.use('/api/service',serviceRoutes);
 
+const resourceRoutes = require('./routes/resourceRoutes');
+app.use('/api/resource',resourceRoutes);
+
 app.listen(PORT, () => console.log('Server running on http://localhost:${PORT}'));
