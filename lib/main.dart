@@ -17,6 +17,7 @@ import 'profiles/manager_profile_screen.dart';
 import 'settings/settings_screen.dart';
 import 'home/provider_home_page.dart';
 import 'features/services/service_page.dart';
+import 'splashScreen/splash_screen.dart'; // Import the splash screen
 
 // Provider and Constants
 import 'providers/theme_provider.dart';
@@ -76,9 +77,11 @@ class MyApp extends StatelessWidget {
             ),
           ),
           themeMode: themeProvider.themeMode,
-          initialRoute: '/',
+          initialRoute: '/splash', // Changed initial route to splash screen
           routes: {
+            '/splash': (context) => const SplashScreen(), // Added splash screen route
             '/': (context) => const LoginPage(),
+            '/login': (context) => const LoginPage(),
             '/account-type': (context) => const AccountTypePage(),
             '/resident-signup': (context) => const ResidentSignUpPage(),
             '/manager-signup': (context) => const ManagerSignUpPage(),
@@ -87,13 +90,12 @@ class MyApp extends StatelessWidget {
             '/service': (context) => const ServicesPage(),
             '/chat': (context) => const ChatListPage(),
             '/resource': (context) => const ResourceSharingPage(),
-            '/login': (context) => const LoginPage(),
             '/home': (context) {
               final args = ModalRoute.of(context)?.settings.arguments;
               final userType = args is UserType ? args : UserType.resident;
               return HomeScreen(userType: userType);
             },
-            '/settings': (context) => const SettingsScreen(), // Updated to use const constructor
+            '/settings': (context) => const SettingsScreen(),
           },
           onGenerateRoute: (settings) {
             if (settings.name == '/profile') {

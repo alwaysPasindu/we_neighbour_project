@@ -464,6 +464,12 @@
       "languageVersion": "3.3"
     },
     {
+      "name": "simple_animations",
+      "rootUri": "file:///Users/jehanfernando/.pub-cache/hosted/pub.dev/simple_animations-5.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
       "name": "sky_engine",
       "rootUri": "file:///Users/jehanfernando/development/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
@@ -638,7 +644,7 @@
       "languageVersion": "3.0"
     }
   ],
-  "generated": "2025-03-01T08:37:44.259969Z",
+  "generated": "2025-03-01T10:19:12.070586Z",
   "generator": "pub",
   "generatorVersion": "3.6.0",
   "flutterRoot": "file:///Users/jehanfernando/development/flutter",
