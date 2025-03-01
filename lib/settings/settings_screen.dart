@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
-import 'package:we_neighbour/screens/contact_screen.dart';
-import 'package:we_neighbour/screens/cookies_policy_screen.dart';
-import 'package:we_neighbour/screens/feedback_screen.dart';
-import 'package:we_neighbour/screens/privacy_policy_screen.dart';
-import 'package:we_neighbour/screens/rate_app_screen.dart';
-import 'package:we_neighbour/screens/share_app_screen.dart';
-import 'package:we_neighbour/screens/terms_conditions_screen.dart';
+import 'package:we_neighbour/settings/sub_settings/contact_screen.dart';
+import 'package:we_neighbour/settings/sub_settings/cookies_policy_screen.dart';
+import 'package:we_neighbour/settings/sub_settings/feedback_screen.dart';
+import 'package:we_neighbour/settings/sub_settings/privacy_policy_screen.dart';
+import 'package:we_neighbour/settings/sub_settings/rate_app_screen.dart';
+import 'package:we_neighbour/settings/sub_settings/share_app_screen.dart';
+import 'package:we_neighbour/settings/sub_settings/terms_conditions_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});

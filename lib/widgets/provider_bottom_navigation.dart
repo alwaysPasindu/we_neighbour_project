@@ -25,7 +25,7 @@ class BottomNavigation extends StatelessWidget {
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.dashboard),
+          icon: Icon(Icons.build),
           label: 'Services',
         ),
         BottomNavigationBarItem(

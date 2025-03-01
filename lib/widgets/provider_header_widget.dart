@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:we_neighbour/screens/provider/provider_notification_page.dart';
+import 'package:we_neighbour/features/notifications&alets/provider_notification_page.dart';
 import '../constants/text_styles.dart';
 
 class HeaderWidget extends StatelessWidget {

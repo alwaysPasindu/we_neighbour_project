@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
-import 'package:we_neighbour/screens/notifications_screen.dart';
-import 'package:we_neighbour/screens/safety_alerts.dart';
+import 'package:we_neighbour/features/notifications&alets/notifications_screen.dart';
+import 'package:we_neighbour/features/notifications&alets/safety_alerts.dart';
 
 class HeaderWidget extends StatelessWidget {
   final bool isDarkMode;
@@ -65,18 +65,18 @@ class HeaderWidget extends StatelessWidget {
                         );
                       },
                       child: Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
                           Icons.warning_amber_rounded,
-                          color: Colors.white,
+                          color: Color.fromARGB(255, 249, 56, 56),
                           size: 30,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 1),
                     GestureDetector(
                       onTap: () {
                         Navigator.push(

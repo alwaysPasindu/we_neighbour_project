@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './create_maintenance_request_screen.dart';
+import 'create_maintenance_request_screen.dart';
 
 class MaintenanceCard {
   final String title;
@@ -133,27 +133,6 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
               ),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: TextField(
-              decoration: const InputDecoration(
-                contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                hintText: 'Type Your Feedback',
-                hintStyle: TextStyle(color: Colors.grey),
-                border: InputBorder.none,
-              ),
-              onChanged: (value) {
-                setState(() {
-                  card.feedback = value;
-                });
-              },
             ),
           ),
           const SizedBox(height: 8),

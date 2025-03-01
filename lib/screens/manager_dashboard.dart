@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import '../components/app_bar.dart';
 import '../constants/colors.dart';
 import 'pending_tasks_screen.dart';
-import 'notifications_screen.dart';
+import '../features/notifications&alets/notifications_screen.dart';
 // import 'visitor_log_screen.dart';
 import 'residents_requests_screen.dart';
 import 'reports_screen.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../components/app_bar.dart';
-import '../constants/colors.dart';
+import '../../components/app_bar.dart';
+import '../../constants/colors.dart';
 
 class VisitorLogScreen extends StatelessWidget {
   const VisitorLogScreen({super.key});

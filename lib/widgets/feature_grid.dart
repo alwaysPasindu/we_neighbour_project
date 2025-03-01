@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../screens/visitor_management_screen.dart';
+import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
+import '../features/visitor_management/visitor_management_screen.dart';
 import '../constants/colors.dart';
 import '../constants/text_styles.dart';
-import '../screens/event_calendar_screen.dart';
-import '../screens/maintenance_screen.dart'; // Add this import
+import '../features/event_calendar/event_calendar_screen.dart';
 
 class FeatureItem {
   final String title;
@@ -89,10 +89,10 @@ class FeatureGrid extends StatelessWidget {
           color: isDarkMode ? AppColors.darkTextPrimary : null,
         ),
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const EventCalendarScreen()),
-          );
+          // Navigator.push(
+          //   // context,
+          //   // MaterialPageRoute(builder: (context) => EventCalendarScreen()),
+          // );
         },
       ),
       FeatureItem(

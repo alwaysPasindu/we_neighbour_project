@@ -41,7 +41,7 @@ class BottomNavigation extends StatelessWidget {
         unselectedItemColor: isDarkMode 
           ? AppColors.darkTextSecondary 
           : AppColors.textSecondary,
-        selectedLabelStyle: TextStyle(
+        selectedLabelStyle: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
           color: AppColors.primary,
@@ -70,8 +70,8 @@ class BottomNavigation extends StatelessWidget {
             label: 'Resource',
           ),
           _buildNavigationBarItem(
-            icon: Icons.dashboard_outlined,
-            activeIcon: Icons.dashboard,
+            icon: Icons.build_outlined,
+            activeIcon: Icons.build,
             label: 'Service',
           ),
           _buildNavigationBarItem(

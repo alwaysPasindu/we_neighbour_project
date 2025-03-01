@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:we_neighbour/components/app_bar.dart';
-import '../constants/colors.dart';
-import '../constants/text_styles.dart';
+import '../../constants/colors.dart';
+import '../../constants/text_styles.dart';
 
 class CommunityNotificationsScreen extends StatelessWidget {
   const CommunityNotificationsScreen({super.key});

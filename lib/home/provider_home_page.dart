@@ -4,10 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
-import '../../models/service.dart';
-import '../../widgets/provider_header_widget.dart';
-import '../../../providers/theme_provider.dart';
-import 'service_detailsPage.dart';
+import '../models/service.dart';
+import '../widgets/provider_header_widget.dart';
+import '../../providers/theme_provider.dart';
+import '../features/services/service_detailsPage.dart';
 
 // Advertisement class remains the same
 class Advertisement {

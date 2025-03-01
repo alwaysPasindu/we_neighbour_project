@@ -40,15 +40,31 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: isDarkMode ? const Color.fromARGB(255, 0, 0, 0) : Colors.white,
       body: Stack(
         children: [
           ClipPath(
             clipper: WaveClipper(),
             child: Container(
               height: MediaQuery.of(context).size.height * 0.39,
-              decoration: const BoxDecoration(
-                color: Color(0xFF4285F4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2B5BA9),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDarkMode
+                      ? [
+                          const Color.fromARGB(255, 0, 18, 152),
+                          const Color(0xFF2B5BA9).withOpacity(0.8),
+                        ]
+                      : [
+                          const Color.fromARGB(255, 14, 105, 213),
+                          const Color(0xFF4285F4),
+                        ],
+                ),
               ),
               child: Center(
                 child: Image.asset(
@@ -66,25 +82,34 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(height: MediaQuery.of(context).size.height * 0.33),
-                  const Text(
+                  Text(
                     'WELCOME!',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 212, 210, 210),
+                      color: isDarkMode 
+                          ? const Color(0xFF2A2F35)
+                          : const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: TextField(
                       controller: _emailController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                      decoration: InputDecoration(
                         hintText: 'Email',
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        hintStyle: TextStyle(
+                          color: isDarkMode ? Colors.white60 : Colors.black54,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: InputBorder.none,
                       ),
                     ),
@@ -92,20 +117,28 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 212, 210, 210),
+                      color: isDarkMode 
+                          ? const Color(0xFF2A2F35)
+                          : const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: TextField(
                       controller: _passwordController,
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         hintText: 'Password',
+                        hintStyle: TextStyle(
+                          color: isDarkMode ? Colors.white60 : Colors.black54,
+                        ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: InputBorder.none,
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                            color: Colors.grey,
+                            color: isDarkMode ? Colors.white60 : Colors.grey,
                           ),
                           onPressed: () {
                             setState(() {
@@ -129,15 +162,34 @@ class _LoginPageState extends State<LoginPage> {
                                 _rememberMe = value ?? false;
                               });
                             },
+                            fillColor: MaterialStateProperty.resolveWith<Color>(
+                              (Set<MaterialState> states) {
+                                if (states.contains(MaterialState.selected)) {
+                                  return const Color.fromARGB(255, 0, 18, 152);
+                                }
+                                return isDarkMode ? Colors.white38 : const Color.fromARGB(255, 233, 232, 232);
+                              },
+                            ),
                           ),
-                          const Text('Remember me'),
+                          Text(
+                            'Remember me',
+                            style: TextStyle(
+                              color: isDarkMode ? Colors.white : const Color.fromARGB(221, 0, 0, 0),
+                            ),
+                          ),
                         ],
                       ),
                       TextButton(
                         onPressed: () {
                           // TODO: Implement forgot password
                         },
-                        child: const Text('Forgot password?'),
+                        child: Text(
+                          'Forgot password?',
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 170, 170, 170),
+                            fontWeight: isDarkMode ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -145,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                   ElevatedButton(
                     onPressed: _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A237E),
+                      backgroundColor: const Color.fromARGB(255, 0, 18, 152),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -162,39 +214,66 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('New user?'),
+                      Text(
+                        'New user?',
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
                       TextButton(
                         onPressed: () {
                           Navigator.pushNamed(context, '/account-type');
                         },
-                        child: const Text('Register'),
+                        child: Text(
+                          'Register',
+                          style: TextStyle(
+                            color: const Color(0xFF2B5BA9),
+                            fontWeight: isDarkMode ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const Row(
+                  Row(
                     children: [
-                      Expanded(child: Divider()),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Text('OR'),
+                      Expanded(
+                        child: Divider(
+                          color: isDarkMode ? Colors.white38 : Colors.grey[400],
+                        ),
                       ),
-                      Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Text(
+                          'OR',
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.white70 : Colors.black54,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          color: isDarkMode ? Colors.white38 : Colors.grey[400],
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  const Text(
+                  Text(
                     'Sign in with another account',
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white70 : Colors.black87,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _socialButton('assets/images/facebook.png', () => _handleSocialLogin('Facebook')),
+                      _socialButton('assets/images/facebook.png', () => _handleSocialLogin('Facebook'), isDarkMode),
                       const SizedBox(width: 16),
-                      _socialButton('assets/images/google.png', () => _handleSocialLogin('Google')),
+                      _socialButton('assets/images/google.png', () => _handleSocialLogin('Google'), isDarkMode),
                       const SizedBox(width: 16),
-                      _socialButton('assets/images/twitter.png', () => _handleSocialLogin('Twitter')),
+                      _socialButton('assets/images/twitter.png', () => _handleSocialLogin('Twitter'), isDarkMode),
                     ],
                   ),
                 ],
@@ -206,14 +285,17 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _socialButton(String iconPath, VoidCallback onPressed) {
+  Widget _socialButton(String iconPath, VoidCallback onPressed, bool isDarkMode) {
     return InkWell(
       onTap: onPressed,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(
+            color: isDarkMode ? Colors.white24 : Colors.grey[300]!,
+          ),
+          color: isDarkMode ? const Color(0xFF2A2F35) : Colors.white,
         ),
         child: Image.asset(
           iconPath,
@@ -257,4 +339,3 @@ class WaveClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
-

@@ -9,7 +9,7 @@ import '../widgets/bottom_navigation.dart';
 import '../constants/colors.dart';
 import '../main.dart';
 import '../models/service.dart';
-import 'provider/service_detailsPage.dart';
+import '../features/services/service_detailsPage.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserType userType;
@@ -73,6 +73,18 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _currentIndex = index;
     });
+
+  if (index == 1) { // Service tab
+      Navigator.pushNamed(
+        context,
+        '/chat',
+        arguments: widget.userType,
+      );
+    }
+
+  if (index == 2) { // Resource tab
+      Navigator.pushNamed(context, '/resource');
+    }
 
     if (index == 3) { // Service tab
       Navigator.pushNamed(
