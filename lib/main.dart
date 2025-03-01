@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/features/chat/chat_list_page.dart';
+import 'package:we_neighbour/features/chat/chat_room_page.dart';
 import 'features/resource_share/resource_sharing_page.dart';
 import 'package:we_neighbour/profiles/provider_profile_screen.dart';
+import 'providers/user_provider.dart';
 
 // Screen imports
 import 'login&signup/login_page.dart';
@@ -33,8 +35,11 @@ void main() async {
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(isDarkMode: isDarkMode),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider(isDarkMode: isDarkMode)),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
       child: const MyApp(),
     ),
   );

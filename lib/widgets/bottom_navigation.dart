@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/colors.dart';
-import '../main.dart'; // Import this to use UserType
+import '../main.dart';
 
 class BottomNavigation extends StatelessWidget {
   final int currentIndex;
@@ -9,25 +9,23 @@ class BottomNavigation extends StatelessWidget {
   final bool isDarkMode;
 
   const BottomNavigation({
-    super.key,
+    Key? key,
     required this.currentIndex,
     required this.onTap,
     required this.userType,
     required this.isDarkMode,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+        color: isDarkMode ? Colors.grey[900] : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: isDarkMode 
-              ? Colors.black.withOpacity(0.3)
-              : Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
@@ -38,61 +36,31 @@ class BottomNavigation extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: isDarkMode 
-          ? AppColors.darkTextSecondary 
-          : AppColors.textSecondary,
-        selectedLabelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: AppColors.primary,
-        ),
-        unselectedLabelStyle: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.normal,
-          color: isDarkMode 
-            ? AppColors.darkTextSecondary 
-            : AppColors.textSecondary,
-        ),
+        unselectedItemColor: isDarkMode ? Colors.grey[400] : Colors.grey[600],
         items: [
-          _buildNavigationBarItem(
-            icon: Icons.home_outlined,
-            activeIcon: Icons.home,
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home),
             label: 'Home',
           ),
-          _buildNavigationBarItem(
-            icon: Icons.chat_bubble_outline,
-            activeIcon: Icons.chat_bubble,
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
             label: 'Chat',
           ),
-          _buildNavigationBarItem(
-            icon: Icons.share_outlined,
-            activeIcon: Icons.share,
-            label: 'Resource',
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.share),
+            label: 'Resources',
           ),
-          _buildNavigationBarItem(
-            icon: Icons.build_outlined,
-            activeIcon: Icons.build,
-            label: 'Service',
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.miscellaneous_services),
+            label: 'Services',
           ),
-          _buildNavigationBarItem(
-            icon: Icons.person_outline,
-            activeIcon: Icons.person,
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],
       ),
     );
   }
-
-  BottomNavigationBarItem _buildNavigationBarItem({
-    required IconData icon,
-    required IconData activeIcon,
-    required String label,
-  }) {
-    return BottomNavigationBarItem(
-      icon: Icon(icon),
-      activeIcon: Icon(activeIcon),
-      label: label,
-    );
-  }
 }
+
