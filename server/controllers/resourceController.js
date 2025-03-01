@@ -30,11 +30,29 @@ exports.createResourceRequest = async(req,res) => {
 //get resource request
 exports.getResourceRequest = async(req,res) =>{
     try{
-        const resource = await Resource.find({status:'Active'})
+        const request = await Resource.find({status:'Active'})
         .sort({createdAt: -1})
         .populate('resident','name apartmentCode');
         
         res.json(request);
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+};
+
+//delete resource request
+exports.deleteResourceRequest = async(req,res) =>{
+    try{
+        const {id} = req.params;
+        const userId = req.user.id;
+
+        const request = Resource.findById(id);
+
+        request.status = 'Deleted';
+        await request.save();
+
+        res.json({message:"Resource request deleted successfully"});
     }catch(error){
         console.error(error);
         res.status(500).json({message:"Server Error"});
