@@ -1,5 +1,6 @@
 const Resource = require('../models/Resource');
-const { findById } = require('../models/Service');
+
+const Resident = require('../models/Resident');
 
 //create resource request
 exports.createResourceRequest = async(req,res) => {
@@ -7,14 +8,14 @@ exports.createResourceRequest = async(req,res) => {
         const{resourceName, description, quantity} = req.body;
         const residentId = req.user.id;
 
-        const resident = await findById(residentId);
+        const resident = await Resident.findById(residentId);
 
         const resource = new Resource({
             resourceName,
             description,
             quantity,
             resident:residentId,
-            residentName:resident.residentName,
+            residentName:resident.name,
             apartmentCode:resident.apartmentCode,
         });
 
@@ -47,7 +48,7 @@ exports.deleteResourceRequest = async(req,res) =>{
         const {id} = req.params;
         const userId = req.user.id;
 
-        const request = Resource.findById(id);
+        const request = await Resource.findById(id);
 
         request.status = 'Deleted';
         await request.save();

@@ -1,4 +1,4 @@
-const mongoose = request('mongoose');
+const mongoose = require('mongoose');
 
 const ResourceSchema = new mongoose.Schema({
     resourceName:{type:String, required:true},
