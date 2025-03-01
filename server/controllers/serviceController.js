@@ -69,3 +69,23 @@ exports.editService = async(req,res) => {
         res.status(500).json({message:"Server Error"});
     }
 };
+
+//Delete a service
+exports.deleteService = async(req,res) => {
+    try{
+        const{id} = req.params;
+        const serviceProviderId = req.user.id;
+
+        const service = Service.findById(id);
+
+        if(service.ServiceProvider.toString() !== serviceProviderId){
+            return res.status(403).json({message:"You are not authorized"});
+        }
+
+        await service.remove();
+        res.json({message:"Service deleted successfully"});
+    }catch(error){
+        console.error(error);
+        res.status(500).json({message:"Server Error"});
+    }
+};
