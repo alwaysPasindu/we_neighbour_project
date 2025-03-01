@@ -31,7 +31,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-      
+
       if (image != null) {
         setState(() {
           _profileImage = File(image.path);
@@ -105,7 +105,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w600,
-                          color: isDarkMode ? const Color.fromARGB(255, 27, 18, 18) : AppColors.textPrimary,
+                          color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
                         ),
                       ),
                 const SizedBox(height: 32),
@@ -219,6 +219,10 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
             ),
           ),
         ),
+        autocorrect: false,
+        textCapitalization: TextCapitalization.none,
+        textInputAction: TextInputAction.next,
+        keyboardType: TextInputType.text,
       ),
     );
   }
@@ -228,7 +232,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label, 
+          label,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -237,7 +241,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          value, 
+          value,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -271,7 +275,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
             Icon(icon, color: AppColors.primary),
             const SizedBox(width: 12),
             Text(
-              title, 
+              title,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -280,7 +284,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
             ),
             const Spacer(),
             Icon(
-              Icons.arrow_forward_ios, 
+              Icons.arrow_forward_ios,
               color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
               size: 16,
             ),
