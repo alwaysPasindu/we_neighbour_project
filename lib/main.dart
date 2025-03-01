@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,9 +28,10 @@ enum UserType { resident, manager, serviceProvider }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   final prefs = await SharedPreferences.getInstance();
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
-  
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(isDarkMode: isDarkMode),
@@ -82,8 +84,9 @@ class MyApp extends StatelessWidget {
             '/account-type': (context) => const AccountTypePage(),
             '/resident-signup': (context) => const ResidentSignUpPage(),
             '/manager-signup': (context) => const ManagerSignUpPage(),
-            '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
-            '/provider-home': (context) => const MainPage(),   
+            '/service-provider-signup': (context) =>
+                const ServiceProviderSignUpPage(),
+            '/provider-home': (context) => const MainPage(),
             '/service': (context) => const ServicesPage(),
             '/chat': (context) => const ChatListPage(),
             '/resource': (context) => const ResourceSharingPage(),
@@ -93,20 +96,24 @@ class MyApp extends StatelessWidget {
               final userType = args is UserType ? args : UserType.resident;
               return HomeScreen(userType: userType);
             },
-            '/settings': (context) => const SettingsScreen(), // Updated to use const constructor
+            '/settings': (context) =>
+                const SettingsScreen(), // Updated to use const constructor
           },
           onGenerateRoute: (settings) {
             if (settings.name == '/profile') {
               final args = settings.arguments;
               final userType = args is UserType ? args : UserType.resident;
-              
+
               switch (userType) {
                 case UserType.resident:
-                  return MaterialPageRoute(builder: (_) => const ResidentProfileScreen());
+                  return MaterialPageRoute(
+                      builder: (_) => const ResidentProfileScreen());
                 case UserType.manager:
-                  return MaterialPageRoute(builder: (_) => const ManagerProfileScreen());
+                  return MaterialPageRoute(
+                      builder: (_) => const ManagerProfileScreen());
                 case UserType.serviceProvider:
-                  return MaterialPageRoute(builder: (_) => const CompanyProfileScreen());
+                  return MaterialPageRoute(
+                      builder: (_) => const CompanyProfileScreen());
               }
             }
             return null;
