@@ -31,28 +31,24 @@ class FeatureGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     features = [
       FeatureItem(
-        title: 'AMENITIES BOOKING',
+        title: 'Amenities Booking',
         icon: Image.asset(
-          isDarkMode 
-            ? 'assets/icons/amenities.png'    
-            : 'assets/icons/amenities.png', 
+          'assets/icons/amenities.png',    
           height: 28, 
           width: 28,
-          color: isDarkMode ? AppColors.darkTextPrimary : null,
+          // color: isDarkMode ? Colors.white : null,
         ),
         onTap: () {
           // TODO: Implement amenities booking navigation
         },
       ),
       FeatureItem(
-        title: 'VISITOR MANAGEMENT',
+        title: 'Visitor Management',
         icon: Image.asset(
-          isDarkMode 
-            ? 'assets/icons/visitor.png'   
-            : 'assets/icons/visitor.png', 
+          'assets/icons/visitor.png',
           height: 28, 
           width: 28,
-          color: isDarkMode ? AppColors.darkTextPrimary : null,
+          // color: isDarkMode ? Colors.white : null,
         ),
         onTap: () {
           Navigator.push(
@@ -62,14 +58,12 @@ class FeatureGrid extends StatelessWidget {
         },
       ),
       FeatureItem(
-        title: 'Apartment MAINTENANCE',
+        title: 'Apartment Maintenance',
         icon: Image.asset(
-          isDarkMode 
-            ? 'assets/icons/maintenance.png'    
-            : 'assets/icons/maintenance.png', 
+          'assets/icons/maintenance.png',
           height: 28, 
           width: 28,
-          color: isDarkMode ? AppColors.darkTextPrimary : null,
+          // color: isDarkMode ? Colors.white : null,
         ),
         onTap: () {
           Navigator.push(
@@ -79,14 +73,12 @@ class FeatureGrid extends StatelessWidget {
         },
       ),
       FeatureItem(
-        title: 'EVENT CALENDAR',
+        title: 'Event Calendar',
         icon: Image.asset(
-          isDarkMode 
-            ? 'assets/icons/calendar.png'    
-            : 'assets/icons/calendar.png', 
+          'assets/icons/calendar.png',
           height: 28, 
           width: 28,
-          color: isDarkMode ? AppColors.darkTextPrimary : null,
+          // color: isDarkMode ? null : null,
         ),
         onTap: () {
           // Navigator.push(
@@ -98,12 +90,10 @@ class FeatureGrid extends StatelessWidget {
       FeatureItem(
         title: 'Maintenance Request',
         icon: Image.asset(
-          isDarkMode 
-            ? 'assets/icons/maintenance.png'   
-            : 'assets/icons/maintenance.png', 
+          'assets/icons/maintenance.png',
           height: 28, 
           width: 28,
-          color: isDarkMode ? AppColors.darkTextPrimary : null,
+          // color: isDarkMode ? Colors.white : null,
         ),
         onTap: () {
           Navigator.push(
@@ -115,12 +105,10 @@ class FeatureGrid extends StatelessWidget {
       FeatureItem(
         title: 'Chats',
         icon: Image.asset(
-          isDarkMode 
-            ? 'assets/icons/chat.png'    
-            : 'assets/icons/chat.png', 
+          'assets/icons/chat.png',
           height: 28, 
           width: 28,
-          color: isDarkMode ? AppColors.darkTextPrimary : null,
+          // color: isDarkMode ? Colors.white : null,
         ),
         onTap: () {
           // TODO: Implement chats navigation
