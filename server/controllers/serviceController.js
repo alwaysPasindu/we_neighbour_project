@@ -33,7 +33,23 @@ exports.createService = async (req,res) => {
 //get all services
 exports.getService = async(req,res) => {
     try{
-        const services = await Service.find().sort({createdAt:-1}).populate('serviceProvider', 'name');
+        const{latitude,longtude} = req.query;
+
+        const userLocation ={
+            type:'Point',
+            coordinates:[parseFloat(longtude),parseFloat(latitude)],
+        };
+        
+        const services = await Service.find({
+            location:{
+                $near:{
+                    $geometry:userLocation,
+                    $maxDistance:10000,
+                },
+            },
+        })
+        .populate('serviceProvider','name');
+        
 
         res.json(services);
     }catch(error){
