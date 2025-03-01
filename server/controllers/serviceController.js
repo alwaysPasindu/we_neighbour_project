@@ -76,13 +76,13 @@ exports.deleteService = async(req,res) => {
         const{id} = req.params;
         const serviceProviderId = req.user.id;
 
-        const service = Service.findById(id);
+        const service = await Service.findById(id);
 
-        if(service.ServiceProvider.toString() !== serviceProviderId){
+        if(service.serviceProvider.toString() !== serviceProviderId){
             return res.status(403).json({message:"You are not authorized"});
         }
 
-        await service.remove();
+        await service.deleteOne();
         res.json({message:"Service deleted successfully"});
     }catch(error){
         console.error(error);

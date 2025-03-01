@@ -9,4 +9,4 @@ const ServiceSchema = new mongoose.Schema({
     role:{type:String, default:'ServiceProvider'},
 },{timestamps:true});
 
-module.exports = mongoose.model('Service Provider',ServiceSchema);
+module.exports = mongoose.model('ServiceProvider',ServiceSchema);

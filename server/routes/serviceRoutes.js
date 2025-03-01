@@ -1,5 +1,5 @@
 const express = require('express');
-const{authenticate,isResident,isManager} = require('../middleware/authMiddleware');
+const{authenticate,isManager,isServiceProvider} = require('../middleware/authMiddleware');
 const {
     createService,
     getService,
@@ -9,9 +9,9 @@ const {
 
 const router = express.Router();
 
-router.post('./create-service',authenticate,isResident,createService);
-router.get('./get-service',authenticate,getService);
-router.put('./edit-service/:id',authenticate,isResident,editService);
-router.delete('./delete-service/:id',authenticate,isResident,isManager,deleteService);
+router.post('/create-service',authenticate,isServiceProvider,createService);
+router.get('/get-service',authenticate,getService);
+router.put('/edit-service/:id',authenticate,isServiceProvider,editService);
+router.delete('/delete-service/:id',authenticate,isServiceProvider,deleteService);
 
 module.exports = router;
