@@ -16,9 +16,9 @@ dependencies:
   flutter_carousel_slider: ^1.0.8
   cupertino_icons: ^1.0.8
   badges: ^3.1.2
-  image_picker: ^1.0.4
+  image_picker: ^1.1.2
   shared_preferences: ^2.2.0
-  path_provider: ^2.1.1
+  path_provider: ^2.1.5
   path: ^1.8.3
   qr_flutter: ^4.1.0
   flutter_rating_bar: ^4.0.1
@@ -26,6 +26,7 @@ dependencies:
   share_plus: ^7.2.1
   intl: ^0.18.1
   firebase_core: ^3.12.1
+  cloud_firestore: ^5.6.5
   # google_sign_in: ^6.2.1
   # firebase_auth: ^4.17.4
 
@@ -35,6 +36,9 @@ dependencies:
 
   google_sign_in: ^6.2.2
   firebase_auth: ^5.5.1
+  firebase_storage: ^12.4.4
+  audioplayers: ^6.2.0
+  record: ^5.2.1
   # firebase_core: ^2.13.0
   # cloud_firestore: ^4.7.1
 

@@ -10,19 +10,18 @@ import '../constants/colors.dart';
 import '../main.dart';
 import '../models/service.dart';
 import '../features/services/service_detailsPage.dart';
+import '../features/chat/chat_list_page.dart'; // Import ChatListPage
 
 class HomeScreen extends StatefulWidget {
   final UserType userType;
-
   const HomeScreen({Key? key, required this.userType}) : super(key: key);
-
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  List<Service> _featuredServices = [];
+  List _featuredServices = [];
   final PageController _pageController = PageController(viewportFraction: 0.85);
   int _currentPage = 0;
   Timer? _timer;
@@ -41,13 +40,15 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Future<void> _loadServices() async {
+  Future _loadServices() async {
     final prefs = await SharedPreferences.getInstance();
     final String? servicesJson = prefs.getString('services');
     if (servicesJson != null) {
-      final List<dynamic> decodedServices = jsonDecode(servicesJson);
+      final List decodedServices = jsonDecode(servicesJson);
       setState(() {
-        _featuredServices = decodedServices.map((service) => Service.fromJson(service)).toList();
+        _featuredServices = decodedServices
+            .map((service) => Service.fromJson(service))
+            .toList();
       });
     }
   }
@@ -73,28 +74,26 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _currentIndex = index;
     });
-
-  if (index == 1) { // Service tab
-      Navigator.pushNamed(
+    if (index == 1) {
+      Navigator.push(
         context,
-        '/chat',
-        arguments: widget.userType,
+        MaterialPageRoute(
+          builder: (context) => ChatListPage(),
+        ),
       );
     }
 
-  if (index == 2) { // Resource tab
+    if (index == 2) {
       Navigator.pushNamed(context, '/resource');
     }
-
-    if (index == 3) { // Service tab
+    if (index == 3) {
       Navigator.pushNamed(
         context,
         '/service',
         arguments: widget.userType,
       );
     }
-
-    if (index == 4) { // Profile tab
+    if (index == 4) {
       Navigator.pushNamed(
         context,
         '/profile',
@@ -116,7 +115,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
-
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackground : const Color.fromARGB(255, 255, 254, 254),
       body: Column(
