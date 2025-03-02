@@ -35,8 +35,13 @@ dependencies:
   flutter_local_notifications: ^15.1.1
   provider: ^6.0.5
   intl: ^0.18.1
-  shared_preferences: ^2.2.1
-  cached_network_image: ^3.2.3
+
+  firebase_core: ^3.12.1
+  # google_sign_in: ^6.2.1
+  # firebase_auth: ^4.17.4
+
+  google_sign_in: ^6.2.2
+  firebase_auth: ^5.5.1
 
   # firebase_core: ^2.13.0
   # cloud_firestore: ^4.7.1

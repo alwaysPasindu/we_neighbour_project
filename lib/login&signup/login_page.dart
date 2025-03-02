@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../services/google_sign_in_service.dart'; // Import the new service
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -12,6 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  final GoogleSignInService _googleSignInService = GoogleSignInService(); // Instantiate the service
 
   @override
   void dispose() {
@@ -25,7 +28,6 @@ class _LoginPageState extends State<LoginPage> {
     final email = _emailController.text;
     final password = _passwordController.text;
     print('Login attempted with: $email');
-    
     // Navigate to home screen after successful login
     Navigator.pushReplacementNamed(context, '/home');
   }
@@ -33,15 +35,31 @@ class _LoginPageState extends State<LoginPage> {
   void _handleSocialLogin(String platform) {
     // TODO: Implement social login logic
     print('$platform login attempted');
-    
     // Navigate to home screen after successful social login
     Navigator.pushReplacementNamed(context, '/home');
+  }
+
+  // New method to handle Google Sign-In
+  void _handleSignInWithGoogle() async {
+    try {
+      UserCredential? userCredential = await _googleSignInService.signInWithGoogle();
+      if (userCredential != null) {
+        // Navigate to home screen after successful Google sign-in
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        // Handle error or display a message
+        print("Google Sign-In failed.");
+        // Optionally, show a dialog or a SnackBar to inform the user
+      }
+    } catch (e) {
+      print("Error during Google Sign-In: $e");
+      // Handle the error appropriately, e.g., show an error message to the user.
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       backgroundColor: isDarkMode ? const Color.fromARGB(255, 0, 0, 0) : Colors.white,
       body: Stack(
@@ -94,9 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 32),
                   Container(
                     decoration: BoxDecoration(
-                      color: isDarkMode 
-                          ? const Color(0xFF2A2F35)
-                          : const Color(0xFFF5F5F5),
+                      color: isDarkMode ? const Color(0xFF2A2F35) : const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: TextField(
@@ -117,9 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
-                      color: isDarkMode 
-                          ? const Color(0xFF2A2F35)
-                          : const Color(0xFFF5F5F5),
+                      color: isDarkMode ? const Color(0xFF2A2F35) : const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: TextField(
@@ -162,8 +176,8 @@ class _LoginPageState extends State<LoginPage> {
                                 _rememberMe = value ?? false;
                               });
                             },
-                            fillColor: MaterialStateProperty.resolveWith<Color>(
-                              (Set<MaterialState> states) {
+                            fillColor: MaterialStateProperty.resolveWith(
+                              (Set states) {
                                 if (states.contains(MaterialState.selected)) {
                                   return const Color.fromARGB(255, 0, 18, 152);
                                 }
@@ -271,7 +285,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       _socialButton('assets/images/facebook.png', () => _handleSocialLogin('Facebook'), isDarkMode),
                       const SizedBox(width: 16),
-                      _socialButton('assets/images/google.png', () => _handleSocialLogin('Google'), isDarkMode),
+                      _socialButton('assets/images/google.png', _handleSignInWithGoogle, isDarkMode), // Use the new Google Sign-In method
                       const SizedBox(width: 16),
                       _socialButton('assets/images/twitter.png', () => _handleSocialLogin('Twitter'), isDarkMode),
                     ],
@@ -312,7 +326,6 @@ class WaveClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     var path = Path();
     path.lineTo(0, size.height * 0.75);
-
     var firstControlPoint = Offset(size.width * 0.25, size.height);
     var firstEndPoint = Offset(size.width * 0.5, size.height * 0.85);
     path.quadraticBezierTo(
@@ -321,7 +334,6 @@ class WaveClipper extends CustomClipper<Path> {
       firstEndPoint.dx,
       firstEndPoint.dy,
     );
-
     var secondControlPoint = Offset(size.width * 0.75, size.height * 0.7);
     var secondEndPoint = Offset(size.width, size.height * 0.85);
     path.quadraticBezierTo(
@@ -330,7 +342,6 @@ class WaveClipper extends CustomClipper<Path> {
       secondEndPoint.dx,
       secondEndPoint.dy,
     );
-
     path.lineTo(size.width, 0);
     path.close();
     return path;
