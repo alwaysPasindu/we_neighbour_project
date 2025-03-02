@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "24541811517",
+    "project_id": "weneighbour-c2e23",
+    "storage_bucket": "weneighbour-c2e23.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24541811517:android:06d438fbeef7ccb11eeb54",
+        "android_client_info": {
+          "package_name": "com.example.we_neighbour_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaOLb9uF8TAzAlPk2S5mP8-5rHNoB1bJ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
