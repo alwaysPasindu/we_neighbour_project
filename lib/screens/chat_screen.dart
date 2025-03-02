@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/chat_service.dart';
-import '../components/message_bubble.dart';
+import '../components/chat_bubble.dart';
 import '../components/chat_input.dart';
 
-class ChatRoomScreen extends StatelessWidget {
+class ChatScreen extends StatelessWidget {
   final String receiverId;
   final String receiverEmail;
 
-  ChatRoomScreen({Key? key, required this.receiverId, required this.receiverEmail})
+  ChatScreen({Key? key, required this.receiverId, required this.receiverEmail})
       : super(key: key);
 
   @override

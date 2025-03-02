@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
+import 'package:we_neighbour/screens/chat_screen.dart'; // Import ChatScreen
 
 class ChatModel {
   final String id;
@@ -11,6 +12,8 @@ class ChatModel {
   final DateTime timestamp;
   final bool isRead;
   final String messageType; // 'text', 'photo', 'voice'
+  final String receiverId;
+  final String receiverEmail;
 
   ChatModel({
     required this.id,
@@ -18,19 +21,20 @@ class ChatModel {
     required this.lastMessage,
     required this.avatar,
     required this.timestamp,
+    required this.receiverId,
+    required this.receiverEmail,
     this.isRead = false,
     this.messageType = 'text',
   });
 }
 
 class ChatListPage extends StatelessWidget {
-  const ChatListPage({super.key});
+  const ChatListPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
-
     final List<ChatModel> chats = [
       ChatModel(
         id: '1',
@@ -40,6 +44,8 @@ class ChatListPage extends StatelessWidget {
         timestamp: DateTime(2024, 11, 19),
         isRead: true,
         messageType: 'text',
+        receiverId: 'user2', // Replace with actual receiver ID
+        receiverEmail: 'user2@example.com', // Replace with actual receiver email
       ),
       ChatModel(
         id: '2',
@@ -49,6 +55,8 @@ class ChatListPage extends StatelessWidget {
         timestamp: DateTime(2024, 11, 16),
         isRead: true,
         messageType: 'text',
+        receiverId: 'user3', // Replace with actual receiver ID
+        receiverEmail: 'user3@example.com', // Replace with actual receiver email
       ),
       ChatModel(
         id: '3',
@@ -58,6 +66,8 @@ class ChatListPage extends StatelessWidget {
         timestamp: DateTime(2024, 11, 15),
         isRead: false,
         messageType: 'voice',
+        receiverId: 'user4', // Replace with actual receiver ID
+        receiverEmail: 'user4@example.com', // Replace with actual receiver email
       ),
       ChatModel(
         id: '4',
@@ -67,6 +77,8 @@ class ChatListPage extends StatelessWidget {
         timestamp: DateTime(2024, 10, 30),
         isRead: true,
         messageType: 'text',
+        receiverId: 'user5', // Replace with actual receiver ID
+        receiverEmail: 'user5@example.com', // Replace with actual receiver email
       ),
       ChatModel(
         id: '5',
@@ -76,6 +88,8 @@ class ChatListPage extends StatelessWidget {
         timestamp: DateTime(2024, 10, 28),
         isRead: false,
         messageType: 'photo',
+        receiverId: 'user6', // Replace with actual receiver ID
+        receiverEmail: 'user6@example.com', // Replace with actual receiver email
       ),
       ChatModel(
         id: '6',
@@ -85,6 +99,8 @@ class ChatListPage extends StatelessWidget {
         timestamp: DateTime(2024, 8, 20),
         isRead: true,
         messageType: 'text',
+        receiverId: 'user7', // Replace with actual receiver ID
+        receiverEmail: 'user7@example.com', // Replace with actual receiver email
       ),
       ChatModel(
         id: '7',
@@ -94,6 +110,8 @@ class ChatListPage extends StatelessWidget {
         timestamp: DateTime(2024, 7, 29),
         isRead: true,
         messageType: 'text',
+        receiverId: 'user8', // Replace with actual receiver ID
+        receiverEmail: 'user8@example.com', // Replace with actual receiver email
       ),
     ];
 
@@ -102,7 +120,6 @@ class ChatListPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Custom App Bar with fixed height
             Container(
               height: 80, // Fixed height for the header
               color: const Color(0xFF042347),
@@ -138,7 +155,6 @@ class ChatListPage extends StatelessWidget {
                 ],
               ),
             ),
-            // New Group Button
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               alignment: Alignment.centerRight,
@@ -156,7 +172,6 @@ class ChatListPage extends StatelessWidget {
                 ),
               ),
             ),
-            // Chat List
             Expanded(
               child: ListView.separated(
                 padding: EdgeInsets.zero, // Remove default padding
@@ -244,7 +259,15 @@ class ChatListPage extends StatelessWidget {
                       ],
                     ),
                     onTap: () {
-                      // Navigate to chat detail
+                       Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                            receiverId: chat.receiverId,
+                            receiverEmail: chat.receiverEmail,
+                          ),
+                        ),
+                      );
                     },
                   );
                 },
@@ -259,7 +282,6 @@ class ChatListPage extends StatelessWidget {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date).inDays;
-
     if (difference == 0) {
       return 'Today';
     } else if (difference == 1) {

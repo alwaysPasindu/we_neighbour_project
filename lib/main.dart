@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/features/chat/chat_list_page.dart';
-import 'package:we_neighbour/screens/chat_room_screen.dart';
 import 'features/resource_share/resource_sharing_page.dart';
 import 'package:we_neighbour/profiles/provider_profile_screen.dart';
 
@@ -80,32 +79,27 @@ class MyApp extends StatelessWidget {
           ),
           themeMode: themeProvider.themeMode,
           initialRoute: '/',
-           routes: {
-              '/': (context) => const LoginPage(),
-              '/account-type': (context) => const AccountTypePage(),
-              '/resident-signup': (context) => const ResidentSignUpPage(),
-              '/manager-signup': (context) => const ManagerSignUpPage(),
-              '/service-provider-signup': (context) =>
-                  const ServiceProviderSignUpPage(),
-              '/provider-home': (context) => const MainPage(),
-              '/service': (context) => const ServicesPage(),
-              '/chat': (context) => const ChatListPage(),
-              '/resource': (context) => const ResourceSharingPage(),
-              '/login': (context) => const LoginPage(),
-              '/home': (context) {
-                final args = ModalRoute.of(context)?.settings.arguments;
-                final userType = args is UserType ? args : UserType.resident;
-                return HomeScreen(userType: userType);
-              },
-              '/chat-room': (context) {
-                final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-                final String receiverId = args['receiverId'];
-                final String receiverEmail = args['receiverEmail'];
-                return ChatRoomScreen(receiverId: receiverId, receiverEmail: receiverEmail);
-              },
-              '/settings': (context) =>
-                  const SettingsScreen(), // Updated to use const constructor
-      },
+          routes: {
+            '/': (context) => const LoginPage(),
+            '/account-type': (context) => const AccountTypePage(),
+            '/resident-signup': (context) => const ResidentSignUpPage(),
+            '/manager-signup': (context) => const ManagerSignUpPage(),
+            '/service-provider-signup': (context) =>
+                const ServiceProviderSignUpPage(),
+            '/provider-home': (context) => const MainPage(),
+            '/service': (context) => const ServicesPage(),
+            '/chat': (context) => const ChatListPage(),
+            '/resource': (context) => const ResourceSharingPage(),
+            '/login': (context) => const LoginPage(),
+            '/home': (context) {
+              final args = ModalRoute.of(context)?.settings.arguments;
+              final userType = args is UserType ? args : UserType.resident;
+              return HomeScreen(userType: userType);
+            },
+            '/settings': (context) =>
+                const SettingsScreen(), // Updated to use const constructor
+          },
+
 
 
           onGenerateRoute: (settings) {

@@ -10,6 +10,7 @@ import '../constants/colors.dart';
 import '../main.dart';
 import '../models/service.dart';
 import '../features/services/service_detailsPage.dart';
+import '../features/chat/chat_list_page.dart'; // Import ChatListPage
 
 class HomeScreen extends StatefulWidget {
   final UserType userType;
@@ -73,24 +74,26 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _currentIndex = index;
     });
-    if (index == 1) { // Service tab
-      Navigator.pushNamed(
+    if (index == 1) {
+      Navigator.push(
         context,
-        '/chat',
-        arguments: widget.userType,
+        MaterialPageRoute(
+          builder: (context) => ChatListPage(),
+        ),
       );
     }
-    if (index == 2) { // Resource tab
+
+    if (index == 2) {
       Navigator.pushNamed(context, '/resource');
     }
-    if (index == 3) { // Service tab
+    if (index == 3) {
       Navigator.pushNamed(
         context,
         '/service',
         arguments: widget.userType,
       );
     }
-    if (index == 4) { // Profile tab
+    if (index == 4) {
       Navigator.pushNamed(
         context,
         '/profile',
@@ -346,104 +349,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-import 'package:flutter/material.dart';
-
-import '../constants/colors.dart';
-
-enum UserType {
-
-resident,
-
-manager,
-
-serviceProvider,
-
-}
-
-class BottomNavigation extends StatelessWidget {
-
-final int currentIndex;
-
-final Function(int) onTap;
-
-final UserType userType;
-
-final bool isDarkMode;
-
-const BottomNavigation({super.key,
-
-required this.currentIndex,
-
-required this.onTap,
-
-required this.userType,
-
-required this.isDarkMode});
-
-@override
-
-Widget build(BuildContext context) {
-
-return BottomNavigationBar(
-
-type: BottomNavigationBarType.fixed,
-
-backgroundColor: isDarkMode ? AppColors.darkCardBackground : Colors.white,
-
-selectedItemColor: AppColors.primary,
-
-unselectedItemColor: isDarkMode ? Colors.white70 : Colors.black54,
-
-selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-
-unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-
-currentIndex: currentIndex,
-
-onTap: onTap,
-
-items: const [
-
-BottomNavigationBarItem(
-
-icon: Icon(Icons.home),
-
-label: 'Home',
-
-),
-
-BottomNavigationBarItem(
-
-icon: Icon(Icons.chat),
-
-label: 'Chat',
-
-),
-
-BottomNavigationBarItem(
-
-icon: Icon(Icons.share),
-
-label: 'Resource',
-
-),
-
-BottomNavigationBarItem(
-
-icon: Icon(Icons.design_services),
-
-label: 'Services',
-
-),
-
-BottomNavigationBarItem(
-
-icon: Icon(Icons.person),
-
-label: 'Profile',
-
-),
-
-],
-
-);
