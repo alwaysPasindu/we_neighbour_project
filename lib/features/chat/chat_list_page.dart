@@ -1,239 +1,128 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:we_neighbour/constants/colors.dart';
-import 'package:we_neighbour/providers/theme_provider.dart';
-import 'package:we_neighbour/screens/chat_screen.dart'; // Import ChatScreen
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:we_neighbour/screens/chat_screen.dart';
+import '../../constants/colors.dart';
+import 'package:intl/intl.dart';
 
-class ChatModel {
-  final String id;
-  final String name;
-  final String lastMessage;
-  final String avatar;
-  final DateTime timestamp;
-  final bool isRead;
-  final String messageType; // 'text', 'photo', 'voice'
-  final String receiverId;
-  final String receiverEmail;
-
-  ChatModel({
-    required this.id,
-    required this.name,
-    required this.lastMessage,
-    required this.avatar,
-    required this.timestamp,
-    required this.receiverId,
-    required this.receiverEmail,
-    this.isRead = false,
-    this.messageType = 'text',
-  });
-}
-
-class ChatListPage extends StatelessWidget {
+class ChatListPage extends StatefulWidget {
   const ChatListPage({Key? key}) : super(key: key);
 
   @override
+  State<ChatListPage> createState() => _ChatListPageState();
+}
+
+class _ChatListPageState extends State<ChatListPage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
-    final List<ChatModel> chats = [
-      ChatModel(
-        id: '1',
-        name: 'Local Legends',
-        lastMessage: 'Yes, 2pm is awesome',
-        avatar: 'assets/avatars/local_legends.png',
-        timestamp: DateTime(2024, 11, 19),
-        isRead: true,
-        messageType: 'text',
-        receiverId: 'user2', // Replace with actual receiver ID
-        receiverEmail: 'user2@example.com', // Replace with actual receiver email
-      ),
-      ChatModel(
-        id: '2',
-        name: 'Around the corner',
-        lastMessage: 'What kind of strategy is better?',
-        avatar: 'assets/avatars/troll_face.png',
-        timestamp: DateTime(2024, 11, 16),
-        isRead: true,
-        messageType: 'text',
-        receiverId: 'user3', // Replace with actual receiver ID
-        receiverEmail: 'user3@example.com', // Replace with actual receiver email
-      ),
-      ChatModel(
-        id: '3',
-        name: 'Floor 6',
-        lastMessage: '0:14',
-        avatar: 'assets/avatars/floor6.png',
-        timestamp: DateTime(2024, 11, 15),
-        isRead: false,
-        messageType: 'voice',
-        receiverId: 'user4', // Replace with actual receiver ID
-        receiverEmail: 'user4@example.com', // Replace with actual receiver email
-      ),
-      ChatModel(
-        id: '4',
-        name: 'Our happy place',
-        lastMessage: 'Bro, I have a good idea!',
-        avatar: 'assets/avatars/happy_place.png',
-        timestamp: DateTime(2024, 10, 30),
-        isRead: true,
-        messageType: 'text',
-        receiverId: 'user5', // Replace with actual receiver ID
-        receiverEmail: 'user5@example.com', // Replace with actual receiver email
-      ),
-      ChatModel(
-        id: '5',
-        name: 'Lend a hand',
-        lastMessage: 'Photo',
-        avatar: 'assets/avatars/lend_hand.png',
-        timestamp: DateTime(2024, 10, 28),
-        isRead: false,
-        messageType: 'photo',
-        receiverId: 'user6', // Replace with actual receiver ID
-        receiverEmail: 'user6@example.com', // Replace with actual receiver email
-      ),
-      ChatModel(
-        id: '6',
-        name: 'The social circle',
-        lastMessage: 'Welcome, to make design process faster, look at Pixsellz',
-        avatar: 'assets/avatars/social_circle.png',
-        timestamp: DateTime(2024, 8, 20),
-        isRead: true,
-        messageType: 'text',
-        receiverId: 'user7', // Replace with actual receiver ID
-        receiverEmail: 'user7@example.com', // Replace with actual receiver email
-      ),
-      ChatModel(
-        id: '7',
-        name: 'Chatter box',
-        lastMessage: 'Ok, have a good trip!',
-        avatar: 'assets/avatars/chatter_box.png',
-        timestamp: DateTime(2024, 7, 29),
-        isRead: true,
-        messageType: 'text',
-        receiverId: 'user8', // Replace with actual receiver ID
-        receiverEmail: 'user8@example.com', // Replace with actual receiver email
-      ),
-    ];
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              height: 80, // Fixed height for the header
-              color: const Color(0xFF042347),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 25, // Slightly smaller radius
-                    backgroundImage: AssetImage('assets/avatars/profile.png'),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'John Doe',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20, // Slightly smaller font
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Chats',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: 16, // Slightly smaller font
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Handle new group creation
-                },
-                child: Text(
-                  'New Group',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+      appBar: AppBar(
+        title: const Text('Chats'),
+        backgroundColor: const Color(0xFF042347),
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search or start a new chat',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
                 ),
               ),
+              onChanged: (query) {
+                setState(() {
+                  _searchQuery = query;
+                });
+              },
             ),
-            Expanded(
-              child: ListView.separated(
-                padding: EdgeInsets.zero, // Remove default padding
-                itemCount: chats.length,
-                separatorBuilder: (context, index) => Divider(
-                  height: 1,
-                  color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
-                ),
-                itemBuilder: (context, index) {
-                  final chat = chats[index];
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        ),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('users').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('No data available.'));
+          }
+
+          List<DocumentSnapshot> users = snapshot.data!.docs
+              .where((doc) => doc.id != _auth.currentUser!.uid)
+              .toList();
+
+          if (_searchQuery.isNotEmpty) {
+            users = users.where((doc) {
+              final userData = doc.data() as Map<String, dynamic>;
+              final userName = userData['email'] ?? '';
+              return userName.toLowerCase().contains(_searchQuery.toLowerCase());
+            }).toList();
+          }
+
+          if (users.isEmpty) {
+            return const Center(child: Text('No users found.'));
+          }
+
+          return ListView.builder(
+            itemCount: users.length,
+            itemBuilder: (context, index) {
+              final userData = users[index].data() as Map<String, dynamic>;
+              final userId = users[index].id;
+              final userName = userData['email'] ?? 'Unknown User';
+              final userAvatar = userData['avatar'] ?? 'assets/avatars/default_avatar.png';
+              final lastMessage = userData['lastMessage'] ?? ''; // fetch last message
+              final timestamp = userData['timestamp'] != null
+                  ? DateFormat('hh:mm a').format((userData['timestamp'] as Timestamp).toDate())
+                  : ''; // fetch and format timestamp
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2),
+                child: Card(
+                  color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  child: ListTile(
                     leading: CircleAvatar(
-                      radius: 24, // Slightly smaller radius
-                      backgroundColor: Colors.grey[300],
-                      backgroundImage: AssetImage(chat.avatar),
+                      radius: 28,
+                      backgroundImage: NetworkImage(userAvatar),
                     ),
                     title: Text(
-                      chat.name,
+                      userName,
                       style: TextStyle(
-                        fontSize: 16, // Slightly smaller font
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                     subtitle: Row(
                       children: [
-                        if (chat.isRead)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4.0),
-                            child: Icon(
-                              Icons.done_all,
-                              size: 14,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        if (chat.messageType == 'voice')
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4.0),
-                            child: Icon(
-                              Icons.mic,
-                              size: 14,
-                              color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                            ),
-                          ),
-                        if (chat.messageType == 'photo')
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4.0),
-                            child: Icon(
-                              Icons.photo_camera,
-                              size: 14,
-                              color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                            ),
-                          ),
                         Expanded(
                           child: Text(
-                            chat.lastMessage,
+                            lastMessage,
                             style: TextStyle(
-                              fontSize: 14, // Slightly smaller font
-                              color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                              fontSize: 14,
+                              color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                             ),
-                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -244,50 +133,35 @@ class ChatListPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          _formatDate(chat.timestamp),
+                          timestamp,
                           style: TextStyle(
-                            color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
                             fontSize: 12,
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Icon(
-                          Icons.chevron_right,
-                          color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                          size: 20,
-                        ),
+                        const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
                       ],
                     ),
                     onTap: () {
-                       Navigator.push(
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => ChatScreen(
-                            receiverId: chat.receiverId,
-                            receiverEmail: chat.receiverEmail,
+                            receiverId: userId,
+                            receiverEmail: userName,
                           ),
                         ),
                       );
                     },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date).inDays;
-    if (difference == 0) {
-      return 'Today';
-    } else if (difference == 1) {
-      return 'Yesterday';
-    } else {
-      return '${date.month}/${date.day}/${date.year.toString().substring(2)}';
-    }
   }
 }
