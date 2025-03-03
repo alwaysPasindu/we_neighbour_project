@@ -3,33 +3,38 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:we_neighbour/features/services/service_detailsPage.dart';
 import '../widgets/header_widget.dart';
 import '../widgets/feature_grid.dart';
 import '../widgets/bottom_navigation.dart';
 import '../constants/colors.dart';
 import '../main.dart';
 import '../models/service.dart';
-import '../features/services/service_detailsPage.dart';
-import '../features/chat/chat_list_page.dart'; // Import ChatListPage
+import '../utils/auth_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserType userType;
-  const HomeScreen({Key? key, required this.userType}) : super(key: key);
+
+  const HomeScreen({super.key, required this.userType});
+
   @override
-  State createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  List _featuredServices = [];
+  List<Service> _featuredServices = [];
   final PageController _pageController = PageController(viewportFraction: 0.85);
   int _currentPage = 0;
   Timer? _timer;
+  String? _token;
+  late SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
-    _loadServices();
+    _initializePrefs();
     _startAutoSlide();
   }
 
@@ -40,21 +45,57 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Future _loadServices() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? servicesJson = prefs.getString('services');
-    if (servicesJson != null) {
-      final List decodedServices = jsonDecode(servicesJson);
-      setState(() {
-        _featuredServices = decodedServices
-            .map((service) => Service.fromJson(service))
-            .toList();
-      });
+  Future<void> _initializePrefs() async {
+    prefs = await SharedPreferences.getInstance();
+    await _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      _token = prefs.getString('token');
+    });
+    if (_token != null) {
+      await _loadServices();
+    }
+  }
+
+  Future<void> _loadServices() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://172.20.10.3:3000/api/services?latitude=6.9271&longitude=79.8612'),
+        headers: {
+          'Authorization': 'Bearer $_token',
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      print('HomeScreen load services response: ${response.statusCode} - ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> servicesJson = jsonDecode(response.body) as List<dynamic>;
+        final services = servicesJson.map((json) => Service.fromJson(json as Map<String, dynamic>)).toList();
+        setState(() {
+          _featuredServices = services;
+        });
+        await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
+      } else {
+        throw Exception('Failed to load services: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error loading services in HomeScreen: $e');
+      final String? servicesJson = prefs.getString('services');
+      if (servicesJson != null) {
+        final List<dynamic> decodedServices = jsonDecode(servicesJson);
+        setState(() {
+          _featuredServices = decodedServices.map((service) => Service.fromJson(service as Map<String, dynamic>)).toList();
+        });
+      }
     }
   }
 
   void _startAutoSlide() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (_featuredServices.isEmpty) return;
       if (_currentPage < _featuredServices.length - 1) {
         _currentPage++;
       } else {
@@ -70,43 +111,41 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _onTabTapped(int index) {
+  void _onTabTapped(int index) async {
     setState(() {
       _currentIndex = index;
     });
-    if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChatListPage(),
-        ),
-      );
-    }
 
-    if (index == 2) {
+    if (index == 1) { // Chat tab
+      Navigator.pushNamed(context, '/chat', arguments: widget.userType);
+    } else if (index == 2) { // Resource tab
       Navigator.pushNamed(context, '/resource');
-    }
-    if (index == 3) {
-      Navigator.pushNamed(
-        context,
-        '/service',
-        arguments: widget.userType,
-      );
-    }
-    if (index == 4) {
-      Navigator.pushNamed(
-        context,
-        '/profile',
-        arguments: widget.userType,
-      );
+    } else if (index == 3) { // Service tab
+      Navigator.pushNamed(context, '/service', arguments: widget.userType);
+    } else if (index == 4) { // Profile tab
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+
+      final userType = await AuthUtils.getUserType();
+      Navigator.pushNamed(context, '/profile', arguments: userType);
     }
   }
 
-  void _onServiceTap(Service service) {
+  void _onServiceTap(Service service) async {
+    final currentUserId = prefs.getString('userId') ?? '';
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ServiceDetailsPage(service: service),
+        builder: (context) => ServiceDetailsPage(
+          service: service,
+          isOwnService: service.serviceProviderId == currentUserId,
+          userType: widget.userType,
+        ),
       ),
     );
   }
@@ -115,6 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackground : const Color.fromARGB(255, 255, 254, 254),
       body: Column(
@@ -168,144 +208,123 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                           itemBuilder: (context, index) {
                             final service = _featuredServices[index];
-                            return AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              margin: EdgeInsets.only(
-                                right: 16,
-                                left: index == 0 ? 16 : 0,
-                                top: 8,
-                                bottom: 8,
-                              ),
-                              child: Card(
-                                elevation: 8,
-                                shadowColor: isDarkMode
-                                    ? Colors.black.withOpacity(0.4)
-                                    : Colors.grey.withOpacity(0.4),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
-                                child: InkWell(
-                                  onTap: () => _onServiceTap(service),
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: const BorderRadius.vertical(
-                                          top: Radius.circular(16),
-                                        ),
-                                        child: Stack(
-                                          children: [
-                                            Hero(
-                                              tag: 'service_image_${service.id}',
-                                              child: Image.file(
-                                                File(service.imagePaths.first),
-                                                height: size.height * 0.2,
-                                                width: double.infinity,
-                                                fit: BoxFit.cover,
-                                              ),
+                            return Card(
+                              elevation: 8,
+                              shadowColor: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.4),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+                              child: InkWell(
+                                onTap: () => _onServiceTap(service),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                      child: Stack(
+                                        children: [
+                                          Hero(
+                                            tag: 'service_image_${service.id}',
+                                            child: Image.file(
+                                              File(service.imagePaths.first),
+                                              height: size.height * 0.2,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
                                             ),
-                                            Positioned.fill(
-                                              child: DecoratedBox(
-                                                decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                    begin: Alignment.topCenter,
-                                                    end: Alignment.bottomCenter,
-                                                    colors: [
-                                                      Colors.transparent,
-                                                      Colors.black.withOpacity(0.8),
-                                                    ],
-                                                  ),
+                                          ),
+                                          Positioned.fill(
+                                            child: DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [
+                                                    Colors.transparent,
+                                                    Colors.black.withOpacity(0.8),
+                                                  ],
                                                 ),
                                               ),
                                             ),
-                                            Positioned(
-                                              bottom: 12,
-                                              left: 12,
-                                              right: 12,
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    service.title,
-                                                    style: const TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.white,
-                                                    ),
+                                          ),
+                                          Positioned(
+                                            bottom: 12,
+                                            left: 12,
+                                            right: 12,
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  service.title,
+                                                  style: const TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
                                                   ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    service.companyName,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  service.serviceProviderName,
+                                                  style: TextStyle(
+                                                    color: Colors.white.withOpacity(0.9),
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              service.description,
+                                              style: TextStyle(
+                                                color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                                                fontSize: 14,
+                                                height: 1.4,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const Spacer(),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.location_on, size: 16, color: AppColors.primary),
+                                                const SizedBox(width: 4),
+                                                Expanded(
+                                                  child: Text(
+                                                    service.location.address,
                                                     style: TextStyle(
-                                                      color: Colors.white.withOpacity(0.9),
+                                                      color: isDarkMode ? Colors.white70 : Colors.black87,
                                                       fontSize: 14,
                                                       fontWeight: FontWeight.w500,
                                                     ),
                                                   ),
-                                                ],
-                                              ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                const Icon(Icons.access_time_rounded, size: 16, color: AppColors.primary),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  service.availableHours,
+                                                  style: TextStyle(
+                                                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
                                       ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                service.description,
-                                                style: TextStyle(
-                                                  color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                                                  fontSize: 14,
-                                                  height: 1.4,
-                                                ),
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const Spacer(),
-                                              Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons.location_on,
-                                                    size: 16,
-                                                    color: AppColors.primary,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    service.location,
-                                                    style: TextStyle(
-                                                      color: isDarkMode ? Colors.white70 : Colors.black87,
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                  const Spacer(),
-                                                  const Icon(
-                                                    Icons.access_time_rounded,
-                                                    size: 16,
-                                                    color: AppColors.primary,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    service.availableHours,
-                                                    style: TextStyle(
-                                                      color: isDarkMode ? Colors.white70 : Colors.black87,
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
@@ -332,6 +351,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                    ] else ...[
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          'No featured services available',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ),
                     ],
                   ],
                 ),

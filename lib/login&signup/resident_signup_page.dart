@@ -1,5 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ResidentSignUpPage extends StatefulWidget {
   const ResidentSignUpPage({super.key});
@@ -52,22 +55,54 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
     return RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
   }
 
-    bool _isStrongPassword(String password) {
-  return password.length >= 6 && 
-         password.contains(RegExp(r'[0-9]')) && 
-         password.contains(RegExp(r'[a-zA-Z]'));
-}
+  bool _isStrongPassword(String password) {
+    return password.length >= 6 && 
+           password.contains(RegExp(r'[0-9]')) && 
+           password.contains(RegExp(r'[a-zA-Z]'));
+  }
 
-  void _handleSignUp() {
+  // New method to handle the sign up and send data to backend
+  Future<void> _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
-      print('Name: ${_nameController.text}');
-      print('NIC: ${_nicController.text}');
-      print('Email: ${_emailController.text}');
-      print('Contact: ${_contactController.text}');
-      print('Address: ${_addressController.text}');
-      print('Apartment: $_selectedApartment');
-      
-      Navigator.pushReplacementNamed(context, '/home');
+      // Collect the data from form fields
+      var formData = {
+        'name': _nameController.text,
+        'nic': _nicController.text,
+        'email': _emailController.text,
+        'phone': _contactController.text,
+        'apartmentComplexName': _selectedApartment,  // This will store the selected apartment
+        'apartmentCode': _addressController.text,
+        'password': _passwordController.text,
+      };
+
+      // Make an HTTP POST request to the backend
+      try {
+        final response = await http.post(
+          Uri.parse('http://172.20.10.3:3000/api/residents/register'), 
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: json.encode(formData),
+        );
+
+        if (response.statusCode == 201) {
+          // Success: Navigate to home or show success message
+          print('Sign up successful');
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          // Handle error response from backend
+          print('Failed to sign up. Error: ${response.body}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to sign up. Please try again later.')),
+          );
+        }
+      } catch (e) {
+        // Handle any exceptions
+        print('Error occurred: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An error occurred. Please try again later.')),
+        );
+      }
     }
   }
 
@@ -251,7 +286,8 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                       }).toList(),
                       onChanged: (String? newValue) {
                         setState(() {
-                          _selectedApartment = newValue;
+                          _selectedApartment = newValue; // Store selected apartment
+                          print('Selected Apartment: $_selectedApartment');
                         });
                       },
                       validator: (value) {

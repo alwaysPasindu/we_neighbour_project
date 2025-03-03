@@ -4,12 +4,15 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
+import 'package:http/http.dart' as http;
+import 'package:we_neighbour/constants/colors.dart';
 import '../models/service.dart';
 import '../widgets/provider_header_widget.dart';
 import '../../providers/theme_provider.dart';
 import '../features/services/service_detailsPage.dart';
+import '../widgets/provider_bottom_navigation.dart';
+import '../main.dart';
 
-// Advertisement class remains the same
 class Advertisement {
   final String title;
   final String description;
@@ -36,8 +39,10 @@ class _HomePageState extends State<ProviderHomePage> {
   final PageController _pageController = PageController(viewportFraction: 0.8);
   int _currentPage = 0;
   Timer? _timer;
+  int _currentIndex = 0;
+  String? _token;
+  late SharedPreferences prefs;
 
-  // Advertisement list remains the same
   final List<Advertisement> generalAds = [
     Advertisement(
       title: 'Special Discount',
@@ -62,7 +67,7 @@ class _HomePageState extends State<ProviderHomePage> {
   @override
   void initState() {
     super.initState();
-    _loadServices();
+    _initializePrefs();
     _startAutoSlide();
   }
 
@@ -73,36 +78,108 @@ class _HomePageState extends State<ProviderHomePage> {
     super.dispose();
   }
 
-  // Other methods remain the same
+  Future<void> _initializePrefs() async {
+    prefs = await SharedPreferences.getInstance();
+    await _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      _token = prefs.getString('token');
+    });
+    if (_token != null) {
+      await _loadServices();
+    }
+  }
+
+  Future<void> _loadServices() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://172.20.10.3:3000/api/services?latitude=6.9271&longitude=79.8612'),
+        headers: {
+          'Authorization': 'Bearer $_token',
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      print('ProviderHomePage load services response: ${response.statusCode} - ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> servicesJson = jsonDecode(response.body) as List<dynamic>;
+        final services = servicesJson.map((json) => Service.fromJson(json as Map<String, dynamic>)).toList();
+        setState(() {
+          _featuredServices = services;
+        });
+        await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
+      } else {
+        throw Exception('Failed to load services: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error loading services in ProviderHomePage: $e');
+      final String? servicesJson = prefs.getString('services');
+      if (servicesJson != null) {
+        final List<dynamic> decodedServices = jsonDecode(servicesJson);
+        setState(() {
+          _featuredServices = decodedServices.map((service) => Service.fromJson(service as Map<String, dynamic>)).toList();
+        });
+      }
+    }
+  }
+
   void _startAutoSlide() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (_featuredServices.isEmpty) return;
       if (_currentPage < _featuredServices.length - 1) {
         _currentPage++;
       } else {
         _currentPage = 0;
       }
-      _pageController.animateToPage(
-        _currentPage,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeIn,
-      );
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeIn,
+        );
+      }
     });
   }
 
-  Future<void> _loadServices() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? servicesJson = prefs.getString('services');
-    if (servicesJson != null) {
-      final List<dynamic> decodedServices = jsonDecode(servicesJson);
-      setState(() {
-        _featuredServices = decodedServices.map((service) => Service.fromJson(service)).toList();
-      });
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    if (index == 1) {
+      Navigator.pushNamed(
+        context,
+        '/service',
+        arguments: UserType.serviceProvider,
+      );
+    } else if (index == 2) {
+      Navigator.pushNamed(
+        context,
+        '/provider-profile',
+      );
     }
+  }
+
+  void _onServiceTap(Service service) async {
+    final currentUserId = prefs.getString('userId') ?? '';
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ServiceDetailsPage(
+          service: service,
+          isOwnService: service.serviceProviderId == currentUserId,
+          userType: UserType.serviceProvider,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get the current theme mode
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
 
@@ -139,14 +216,7 @@ class _HomePageState extends State<ProviderHomePage> {
                       itemBuilder: (context, index) {
                         final service = _featuredServices[index];
                         return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ServiceDetailsPage(service: service),
-                              ),
-                            );
-                          },
+                          onTap: () => _onServiceTap(service),
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 8),
                             child: Card(
@@ -197,6 +267,25 @@ class _HomePageState extends State<ProviderHomePage> {
                           ),
                         );
                       },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _featuredServices.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentPage == index ? 24 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: _currentPage == index
+                              ? AppColors.primary
+                              : (isDarkMode ? Colors.grey[400] : Colors.grey[600])?.withOpacity(0.3),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -281,6 +370,12 @@ class _HomePageState extends State<ProviderHomePage> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigation(
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+        userType: UserType.serviceProvider,
+        isDarkMode: isDarkMode,
       ),
     );
   }

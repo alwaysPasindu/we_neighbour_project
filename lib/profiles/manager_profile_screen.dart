@@ -1,79 +1,375 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'dart:io';
 import '../constants/colors.dart';
-import '../constants/text_styles.dart';
-import '../providers/theme_provider.dart';
+import '../utils/auth_utils.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class ManagerProfileScreen extends StatelessWidget {
+class ManagerProfileScreen extends StatefulWidget {
   const ManagerProfileScreen({super.key});
 
   @override
+  State<ManagerProfileScreen> createState() => _ManagerProfileScreenState();
+}
+
+class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
+  File? _profileImage;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _apartmentController = TextEditingController();
+  final TextEditingController _designationController = TextEditingController();
+  bool _isEditing = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+    _loadProfileImage();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _apartmentController.dispose();
+    _designationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadProfileData() async {
+    try {
+      final profileData = await AuthUtils.getUserProfileData();
+      
+      setState(() {
+        _nameController.text = profileData['name'] ?? '';
+        _emailController.text = profileData['email'] ?? '';
+        _phoneController.text = profileData['phone'] ?? '';
+        _apartmentController.text = profileData['apartment'] ?? '';
+        _designationController.text = profileData['designation'] ?? '';
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading profile data: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadProfileImage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final imagePath = prefs.getString('manager_profile_image');
+      if (imagePath != null) {
+        final file = File(imagePath);
+        if (await file.exists()) {
+          setState(() {
+            _profileImage = file;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading profile image: $e');
+    }
+  }
+
+  Future<void> _saveProfileData() async {
+    try {
+      await AuthUtils.saveUserProfileData(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
+        apartment: _apartmentController.text.trim(),
+        designation: _designationController.text.trim(),
+      );
+    } catch (e) {
+      print('Error saving profile data: $e');
+      throw e;
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        final directory = await getApplicationDocumentsDirectory();
+        final fileName = 'manager_profile_${DateTime.now().millisecondsSinceEpoch}${path.extension(image.path)}';
+        final savedImage = File('${directory.path}/$fileName');
+
+        await savedImage.writeAsBytes(await image.readAsBytes());
+
+        if (_profileImage != null && await _profileImage!.exists()) {
+          await _profileImage!.delete();
+        }
+
+        setState(() {
+          _profileImage = savedImage;
+        });
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('manager_profile_image', savedImage.path);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile photo updated successfully')),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: const Text('Failed to pick image. Please try again.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+
+  Future<void> _updateProfileOnServer() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+    
+      if (token == null) {
+        throw 'No authentication token found';
+      }
+
+      final response = await http.put(
+        Uri.parse('http://172.20.10.3:3000/api/managers/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'apartmentComplexName': _apartmentController.text.trim(),
+          'designation': _designationController.text.trim(),
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        await _saveProfileData();
+      } else {
+        throw 'Failed to update profile: ${response.statusCode}';
+      }
+    } catch (e) {
+      print('Error updating profile on server: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating profile: $e')),
+        );
+      }
+      throw e;
+    }
+  }
+
+  void _toggleEdit() {
+    setState(() {
+      if (_isEditing) {
+        if (_validateFields()) {
+          _updateProfileOnServer().then((_) {
+            setState(() {
+              _isEditing = false;
+            });
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Profile updated successfully')),
+              );
+            }
+          }).catchError((error) {
+            setState(() {
+              _isEditing = true;
+            });
+          });
+        }
+      } else {
+        _isEditing = true;
+      }
+    });
+  }
+
+  bool _validateFields() {
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(_emailController.text.trim())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email address')),
+      );
+      return false;
+    }
+
+    if (!_isValidPhoneNumber(_phoneController.text.trim())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid phone number')),
+      );
+      return false;
+    }
+
+    if (_apartmentController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter the apartment complex name')),
+      );
+      return false;
+    }
+
+    if (_designationController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your designation')),
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  bool _isValidPhoneNumber(String phone) {
+    return RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(phone);
+  }
+
+  TextInputType _getKeyboardType(String label) {
+    switch (label) {
+      case 'Phone Number':
+        return TextInputType.phone;
+      case 'Email':
+        return TextInputType.emailAddress;
+      case 'Apartment':
+        return TextInputType.streetAddress;
+      default:
+        return TextInputType.text;
+    }
+  }
+
+  List<TextInputFormatter>? _getInputFormatters(String label) {
+    switch (label) {
+      case 'Phone Number':
+        return [
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9\+]')),
+          LengthLimitingTextInputFormatter(12),
+        ];
+      default:
+        return null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
-      backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : AppColors.background,
+      backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDarkMode ? Colors.white : AppColors.textPrimary,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: _toggleEdit,
+            icon: Icon(
+              _isEditing ? Icons.check : Icons.edit,
+              color: AppColors.primary,
+            ),
+            label: Text(
+              _isEditing ? 'Save' : 'Edit',
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: IconButton(
-                  icon: Icon(
-                    Icons.arrow_back,
-                    color: isDarkMode ? Colors.white : AppColors.textPrimary,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  children: [
-                    _buildProfileImage(isDarkMode),
-                    const SizedBox(height: 16),
-                    Text(
-                      'John Doe',
-                      style: AppTextStyles.greeting.copyWith(
-                        color: isDarkMode ? Colors.white : AppColors.textPrimary,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                _buildProfileImage(isDarkMode),
+                const SizedBox(height: 16),
+                _isEditing
+                    ? _buildEditableField(_nameController, 'Name', isDarkMode)
+                    : Text(
+                        _nameController.text,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                    _buildInfoField(
-                      'Email',
-                      'johndoe@gmail.com',
-                      isDarkMode,
-                    ),
-                    _buildInfoField(
-                      'Phone Number',
-                      '+94 71 234 3465',
-                      isDarkMode,
-                    ),
-                    _buildInfoField(
-                      'Apartment',
-                      '2/3 Lotus Residence Colombo 03',
-                      isDarkMode,
-                    ),
-                    const Spacer(),
-                    _buildOption(
-                      'Settings',
-                      Icons.settings,
-                      isDarkMode: isDarkMode,
-                      onTap: () {
-                        Navigator.pushNamed(context, '/settings');
-                      },
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                const SizedBox(height: 32),
+                _isEditing
+                    ? _buildEditableField(_emailController, 'Email', isDarkMode)
+                    : _buildInfoField('Email', _emailController.text, isDarkMode),
+                _isEditing
+                    ? _buildEditableField(_phoneController, 'Phone Number', isDarkMode)
+                    : _buildInfoField('Phone Number', _phoneController.text, isDarkMode),
+                _isEditing
+                    ? _buildEditableField(_apartmentController, 'Apartment Complex', isDarkMode)
+                    : _buildInfoField('Apartment Complex', _apartmentController.text, isDarkMode),
+                _isEditing
+                    ? _buildEditableField(_designationController, 'Designation', isDarkMode)
+                    : _buildInfoField('Designation', _designationController.text, isDarkMode),
+                const SizedBox(height: 40),
+                _buildOption('Manage Residents', Icons.people, isDarkMode),
+                const SizedBox(height: 16),
+                _buildOption('Maintenance Reports', Icons.build, isDarkMode),
+                const SizedBox(height: 16),
+                _buildOption('Security Management', Icons.security, isDarkMode),
+                const SizedBox(height: 16),
+                _buildOption(
+                  'Settings',
+                  Icons.settings,
+                  isDarkMode,
+                  onTap: () {
+                    Navigator.pushNamed(context, '/settings');
+                  },
                 ),
-              ),
+                const SizedBox(height: 32),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -82,28 +378,97 @@ class ManagerProfileScreen extends StatelessWidget {
   Widget _buildProfileImage(bool isDarkMode) {
     return Stack(
       children: [
-        CircleAvatar(
-          radius: 50,
-          backgroundColor: isDarkMode ? const Color(0xFF004CFF) : AppColors.primary,
-          backgroundImage: const AssetImage('assets/images/profileImg.avif'),
+        GestureDetector(
+          onTap: _isEditing ? _pickImage : null,
+          child: CircleAvatar(
+            radius: 50,
+            backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+            child: _profileImage != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: Image.file(
+                      _profileImage!,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        print('Error loading profile image: $error');
+                        return Icon(
+                          Icons.person,
+                          size: 50,
+                          color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                        );
+                      },
+                    ),
+                  )
+                : Icon(
+                    Icons.person,
+                    size: 50,
+                    color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                  ),
+          ),
         ),
-        Positioned(
-          right: 0,
-          bottom: 0,
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: isDarkMode ? const Color(0xFF004CFF) : AppColors.primary,
-              shape: BoxShape.circle,
+        if (_isEditing)
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  size: 20,
+                  color: Colors.white,
+                ),
+              ),
             ),
-            child: const Icon(
-              Icons.camera_alt,
-              size: 20,
-              color: Colors.white,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildEditableField(TextEditingController controller, String label, bool isDarkMode) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextField(
+        controller: controller,
+        style: TextStyle(
+          color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
+        ),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(
+            color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
+          ),
+          enabledBorder: UnderlineInputBorder(
+            borderSide: BorderSide(
+              color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            ),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(
+              color: AppColors.primary,
             ),
           ),
         ),
-      ],
+        autocorrect: false,
+        textCapitalization: label == 'Name' ? TextCapitalization.words : TextCapitalization.none,
+        textInputAction: TextInputAction.next,
+        keyboardType: _getKeyboardType(label),
+        inputFormatters: _getInputFormatters(label),
+      ),
     );
   }
 
@@ -113,60 +478,59 @@ class ManagerProfileScreen extends StatelessWidget {
       children: [
         Text(
           label,
-          style: AppTextStyles.featureTitle.copyWith(
-            color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           value,
-          style: AppTextStyles.serviceTitle.copyWith(
-            color: isDarkMode ? Colors.white : AppColors.textPrimary,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Divider(
-            color: isDarkMode ? Colors.grey[800] : AppColors.textSecondary,
+            color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildOption(
-    String title,
-    IconData icon, {
-    required VoidCallback onTap,
-    required bool isDarkMode,
-  }) {
+  Widget _buildOption(String title, IconData icon, bool isDarkMode, {VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isDarkMode ? Colors.grey[800]! : AppColors.textSecondary,
+            color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: isDarkMode ? const Color(0xFF004CFF) : AppColors.primary,
-            ),
+            Icon(icon, color: AppColors.primary),
             const SizedBox(width: 12),
             Text(
               title,
-              style: AppTextStyles.serviceTitle.copyWith(
-                color: isDarkMode ? Colors.white : AppColors.textPrimary,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
               ),
             ),
             const Spacer(),
             Icon(
               Icons.arrow_forward_ios,
-              color: isDarkMode ? Colors.grey[600] : AppColors.textSecondary,
+              color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
               size: 16,
             ),
           ],
@@ -175,3 +539,4 @@ class ManagerProfileScreen extends StatelessWidget {
     );
   }
 }
+

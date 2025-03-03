@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:we_neighbour/features/chat/chat_list_page.dart';
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import '../features/visitor_management/visitor_management_screen.dart';
 import '../constants/colors.dart';
 import '../constants/text_styles.dart';
-import '../features/event_calendar/event_calendar_screen.dart';
 
 class FeatureItem {
   final String title;
@@ -112,10 +110,7 @@ class FeatureGrid extends StatelessWidget {
           // color: isDarkMode ? Colors.white : null,
         ),
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ChatListPage()),
-             );
+          // TODO: Implement chats navigation
         },
       ),
     ];

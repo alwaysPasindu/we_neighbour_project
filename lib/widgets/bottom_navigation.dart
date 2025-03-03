@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/colors.dart';
-import '../main.dart'; // Import to use UserType
+import '../main.dart'; // Import this to use UserType
 
 class BottomNavigation extends StatelessWidget {
   final int currentIndex;
@@ -9,12 +9,12 @@ class BottomNavigation extends StatelessWidget {
   final bool isDarkMode;
 
   const BottomNavigation({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
     required this.userType,
     required this.isDarkMode,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

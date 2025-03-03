@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ServiceProviderSignUpPage extends StatefulWidget {
   const ServiceProviderSignUpPage({super.key});
@@ -34,23 +36,57 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
     return RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
   }
 
-    bool _isStrongPassword(String password) {
-  return password.length >= 6 && 
-         password.contains(RegExp(r'[0-9]')) && 
-         password.contains(RegExp(r'[a-zA-Z]'));
-}
-  void _handleSignUp() {
+  bool _isStrongPassword(String password) {
+    return password.length >= 6 &&
+        password.contains(RegExp(r'[0-9]')) &&
+        password.contains(RegExp(r'[a-zA-Z]'));
+  }
+
+  void _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
-      print('Company Name: ${_companyNameController.text}');
-      print('Email: ${_emailController.text}');
-      print('Service Type: ${_serviceTypeController.text}');
-      print('Contact: ${_contactController.text}');
-      
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/provider-home',
-        (route) => false,
-      );
+      // Gather the data from the controllers
+      final companyName = _companyNameController.text;
+      final email = _emailController.text;
+      final serviceType = _serviceTypeController.text;
+      final phone = _contactController.text;
+      final password = _passwordController.text;
+
+      // Send a POST request to the backend API
+      try {
+        final response = await http.post(
+          Uri.parse('http://172.20.10.3:3000/api/service-providers/register'), 
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'name': companyName,
+            'email': email,
+            'serviceType': serviceType,
+            'phone': phone, 
+            'password': password,
+          }),
+        );
+
+        if (response.statusCode == 201) {
+          // Successfully signed up, handle the success
+          print('Sign-up successful');
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/provider-home',
+            (route) => false,
+          );
+        } else {
+          // Handle error from server
+          print('Failed to sign up: ${response.body}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Sign-up failed: ${response.body}')),
+          );
+        }
+      } catch (e) {
+        // Handle network errors
+        print('Error: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Network error, please try again')),
+        );
+      }
     }
   }
 

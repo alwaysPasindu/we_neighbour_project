@@ -32,7 +32,24 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _loadProfileData();
     _loadProfileImage();
+  }
+
+  Future<void> _loadProfileData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _nameController.text = prefs.getString('userName') ?? 'Company Name';
+        _emailController.text = prefs.getString('userEmail') ?? 'company@email.com';
+        _phoneController.text = prefs.getString('userPhone') ?? '+94 234 567 890';
+        _addressController.text = prefs.getString('userAddress') ?? '123 Business Street';
+        _descriptionController.text = prefs.getString('userDescription') ?? 'Company Description';
+        _usernameController.text = prefs.getString('username') ?? '@companyusername';
+      });
+    } catch (e) {
+      print('Error loading profile data: $e');
+    }
   }
 
   Future<void> _loadProfileImage() async {
@@ -120,6 +137,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       if (_isEditing) {
         // Save changes
         if (_formKey.currentState?.validate() ?? false) {
+          _saveProfileData();
           _isEditing = false;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Profile updated successfully')),
@@ -129,6 +147,25 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         _isEditing = true;
       }
     });
+  }
+
+  Future<void> _saveProfileData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userName', _nameController.text);
+      await prefs.setString('userEmail', _emailController.text);
+      await prefs.setString('userPhone', _phoneController.text);
+      await prefs.setString('userAddress', _addressController.text);
+      await prefs.setString('userDescription', _descriptionController.text);
+      await prefs.setString('username', _usernameController.text);
+    } catch (e) {
+      print('Error saving profile data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error saving profile data')),
+        );
+      }
+    }
   }
 
   @override
@@ -495,3 +532,4 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     );
   }
 }
+

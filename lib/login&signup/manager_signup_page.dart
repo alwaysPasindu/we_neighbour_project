@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 
 class ManagerSignUpPage extends StatefulWidget {
   const ManagerSignUpPage({super.key});
@@ -51,18 +54,38 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
          password.contains(RegExp(r'[0-9]')) && 
          password.contains(RegExp(r'[a-zA-Z]'));
 }
-  void _handleSignUp() {
-    if (_formKey.currentState!.validate()) {
-      print('Name: ${_nameController.text}');
-      print('NIC: ${_nicController.text}');
-      print('Email: ${_emailController.text}');
-      print('Contact: ${_contactController.text}');
-      print('Address: ${_addressController.text}');
-      print('Apartment Name: ${_apartmentNameController.text}');
-      
+  void _handleSignUp() async {
+  if (_formKey.currentState!.validate()) {
+    // Gather the data from the text controllers
+    final managerData = {
+      'name': _nameController.text,
+      'nic': _nicController.text,
+      'email': _emailController.text,
+      'phone': _contactController.text,
+      'address': _addressController.text,
+      'apartmentName': _apartmentNameController.text,
+      'password': _passwordController.text,
+    };
+
+    // Send the POST request to the backend
+    final response = await http.post(
+      Uri.parse('http://172.20.10.3:3000/api/managers/register'), // Change this URL to your backend URL
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(managerData),
+    );
+
+    // Handle the response from the backend
+    if (response.statusCode == 201) {
+      // Successfully signed up
       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    } else {
+      // Show error message
+      print('Failed to sign up. Error: ${response.body}');
     }
   }
+}
 
   Widget _buildTextField({
     required String hint,

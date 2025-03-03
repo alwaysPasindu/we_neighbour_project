@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:we_neighbour/main.dart';
 import '../constants/colors.dart';
 
 class BottomNavigation extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final UserType userType;
+  final bool isDarkMode;
 
-  const BottomNavigation({
-    Key? key,
+ const BottomNavigation({
+    super.key,
     required this.currentIndex,
     required this.onTap,
-  }) : super(key: key);
+    required this.userType,
+    required this.isDarkMode,
+  });
 
   @override
   Widget build(BuildContext context) {
