@@ -45,5 +45,26 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- Added Google Sign-In URL Scheme -->
+	<key>CFBundleURLTypes</key>
+	<array>
+	    <dict>
+	        <key>CFBundleTypeRole</key>
+	        <string>Editor</string>
+	        <key>CFBundleURLSchemes</key>
+	        <array>
+	            <!-- Replace with your reversed client ID from GoogleService-Info.plist -->
+	            <string>com.googleusercontent.apps.YOUR-CLIENT-ID</string>
+	        </array>
+	    </dict>
+	</array>
+
+	<!-- Added permissions for microphone and photo library access -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to microphone to record voice messages.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to photo library to send images in chat.</string>
+
 </dict>
 </plist>

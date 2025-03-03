@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:we_neighbour/features/chat/chat_list_page.dart';
-import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
+import '../features/chat/chat_list_page.dart';
+import '../features/maintenance/maintenance_screen.dart';
 import '../features/visitor_management/visitor_management_screen.dart';
 import '../constants/colors.dart';
 import '../constants/text_styles.dart';
@@ -37,7 +37,6 @@ class FeatureGrid extends StatelessWidget {
           'assets/icons/amenities.png',    
           height: 28, 
           width: 28,
-          // color: isDarkMode ? Colors.white : null,
         ),
         onTap: () {
           // TODO: Implement amenities booking navigation
@@ -49,7 +48,6 @@ class FeatureGrid extends StatelessWidget {
           'assets/icons/visitor.png',
           height: 28, 
           width: 28,
-          // color: isDarkMode ? Colors.white : null,
         ),
         onTap: () {
           Navigator.push(
@@ -64,7 +62,6 @@ class FeatureGrid extends StatelessWidget {
           'assets/icons/maintenance.png',
           height: 28, 
           width: 28,
-          // color: isDarkMode ? Colors.white : null,
         ),
         onTap: () {
           Navigator.push(
@@ -79,13 +76,12 @@ class FeatureGrid extends StatelessWidget {
           'assets/icons/calendar.png',
           height: 28, 
           width: 28,
-          // color: isDarkMode ? null : null,
         ),
         onTap: () {
-          // Navigator.push(
-          //   // context,
-          //   // MaterialPageRoute(builder: (context) => EventCalendarScreen()),
-          // );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const EventCalendarScreen()),
+          );
         },
       ),
       FeatureItem(
@@ -94,7 +90,6 @@ class FeatureGrid extends StatelessWidget {
           'assets/icons/maintenance.png',
           height: 28, 
           width: 28,
-          // color: isDarkMode ? Colors.white : null,
         ),
         onTap: () {
           Navigator.push(
@@ -103,21 +98,20 @@ class FeatureGrid extends StatelessWidget {
           );
         },
       ),
-      FeatureItem(
-        title: 'Chats',
-        icon: Image.asset(
-          'assets/icons/chat.png',
-          height: 28, 
-          width: 28,
-          // color: isDarkMode ? Colors.white : null,
-        ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ChatListPage()),
-             );
-        },
-      ),
+      // FeatureItem(
+      //   title: 'Chats',
+      //   icon: Image.asset(
+      //     'assets/icons/chat.png',
+      //     height: 28, 
+      //     width: 28,
+      //   ),
+      //   onTap: () {
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(builder: (context) => const ChatListPage()),
+      //     );
+      //   },
+      // ),
     ];
 
     return Padding(
@@ -130,7 +124,7 @@ class FeatureGrid extends StatelessWidget {
           crossAxisCount: 3,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 0.85, // Adjusted to accommodate the content
+          childAspectRatio: 0.85,
         ),
         itemCount: features.length,
         itemBuilder: (context, index) {
@@ -181,3 +175,4 @@ class FeatureGrid extends StatelessWidget {
     );
   }
 }
+

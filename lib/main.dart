@@ -88,7 +88,7 @@ class MyApp extends StatelessWidget {
                   const ServiceProviderSignUpPage(),
               '/provider-home': (context) => const MainPage(),
               '/service': (context) => const ServicesPage(),
-              '/chat': (context) => const ChatListPage(),
+              // '/chat': (context) => const ChatListPage(),
               '/resource': (context) => const ResourceSharingPage(),
               '/login': (context) => const LoginPage(),
               '/home': (context) {
