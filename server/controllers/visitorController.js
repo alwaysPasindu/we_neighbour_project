@@ -34,6 +34,8 @@ exports.generateQRCodeData = async(req,res) => {
         
         //qr data to string
         const qrString = JSON.stringify(qrData);
+        const qrImage = qr.imageSync(qrString, {type:'png'});
+        const qrBase64 = qrImage.toString('base64');
 
         //genaraete qr img
         const qrSvg = qr.imageSync(qrString, {type:'svg'});
@@ -42,8 +44,8 @@ exports.generateQRCodeData = async(req,res) => {
 
         res.json({
             qrData,
-            qrFilePath:`/qrcodes/${visitor._id}.svg`,
-        });
+            qrImage: `data:image/png;base64,${qrBase64}`, // Base64 image for frontend
+          });
 
     }catch(error){
         console.error(error);
