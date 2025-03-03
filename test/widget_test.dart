@@ -1,53 +1,30 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:we_neighbour/main.dart';
+// This is a basic Flutter widget test.
+//
+// To perform an interaction with a widget in your test, use the WidgetTester
+// utility in the flutter_test package. For example, you can send tap and scroll
+// gestures. You can also use WidgetTester to find child widgets in the widget
+// tree, read text, and verify that the values of widget properties are correct.
 
-// void main() {
-//   testWidgets('App initialization test', (WidgetTester tester) async {
-//     // Set up a mock SharedPreferences instance
-//     SharedPreferences.setMockInitialValues({'isDarkMode': false});
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
-//     // Build our app and trigger a frame.
-//     await tester.pumpWidget(const MyApp(isDarkMode: false));
+import 'package:event_calender_new/main.dart';
 
-//     // Verify that the app initializes without errors
-//     expect(find.byType(MaterialApp), findsOneWidget);
+void main() {
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(const MyApp());
 
-//     // You can add more specific tests here based on your app's initial state
-//     // For example, you might want to check if the login page is displayed:
-//     // expect(find.byType(LoginPage), findsOneWidget);
-//   });
+    // Verify that our counter starts at 0.
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('1'), findsNothing);
 
-//   // You can add more test cases here to check other aspects of your app
-//   // For example:
-  
-//   testWidgets('Dark mode toggle test', (WidgetTester tester) async {
-//     // Set up a mock SharedPreferences instance
-//     SharedPreferences.setMockInitialValues({'isDarkMode': false});
+    // Tap the '+' icon and trigger a frame.
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
 
-//     // Build our app and trigger a frame.
-//     await tester.pumpWidget(const MyApp(isDarkMode: false));
-
-//     // Navigate to the settings screen (you might need to adjust this based on your navigation setup)
-//     // await tester.tap(find.byIcon(Icons.settings));
-//     // await tester.pumpAndSettle();
-
-//     // Find the dark mode switch
-//     final darkModeSwitch = find.byType(Switch);
-
-//     // Verify that the switch exists and is initially off
-//     expect(darkModeSwitch, findsOneWidget);
-//     expect(tester.widget<Switch>(darkModeSwitch).value, false);
-
-//     // Tap the switch to toggle dark mode
-//     await tester.tap(darkModeSwitch);
-//     await tester.pumpAndSettle();
-
-//     // Verify that the switch is now on
-//     expect(tester.widget<Switch>(darkModeSwitch).value, true);
-
-//     // You can add more assertions here to check if the app's theme has actually changed
-//   });
-// }
-
+    // Verify that our counter has incremented.
+    expect(find.text('0'), findsNothing);
+    expect(find.text('1'), findsOneWidget);
+  });
+}

@@ -1,0 +1,2 @@
+/Users/chamuditha/Desktop/calendar/android/app/.cxx/Debug/5x46705r/x86/CMakeFiles/edit_cache.dir
+/Users/chamuditha/Desktop/calendar/android/app/.cxx/Debug/5x46705r/x86/CMakeFiles/rebuild_cache.dir
