@@ -39,6 +39,9 @@ dependencies:
   firebase_storage: ^12.4.4
   audioplayers: ^6.2.0
   record: ^5.2.1
+  geolocator: ^13.0.2
+  google_maps_flutter: ^2.10.1
+  geocoding: ^3.0.0
   # firebase_core: ^2.13.0
   # cloud_firestore: ^4.7.1
 
