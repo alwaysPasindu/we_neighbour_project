@@ -1,37 +1,34 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'features/chat/chat_list_page.dart';
-import 'features/resource_share/resource_sharing_page.dart';
-import 'package:we_neighbour/profiles/provider_profile_screen.dart';
+import 'package:we_neighbour/screens/provider/provider_profile_screen.dart';
+import 'package:we_neighbour/screens/maintenance_screen.dart'; // Add this import
 
 // Screen imports
-import 'login&signup/login_page.dart';
-import 'login&signup/account_type_page.dart';
-import 'login&signup/resident_signup_page.dart';
-import 'login&signup/manager_signup_page.dart';
-import 'login&signup/provider_signup_page.dart';
-import 'home/home_screen.dart';
-import 'profiles/resident_profile_screen.dart';
-import 'profiles/manager_profile_screen.dart';
-import 'settings/settings_screen.dart';
-import 'home/provider_home_page.dart';
-import 'features/services/service_page.dart';
+import 'screens/login_page.dart';
+import 'screens/account_type_page.dart';
+import 'screens/resident_signup_page.dart';
+import 'screens/manager_signup_page.dart';
+import 'screens/provider/provider_signup_page.dart';
+import 'screens/home_screen.dart';
+import 'screens/resident_profile_screen.dart';
+import 'screens/manager_profile_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/provider/provider_home_page.dart';
+import 'screens/provider/service_page.dart';
 
 // Provider and Constants
 import 'providers/theme_provider.dart';
 import 'constants/colors.dart';
-import 'widgets/bottom_navigation.dart';
+import 'widgets/provider_bottom_navigation.dart';
 
 enum UserType { resident, manager, serviceProvider }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
   final prefs = await SharedPreferences.getInstance();
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
-
+  
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(isDarkMode: isDarkMode),
@@ -50,28 +47,26 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'We Neighbour',
           theme: ThemeData(
-            colorScheme: const ColorScheme.light(
+            colorScheme: ColorScheme.light(
               primary: AppColors.primary,
               secondary: Colors.blue,
             ),
             primaryColor: AppColors.primary,
             scaffoldBackgroundColor: AppColors.background,
             visualDensity: VisualDensity.adaptivePlatformDensity,
-            // Add other light theme customizations
-            appBarTheme: const AppBarTheme(
+            appBarTheme: AppBarTheme(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
             ),
           ),
           darkTheme: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppColors.primary,
               secondary: Colors.blue,
             ),
             primaryColor: AppColors.primary,
             scaffoldBackgroundColor: Colors.grey[900],
             visualDensity: VisualDensity.adaptivePlatformDensity,
-            // Add other dark theme customizations
             appBarTheme: AppBarTheme(
               backgroundColor: Colors.grey[900],
               foregroundColor: Colors.white,
@@ -79,45 +74,38 @@ class MyApp extends StatelessWidget {
           ),
           themeMode: themeProvider.themeMode,
           initialRoute: '/',
-           routes: {
-              '/': (context) => const LoginPage(),
-              '/account-type': (context) => const AccountTypePage(),
-              '/resident-signup': (context) => const ResidentSignUpPage(),
-              '/manager-signup': (context) => const ManagerSignUpPage(),
-              '/service-provider-signup': (context) =>
-                  const ServiceProviderSignUpPage(),
-              '/provider-home': (context) => const MainPage(),
-              '/service': (context) => const ServicesPage(),
-              // '/chat': (context) => const ChatListPage(),
-              '/resource': (context) => const ResourceSharingPage(),
-              '/login': (context) => const LoginPage(),
-              '/home': (context) {
-                final args = ModalRoute.of(context)?.settings.arguments;
-                final userType = args is UserType ? args : UserType.resident;
-                return HomeScreen(userType: userType);
-              },
-              '/settings': (context) =>
-                  const SettingsScreen(), // Updated to use const constructor
+          routes: {
+            '/': (context) => const LoginPage(),
+            '/account-type': (context) => const AccountTypePage(),
+            '/resident-signup': (context) => const ResidentSignUpPage(),
+            '/manager-signup': (context) => const ManagerSignUpPage(),
+            '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
+            '/provider-home': (context) => const MainPage(),
+            '/service': (context) => const ServicesPage(),
+            '/login': (context) => const LoginPage(),
+            '/maintenance': (context) => const MaintenanceScreen(), // Add this route
+            '/home': (context) {
+              final args = ModalRoute.of(context)?.settings.arguments;
+              final userType = args is UserType ? args : UserType.resident;
+              return HomeScreen(userType: userType);
+            },
+            '/settings': (context) => const SettingsScreen(),
           },
-
           onGenerateRoute: (settings) {
             if (settings.name == '/profile') {
               final args = settings.arguments;
               final userType = args is UserType ? args : UserType.resident;
-
+              
               switch (userType) {
                 case UserType.resident:
-                  return MaterialPageRoute(
-                      builder: (_) => const ResidentProfileScreen());
+                  return MaterialPageRoute(builder: (_) => const ResidentProfileScreen());
                 case UserType.manager:
-                  return MaterialPageRoute(
-                      builder: (_) => const ManagerProfileScreen());
+                  return MaterialPageRoute(builder: (_) => const ManagerProfileScreen());
                 case UserType.serviceProvider:
-                  return MaterialPageRoute(
-                      builder: (_) => const CompanyProfileScreen());
+                  return MaterialPageRoute(builder: (_) => const CompanyProfileScreen());
               }
             }
-            return MaterialPageRoute(builder: (_) => const AccountTypePage());
+            return null;
           },
           debugShowCheckedModeBanner: false,
         );
@@ -153,9 +141,6 @@ class _MainPageState extends State<MainPage> {
             _selectedIndex = index;
           });
         },
-        userType: UserType.serviceProvider,
-        // Or other appropriate default
-        isDarkMode: Theme.of(context).brightness == Brightness.dark,
       ),
     );
   }
