@@ -74,14 +74,14 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _currentIndex = index;
     });
-    if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChatListPage(),
-        ),
-      );
-    }
+    // if (index == 1) {
+    //   Navigator.push(
+    //     context,
+    //     MaterialPageRoute(
+    //       builder: (context) => ChatListPage(),
+    //     ),
+    //   );
+    // }
 
     if (index == 2) {
       Navigator.pushNamed(context, '/resource');
