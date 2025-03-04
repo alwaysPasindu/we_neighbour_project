@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -21,6 +22,8 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   DateTime? _selectedDay;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   Map<DateTime, List<dynamic>> _events = {};
+  bool _isLoading = true;
+  StreamSubscription<QuerySnapshot>? _eventsSubscription;
 
   @override
   void initState() {
@@ -29,38 +32,72 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
     _loadEvents();
   }
 
+  @override
+  void dispose() {
+    _eventsSubscription?.cancel();
+    super.dispose();
+  }
+
   void _loadEvents() {
-    _firebaseService.getEvents().listen((QuerySnapshot snapshot) {
-      final Map<DateTime, List<dynamic>> newEvents = {};
-
-      for (var doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final DateTime date = (data['date'] as Timestamp).toDate();
-        // Normalize date to remove time component for proper comparison
-        final DateTime normalizedDate =
-            DateTime(date.year, date.month, date.day);
-
-        if (newEvents[normalizedDate] != null) {
-          newEvents[normalizedDate]!.add({
-            'id': doc.id,
-            'title': data['title'],
-            'date': date,
-          });
-        } else {
-          newEvents[normalizedDate] = [
-            {
-              'id': doc.id,
-              'title': data['title'],
-              'date': date,
-            }
-          ];
-        }
-      }
-
-      setState(() {
-        _events = newEvents;
-      });
+    setState(() {
+      _isLoading = true;
     });
+
+    try {
+      _eventsSubscription = _firebaseService.getEvents().listen(
+        (QuerySnapshot snapshot) {
+          final Map<DateTime, List<dynamic>> newEvents = {};
+
+          print('Received ${snapshot.docs.length} events from Firestore');
+
+          for (var doc in snapshot.docs) {
+            final data = doc.data() as Map<String, dynamic>;
+            final DateTime date = (data['date'] as Timestamp).toDate();
+            // Normalize date to remove time component for proper comparison
+            final DateTime normalizedDate =
+                DateTime(date.year, date.month, date.day);
+
+            if (newEvents[normalizedDate] != null) {
+              newEvents[normalizedDate]!.add({
+                'id': doc.id,
+                'title': data['title'],
+                'date': date,
+              });
+            } else {
+              newEvents[normalizedDate] = [
+                {
+                  'id': doc.id,
+                  'title': data['title'],
+                  'date': date,
+                }
+              ];
+            }
+          }
+
+          if (mounted) {
+            setState(() {
+              _events = newEvents;
+              _isLoading = false;
+            });
+          }
+        },
+        onError: (error) {
+          print('Error loading events: $error');
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        },
+      );
+    } catch (e) {
+      print('Exception in _loadEvents: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   List<dynamic> _getEventsForDay(DateTime day) {
@@ -143,7 +180,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
             ),
             TextButton(
               child: const Text('Add'),
-              onPressed: () {
+              onPressed: () async {
                 if (newEventTitle.isNotEmpty) {
                   final DateTime eventDateTime = DateTime(
                     selectedDate.year,
@@ -152,15 +189,27 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                     selectedTime.hour,
                     selectedTime.minute,
                   );
-                  _firebaseService
-                      .addEvent(newEventTitle, eventDateTime)
-                      .then((_) {
+
+                  try {
+                    await _firebaseService.addEvent(
+                        newEventTitle, eventDateTime);
+
                     // After adding the event, refresh the calendar view
                     setState(() {
                       _selectedDay = selectedDate;
                       _focusedDay = selectedDate;
                     });
-                  });
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Event added successfully')),
+                    );
+                  } catch (e) {
+                    print('Error adding event: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to add event: $e')),
+                    );
+                  }
+
                   Navigator.of(context).pop();
                 }
               },
@@ -240,11 +289,20 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               const SizedBox(height: 16),
 
               // Main content
-              Expanded(
-                child: _activeView == 'calendar'
-                    ? _buildCalendarView()
-                    : _buildListView(),
-              ),
+              if (_isLoading)
+                const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: _activeView == 'calendar'
+                      ? _buildCalendarView()
+                      : _buildListView(),
+                ),
             ],
           ),
         ),
@@ -393,14 +451,15 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
       stream: _firebaseService.getEvents(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Text('Something went wrong');
+          return Text('Error: ${snapshot.error}');
         }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final events = snapshot.data!.docs;
+        final events = snapshot.data?.docs ?? [];
 
         if (events.isEmpty) {
           return const Padding(
