@@ -1,14 +1,27 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const connectDB = async () => {
-    try{
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log('MongoDB Connected');
+const dbConnections = {};
 
-    }catch (err){
-        console.error('MongoDB connection error: ',err);
-        process.exit(1);
+const connectDB = async (dbName) => {
+    try {
+        // Check if the connection already exists in the cache
+        if (!dbConnections[dbName]) {
+            const uri = process.env.MONGO_URI;
+
+               // Create a new connection for the specified database
+               const connection = await mongoose.createConnection(uri, {
+                dbName, // Specify the database name here
+            });
+
+            //console.log(`Connected to database: ${dbName}`);
+            dbConnections[dbName] = connection;
+        }
+
+        return dbConnections[dbName];
+    } catch (err) {
+        console.error('MongoDB connection error:', err);
+        throw err;
     }
 };
 
