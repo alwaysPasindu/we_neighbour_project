@@ -220,6 +220,111 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
     );
   }
 
+  void _deleteEvent(BuildContext context, String eventId, String eventTitle) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Event'),
+          content: Text('Are you sure you want to delete "$eventTitle"?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+              onPressed: () async {
+                try {
+                  await _firebaseService.deleteEvent(eventId);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Event deleted successfully')),
+                  );
+                } catch (e) {
+                  print('Error deleting event: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete event: $e')),
+                  );
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEventDetails(BuildContext context, Map<String, dynamic> event) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      event['title'],
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      Navigator.pop(context); // Close the bottom sheet
+                      _deleteEvent(context, event['id'], event['title']);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Date: ${DateFormat('EEEE, MMMM d, yyyy').format(event['date'])}',
+                style: const TextStyle(fontSize: 16),
+              ),
+              Text(
+                'Time: ${DateFormat('h:mm a').format(event['date'])}',
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0A1A3B),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Close'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -311,66 +416,118 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   }
 
   Widget _buildCalendarView() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TableCalendar(
-        firstDay: DateTime.utc(2020, 1, 1),
-        lastDay: DateTime.utc(2030, 12, 31),
-        focusedDay: _focusedDay,
-        calendarFormat: _calendarFormat,
-        eventLoader: _getEventsForDay,
-        selectedDayPredicate: (day) {
-          return isSameDay(_selectedDay, day);
-        },
-        onDaySelected: (selectedDay, focusedDay) {
-          setState(() {
-            _selectedDay = selectedDay;
-            _focusedDay = focusedDay;
-          });
-        },
-        headerStyle: const HeaderStyle(
-          formatButtonVisible: false,
-          titleCentered: true,
-          titleTextStyle: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
           ),
-          leftChevronIcon: Icon(Icons.chevron_left, size: 28),
-          rightChevronIcon: Icon(Icons.chevron_right, size: 28),
+          child: TableCalendar(
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.utc(2030, 12, 31),
+            focusedDay: _focusedDay,
+            calendarFormat: _calendarFormat,
+            eventLoader: _getEventsForDay,
+            selectedDayPredicate: (day) {
+              return isSameDay(_selectedDay, day);
+            },
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+            },
+            headerStyle: const HeaderStyle(
+              formatButtonVisible: false,
+              titleCentered: true,
+              titleTextStyle: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              leftChevronIcon: Icon(Icons.chevron_left, size: 28),
+              rightChevronIcon: Icon(Icons.chevron_right, size: 28),
+            ),
+            calendarStyle: CalendarStyle(
+              markersMaxCount: 3,
+              markerDecoration: BoxDecoration(
+                color: Colors.blue.shade700,
+                shape: BoxShape.circle,
+              ),
+              todayDecoration: const BoxDecoration(
+                color: Color(0xFF0A1A3B),
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: const BoxDecoration(
+                color: Color(0xFF0A1A3B),
+                shape: BoxShape.circle,
+              ),
+              outsideDaysVisible: false,
+              weekendTextStyle: const TextStyle(color: Colors.black87),
+              defaultTextStyle: const TextStyle(color: Colors.black87),
+            ),
+            daysOfWeekStyle: const DaysOfWeekStyle(
+              weekdayStyle: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+              weekendStyle: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
         ),
-        calendarStyle: CalendarStyle(
-          markersMaxCount: 3,
-          markerDecoration: BoxDecoration(
-            color: Colors.blue.shade700,
-            shape: BoxShape.circle,
+
+        // Show events for selected day
+        if (_selectedDay != null && _getEventsForDay(_selectedDay!).isNotEmpty)
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListView.builder(
+                padding: const EdgeInsets.all(8.0),
+                itemCount: _getEventsForDay(_selectedDay!).length,
+                itemBuilder: (context, index) {
+                  final event = _getEventsForDay(_selectedDay!)[index];
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8.0),
+                    child: ListTile(
+                      title: Text(
+                        event['title'],
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle:
+                          Text(DateFormat('h:mm a').format(event['date'])),
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade700,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.event,
+                          color: Colors.white,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () =>
+                            _deleteEvent(context, event['id'], event['title']),
+                      ),
+                      onTap: () => _showEventDetails(context, event),
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
-          todayDecoration: const BoxDecoration(
-            color: Color(0xFF0A1A3B),
-            shape: BoxShape.circle,
-          ),
-          selectedDecoration: const BoxDecoration(
-            color: Color(0xFF0A1A3B),
-            shape: BoxShape.circle,
-          ),
-          outsideDaysVisible: false,
-          weekendTextStyle: const TextStyle(color: Colors.black87),
-          defaultTextStyle: const TextStyle(color: Colors.black87),
-        ),
-        daysOfWeekStyle: const DaysOfWeekStyle(
-          weekdayStyle: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-          weekendStyle: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
+      ],
     );
   }
 
@@ -475,44 +632,100 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               ? 5
               : events.length, // Show only 5 upcoming events
           itemBuilder: (context, index) {
-            final data = events[index].data() as Map<String, dynamic>;
+            final doc = events[index];
+            final data = doc.data() as Map<String, dynamic>;
             final DateTime date = (data['date'] as Timestamp).toDate();
 
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                title: Text(
-                  data['title'],
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+            return Dismissible(
+              key: Key(doc.id),
+              background: Container(
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 20.0),
+                child: const Icon(
+                  Icons.delete,
+                  color: Colors.white,
                 ),
-                subtitle: Text(DateFormat('MMM d, yyyy - h:mm a').format(date)),
-                leading: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0A1A3B),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        DateFormat('d').format(date),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+              ),
+              direction: DismissDirection.endToStart,
+              confirmDismiss: (direction) async {
+                return await showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text("Confirm"),
+                      content: Text(
+                          "Are you sure you want to delete ${data['title']}?"),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text("CANCEL"),
                         ),
-                      ),
-                      Text(
-                        DateFormat('MMM').format(date),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text("DELETE",
+                              style: TextStyle(color: Colors.red)),
                         ),
-                      ),
-                    ],
+                      ],
+                    );
+                  },
+                );
+              },
+              onDismissed: (direction) {
+                _firebaseService.deleteEvent(doc.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${data['title']} deleted')),
+                );
+              },
+              child: Card(
+                margin: const EdgeInsets.only(bottom: 8.0),
+                child: ListTile(
+                  title: Text(
+                    data['title'],
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  subtitle:
+                      Text(DateFormat('MMM d, yyyy - h:mm a').format(date)),
+                  leading: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0A1A3B),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          DateFormat('d').format(date),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        Text(
+                          DateFormat('MMM').format(date),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () =>
+                        _deleteEvent(context, doc.id, data['title']),
+                  ),
+                  onTap: () {
+                    _showEventDetails(context, {
+                      'id': doc.id,
+                      'title': data['title'],
+                      'date': date,
+                    });
+                  },
                 ),
               ),
             );
