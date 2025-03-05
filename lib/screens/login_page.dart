@@ -27,13 +27,17 @@ class _LoginPageState extends State<LoginPage> {
     print('Login attempted with: $email');
   }
 
-  void _handleSocialLogin(String platform) {
-    // TODO: Implement social login logic
-    print('$platform login attempted');
+  void _handleGoogleSignIn() {
+    // TODO: Implement Google sign-in logic
+    print('Google sign-in attempted');
   }
 
   @override
   Widget build(BuildContext context) {
+    // Get screen size for responsive design
+    final screenWidth = MediaQuery.of(context).size.width;
+    final buttonWidth = screenWidth > 600 ? 400.0 : screenWidth * 0.85;
+    
     return Scaffold(
       body: Stack(
         children: [
@@ -56,7 +60,6 @@ class _LoginPageState extends State<LoginPage> {
                       height: 170,
                     ),
                     const SizedBox(height: 16),
-                    
                   ],
                 ),
               ),
@@ -69,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.4),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.35),
                   const Text(
                     'WELCOME!',
                     style: TextStyle(
@@ -78,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 20),
                   
                   // Email TextField
                   Container(
@@ -177,13 +180,12 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text('New user?'),
-                   // In your LoginPage, update the Register button:
- TextButton(
-  onPressed: () {
-    Navigator.pushNamed(context, '/account-type');
-  },
-  child: const Text('Register'),
- ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/account-type');
+                        },
+                        child: const Text('Register'),
+                      ),
                     ],
                   ),
                   
@@ -199,47 +201,70 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                   
-                  const SizedBox(height: 0),
+                  const SizedBox(height: 10),
                   const Text(
                     'Sign in with another account',
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   
-                  // Social login buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _socialButton('assets/images/facebook.png', () => _handleSocialLogin('Facebook')),
-                      const SizedBox(width: 16),
-                      _socialButton('assets/images/google.png', () => _handleSocialLogin('Google')),
-                      const SizedBox(width: 16),
-                      _socialButton('assets/images/twitter.png', () => _handleSocialLogin('Twitter')),
-                    ],
+                  // Google Sign-In Button (Redesigned)
+                  Center(
+                    child: Container(
+                      width: buttonWidth,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.grey.shade300),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _handleGoogleSignIn,
+                          borderRadius: BorderRadius.circular(4),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Image.asset(
+                                  'assets/images/google.png',
+                                  height: 24,
+                                  width: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                const Expanded(
+                                  child: Text(
+                                    'Sign in with Google',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF757575),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                const SizedBox(width: 24), // Balance the button
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _socialButton(String iconPath, VoidCallback onPressed) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: Image.asset(
-          iconPath,
-          height: 24,
-          width: 24,
-        ),
       ),
     );
   }
@@ -277,3 +302,4 @@ class WaveClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
+
