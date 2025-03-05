@@ -29,3 +29,20 @@ exports.registerResident = async (req, res) => {
             res.status(500).json({ message: "Server Error" });
         }
 };
+
+exports.getPendingRequests = async(req,res) => {
+    try{
+        const{apartmentComplexName} = req.user;
+
+        const db = await connectDB(apartmentComplexName);
+
+        const Resident = db.model('Resident', ResidentSchema);
+
+        const pendingRessidents= await Resident.find({status:'pending'});
+
+        return res.status(200).json({pendingRessidents});
+    }catch(error){
+        console.error(error);
+        return res.status(500).json({message:"Server error"});
+    }
+}
