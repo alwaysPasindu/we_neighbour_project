@@ -12,4 +12,4 @@ const ManagerSchema = new mongoose.Schema({
     
 },{timestamps:true});
 
-module.exports = mongoose.model('Manager', ManagerSchema);
+module.exports = ManagerSchema;
