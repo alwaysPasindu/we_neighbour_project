@@ -3,16 +3,79 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> addEvent(String title, DateTime date) async {
+  // Updated method signature to accept all parameters
+  Future<void> addEvent(String title, DateTime date,
+      [DateTime? endTime, String? notes, String type = 'event']) async {
     try {
-      await _firestore.collection('events').add({
+      final Map<String, dynamic> eventData = {
         'title': title,
         'date': date,
+        'type': type,
         'createdAt': FieldValue.serverTimestamp(),
-      });
+      };
+
+      // Only add these fields if they are not null
+      if (endTime != null) {
+        eventData['endTime'] = endTime;
+      }
+
+      if (notes != null && notes.isNotEmpty) {
+        eventData['notes'] = notes;
+      }
+
+      await _firestore.collection('events').add(eventData);
       print('Event added successfully: $title on $date');
     } catch (e) {
       print('Error adding event: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> bookAmenity(
+    String amenityName,
+    DateTime startTime,
+    DateTime endTime,
+    String notes,
+  ) async {
+    try {
+      await _firestore.collection('events').add({
+        'title': 'Booked: $amenityName',
+        'date': startTime,
+        'endTime': endTime,
+        'type': 'amenity',
+        'amenityName': amenityName,
+        'notes': notes,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      print(
+          'Amenity booked successfully: $amenityName from $startTime to $endTime');
+    } catch (e) {
+      print('Error booking amenity: $e');
+      rethrow;
+    }
+  }
+
+  // Add a new method for booking health and wellness activities
+  Future<void> bookHealthActivity(
+    String activityName,
+    DateTime startTime,
+    DateTime endTime,
+    String notes,
+  ) async {
+    try {
+      await _firestore.collection('events').add({
+        'title': 'Health: $activityName',
+        'date': startTime,
+        'endTime': endTime,
+        'type': 'health',
+        'activityName': activityName,
+        'notes': notes,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      print(
+          'Health activity booked successfully: $activityName from $startTime to $endTime');
+    } catch (e) {
+      print('Error booking health activity: $e');
       rethrow;
     }
   }
