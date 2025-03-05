@@ -45,4 +45,37 @@ exports.getPendingRequests = async(req,res) => {
         console.error(error);
         return res.status(500).json({message:"Server error"});
     }
-}
+};
+
+exports.approveResident = async (req, res) => {
+    try {
+        const { residentId, status } = req.body;
+
+        // Validate input
+        if (!residentId || !['approved', 'rejected'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid input' });
+        }
+
+        // Connect to the apartment-specific database
+        const db = await connectDB(req.user.apartmentComplexName); // Assuming manager's apartment name is in req.user
+
+        // Create a model for the apartment's database
+        const Resident = db.model('Resident', ResidentSchema);
+
+        // Find the resident by ID
+        const resident = await Resident.findById(residentId);
+        if (!resident) {
+            return res.status(404).json({ message: 'Resident not found' });
+        }
+
+        // Update the resident's status
+        resident.status = status;
+        await resident.save();
+
+        console.log(`Resident ${residentId} status updated to: ${status}`);
+        return res.status(200).json({ message: `Resident request ${status}` });
+    } catch (error) {
+        console.error('Error in approveResident:', error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
