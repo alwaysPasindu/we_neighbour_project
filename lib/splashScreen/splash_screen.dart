@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -12,8 +11,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _rotationAnimation;
+  late Animation<double> _popAnimation;
 
   @override
   void initState() {
@@ -22,28 +20,32 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Initialize animation controller
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1500),
     );
     
     // Create animations
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
       ),
     );
     
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack),
+    // Create a "pop" animation using a sequence of scales
+    // First scales up quickly, then slightly back down for the "pop" effect
+    _popAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.2, end: 1.2),
+        weight: 60,
       ),
-    );
-    
-    _rotationAnimation = Tween<double>(begin: 0.0, end: 2.0).animate(
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.2, end: 1.0),
+        weight: 40,
+      ),
+    ]).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.5, 1.0, curve: Curves.easeInOut),
+        curve: const Interval(0.0, 0.8, curve: Curves.elasticOut),
       ),
     );
     
@@ -65,7 +67,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = Theme.of(context).primaryColor;
     
     return Scaffold(
       body: Container(
@@ -88,23 +89,20 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Animated Logo
+              // Animated Logo with Pop Effect
               AnimatedBuilder(
                 animation: _animationController,
                 builder: (context, child) {
                   return Opacity(
                     opacity: _fadeAnimation.value,
                     child: Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: Transform.rotate(
-                        angle: _rotationAnimation.value * 3.14159,
-                        child: child,
-                      ),
+                      scale: _popAnimation.value,
+                      child: child,
                     ),
                   );
                 },
                 child: Image.asset(
-                  'assets/images/logo.jpeg',
+                  'assets/images/No_BG.png',
                   width: 200,
                   height: 200,
                 ),
@@ -165,3 +163,4 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
   }
 }
+
