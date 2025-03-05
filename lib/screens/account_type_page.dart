@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
 
 class AccountTypePage extends StatelessWidget {
   const AccountTypePage({super.key});
@@ -7,13 +6,13 @@ class AccountTypePage extends StatelessWidget {
   Widget _buildAccountTypeButton(
     BuildContext context, 
     String title, 
-    String accountType
+    VoidCallback onPressed
   ) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () => _selectAccountType(context, accountType),
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF1A237E),
           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -34,30 +33,6 @@ class AccountTypePage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _selectAccountType(BuildContext context, String accountType) async {
-    try {
-      final authService = AuthService();
-      await authService.updateUserAccountType(accountType);
-      
-      // Navigate to the appropriate signup page
-      switch (accountType) {
-        case 'resident':
-          Navigator.pushNamed(context, '/resident-signup');
-          break;
-        case 'manager':
-          Navigator.pushNamed(context, '/manager-signup');
-          break;
-        case 'service_provider':
-          Navigator.pushNamed(context, '/service-provider-signup');
-          break;
-      }
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating account type: ${error.toString()}')),
-      );
-    }
   }
 
   @override
@@ -97,17 +72,17 @@ class AccountTypePage extends StatelessWidget {
               _buildAccountTypeButton(
                 context,
                 'Apartment Residents',
-                'resident',
+                () => Navigator.pushNamed(context, '/resident-signup'),
               ),
               _buildAccountTypeButton(
                 context,
                 'Apartment Manager',
-                'manager',
+                () => Navigator.pushNamed(context, '/manager-signup'),
               ),
               _buildAccountTypeButton(
                 context,
                 'Service Providers',
-                'service_provider',
+                () => Navigator.pushNamed(context, '/service-provider-signup'),
               ),
               // Back to Login Button
               Padding(
@@ -131,4 +106,3 @@ class AccountTypePage extends StatelessWidget {
     );
   }
 }
-

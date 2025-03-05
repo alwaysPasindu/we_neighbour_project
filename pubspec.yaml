@@ -13,9 +13,9 @@ dependencies:
 
   # Add Firebase dependencies
   firebase_core: ^2.24.2
-  firebase_auth: ^4.15.3
+  firebase_auth: ^4.16.0
   cloud_firestore: ^4.13.6
-  google_sign_in: ^6.1.6
+  google_sign_in: ^6.2.1
   
   # Add Supabase dependencies
   supabase_flutter: ^2.3.4

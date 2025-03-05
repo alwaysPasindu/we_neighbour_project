@@ -1,20 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 import 'screens/login_page.dart';
 import 'screens/account_type_page.dart';
 import 'screens/resident_signup_page.dart';
 import 'screens/manager_signup_page.dart';
 import 'screens/service_provider_signup_page.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
+void main() {
   runApp(const MyApp());
 }
 
@@ -41,4 +32,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
