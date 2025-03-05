@@ -1,14 +1,7 @@
 const bcrypt = require('bcrypt');
-const connectDB = require('../config/database');
-const mongoose = require('mongoose');
+const {connectDB,centralDB} = require('../config/database');
 const ManagerSchema = require('../models/Manager'); 
-
-// Central database connection (for storing all managers' info)
-const centralDB = mongoose.createConnection(process.env.MONGO_URI, {
-    dbName: 'central_db', // Central database name
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+const ApartmentSchema = require('../models/Apartment');
 
 // Central Manager model (for storing all managers' info)
 const CentralManager = centralDB.model('CentralManager', ManagerSchema);
@@ -17,6 +10,18 @@ const CentralManager = centralDB.model('CentralManager', ManagerSchema);
 exports.registerManager = async (req, res) => {
     try {
         const { name, nic, email, password, phone, address, apartmentName } = req.body;
+
+        const centralDbConnection = centralDB;
+        const Apartment = centralDbConnection.model('Apartment', ApartmentSchema);
+
+        const existingApartment = await Apartment.findOne({ apartmentName });
+        if (existingApartment) {
+            return res.status(400).json({ message: 'Apartment already exists' });
+        }
+
+        const newApartment = new Apartment({ apartmentName });
+        await newApartment.save();
+
 
         const existingManager = await CentralManager.findOne({ $or: [{ email }, { nic }] });
         
@@ -60,5 +65,27 @@ exports.registerManager = async (req, res) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.createApartment = async (req, res) => {
+    try {
+        const { apartmentName } = req.body;
+
+        // Check if the apartment already exists
+        const Apartment = centralDB.model('Apartment', ApartmentSchema);
+        const existingApartment = await Apartment.findOne({ apartmentName });
+        if (existingApartment) {
+            return res.status(400).json({ message: 'Apartment already exists' });
+        }
+
+        // Save the new apartment
+        const newApartment = new Apartment({ apartmentName });
+        await newApartment.save();
+
+        return res.status(201).json({ message: 'Apartment created successfully!' });
+    } catch (error) {
+        console.error('Error in createApartment:', error);
+        return res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
