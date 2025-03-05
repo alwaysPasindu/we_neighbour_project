@@ -15,6 +15,12 @@ class AppTextStyles {
     color: AppColors.textPrimary,
   );
 
+  static const TextStyle getSubtitleStyle = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+  );
+
   static const TextStyle serviceTitle = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,

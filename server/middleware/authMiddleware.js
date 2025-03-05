@@ -1,38 +1,46 @@
 const jwt = require('jsonwebtoken');
 
-exports.authenticate = function(req, res, next){
-    const token = req.header('x-auth-token');
-    if(!token) return res.status(401).json({message:"No token, authorization failed"});
+const authenticate = (req, res, next) => {
+  // Case-insensitive header access
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  console.log('Received Authorization Header:', authHeader);
 
-    try{
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log('No valid Bearer token found in request');
+    return res.status(401).json({ message: 'No token, authorization failed' });
+  }
 
-        next();
+  const token = authHeader.substring(7); // Remove "Bearer " prefix
+  console.log('Extracted token:', token);
 
-    }catch(err){
-        res.status(401).json({message:"Token is not valid"});
-    }
-};
+  if (!token) {
+    console.log('Token extraction failed');
+    return res.status(401).json({ message: 'No token, authorization failed' });
+  }
 
-exports.isResident = function(req, res, next){
-    if(req.user.role != 'Resident'){
-        return res.status(403).json({message:"Access denied. Not authorized as a Resident."});
-    }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Token decoded:', decoded);
+    req.user = decoded; // Attach decoded payload (id, role) to req
     next();
+  } catch (err) {
+    console.log('Token verification failed:', err.message);
+    return res.status(401).json({ message: 'Token is not valid' });
+  }
 };
 
-exports.isManager = function(req,res,next){
-    if(req.user.role != 'Manager'){
-        return res.status(403).json({message:"Access denied. Not authorized as a Manager."});
-    }
-    next();
+const isResident = (req, res, next) => {
+  if (req.user.role !== 'resident') {
+    return res.status(403).json({ message: 'Access denied. Residents only.' });
+  }
+  next();
 };
 
-exports.isServiceProvider = function(req,res,next){
-    if(req.user.role != 'ServiceProvider'){
-        return res.status(403).json({message:"Access denied. Not authorized as a Service Provider."});
-    }
-    next();
+const isManager = (req, res, next) => {
+  if (req.user.role !== 'manager') {
+    return res.status(403).json({ message: 'Access denied. Managers only.' });
+  }
+  next();
 };
 
+module.exports = { authenticate, isResident, isManager };

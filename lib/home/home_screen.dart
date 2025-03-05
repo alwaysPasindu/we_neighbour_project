@@ -10,7 +10,7 @@ import '../widgets/feature_grid.dart';
 import '../widgets/bottom_navigation.dart';
 import '../constants/colors.dart';
 import '../main.dart';
-import '../models/service.dart';
+import '../models/service.dart'; // Updated to use your Service model
 import '../utils/auth_utils.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -62,12 +62,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadServices() async {
     try {
       final response = await http.get(
-        Uri.parse('http://172.20.10.3:3000/api/services?latitude=6.9271&longitude=79.8612'),
+        Uri.parse('$baseUrl/api/services?latitude=6.9271&longitude=79.8612'),
         headers: {
           'Authorization': 'Bearer $_token',
           'Content-Type': 'application/json',
         },
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 15)); // Increased timeout to 15 seconds
 
       print('HomeScreen load services response: ${response.statusCode} - ${response.body}');
 
@@ -79,7 +79,23 @@ class _HomeScreenState extends State<HomeScreen> {
         });
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
       } else {
-        throw Exception('Failed to load services: ${response.statusCode}');
+        throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
+      }
+    } on TimeoutException catch (e) {
+      print('Timeout loading services in HomeScreen: $e');
+      final String? servicesJson = prefs.getString('services');
+      if (servicesJson != null) {
+        final List<dynamic> decodedServices = jsonDecode(servicesJson);
+        setState(() {
+          _featuredServices = decodedServices.map((service) => Service.fromJson(service as Map<String, dynamic>)).toList();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Timeout loading services. Showing cached data.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Timeout loading services. No cached data available.')),
+        );
       }
     } catch (e) {
       print('Error loading services in HomeScreen: $e');
@@ -89,6 +105,13 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _featuredServices = decodedServices.map((service) => Service.fromJson(service as Map<String, dynamic>)).toList();
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading services: $e. Showing cached data if available.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading services: $e. No cached data available.')),
+        );
       }
     }
   }

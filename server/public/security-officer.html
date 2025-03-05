@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Confirmation</title>
+</head>
+<body>
+  <h1>Visitor Confirmation</h1>
+  <form id="visitorForm">
+    <label for="qrData">Scan QR Code:</label>
+    <input type="text" id="qrData" name="qrData" placeholder="Paste QR Data Here" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="visitorInfo" style="display: none;">
+    <h2>Visitor Information</h2>
+    <p id="info"></p>
+    <button id="confirmBtn">Confirm</button>
+    <button id="rejectBtn">Reject</button>
+  </div>
+
+  <script>
+    document.getElementById('visitorForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const qrData = document.getElementById('qrData').value;
+
+      // Decode QR Data (Assuming it's a JSON string)
+      const visitorInfo = JSON.parse(qrData);
+      document.getElementById('info').innerText = `
+        Resident Name: ${visitorInfo.residentName}
+        Apartment Code: ${visitorInfo.apartmentCode}
+        Number of Visitors: ${visitorInfo.numberOfVisitors}
+        Visitor Names: ${visitorInfo.visitorNames.join(', ')}
+        Phone: ${visitorInfo.phone}
+      `;
+      document.getElementById('visitorInfo').style.display = 'block';
+
+      // Add event listeners for Confirm and Reject buttons
+      document.getElementById('confirmBtn').onclick = async () => {
+        await fetch(`/api/visitors/${visitorInfo._id}/confirm-or-reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'confirm' }),
+        });
+        alert('Visitor confirmed!');
+      };
+
+      document.getElementById('rejectBtn').onclick = async () => {
+        await fetch(`/api/visitors/${visitorInfo._id}/confirm-or-reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'reject' }),
+        });
+        alert('Visitor rejected!');
+      };
+    });
+  </script>
+</body>
+</html>

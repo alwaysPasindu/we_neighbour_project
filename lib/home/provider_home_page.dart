@@ -95,7 +95,7 @@ class _HomePageState extends State<ProviderHomePage> {
   Future<void> _loadServices() async {
     try {
       final response = await http.get(
-        Uri.parse('http://172.20.10.3:3000/api/services?latitude=6.9271&longitude=79.8612'),
+        Uri.parse('$baseUrl/api/services?latitude=6.9271&longitude=79.8612'),
         headers: {
           'Authorization': 'Bearer $_token',
           'Content-Type': 'application/json',

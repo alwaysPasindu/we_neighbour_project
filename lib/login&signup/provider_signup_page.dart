@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:we_neighbour/main.dart';
 
 class ServiceProviderSignUpPage extends StatefulWidget {
   const ServiceProviderSignUpPage({super.key});
@@ -54,7 +55,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
       // Send a POST request to the backend API
       try {
         final response = await http.post(
-          Uri.parse('http://172.20.10.3:3000/api/service-providers/register'), 
+          Uri.parse('$baseUrl/api/service-providers/register'), 
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'name': companyName,

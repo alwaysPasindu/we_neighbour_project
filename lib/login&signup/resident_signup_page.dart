@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:we_neighbour/main.dart';
+
 class ResidentSignUpPage extends StatefulWidget {
   const ResidentSignUpPage({super.key});
 
@@ -78,7 +80,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
       // Make an HTTP POST request to the backend
       try {
         final response = await http.post(
-          Uri.parse('http://172.20.10.3:3000/api/residents/register'), 
+          Uri.parse('$baseUrl/api/residents/register'), 
           headers: {
             'Content-Type': 'application/json',
           },

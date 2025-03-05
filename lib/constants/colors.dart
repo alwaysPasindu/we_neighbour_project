@@ -10,7 +10,7 @@ class AppColors {
   static const Color button = Color.fromARGB(0, 0, 0, 0);
 
   // Dark mode colors
-  static const Color darkBackground = Color(0xFF121212);
+  static const Color darkBackground = Color.fromARGB(255, 50, 50, 50);
   static const Color darkCardBackground = Color(0xFF1E1E1E);
   static const Color darkTextPrimary = Colors.white;
   static const Color darkTextSecondary = Color(0xFFB3B3B3);

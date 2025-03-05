@@ -1,7 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:we_neighbour/main.dart';
+import 'dart:convert';
 
 class CreateMaintenanceRequestScreen extends StatefulWidget {
-  const CreateMaintenanceRequestScreen({Key? key}) : super(key: key);
+  final String authToken;
+
+  const CreateMaintenanceRequestScreen({
+    Key? key,
+    required this.authToken,
+  }) : super(key: key);
 
   @override
   State<CreateMaintenanceRequestScreen> createState() =>
@@ -24,44 +34,60 @@ class _CreateMaintenanceRequestScreenState
 
   Future<void> _submitRequest() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+      setState(() => _isLoading = true);
 
       try {
-        // Simulated API call delay
-        await Future.delayed(const Duration(seconds: 1));
+        final headers = {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${widget.authToken}',
+        };
+        final body = jsonEncode({
+          'title': _titleController.text,
+          'description': _descriptionController.text,
+          // No need to send apartmentCode here; it’s fetched from Resident on the backend
+        });
+        print('Submitting request with headers: $headers');
+        print('Request body: $body');
+        final response = await http
+            .post(
+              Uri.parse('$baseUrl/api/maintenance/create-request'),
+              headers: headers,
+              body: body,
+            )
+            .timeout(const Duration(seconds: 15));
 
-        if (mounted) {
-          // Create a new maintenance card and return it
-          final newCard = MaintenanceCard(
-            title: _titleController.text,
-            description: _descriptionController.text,
-          );
+        print('Create response: ${response.statusCode} - ${response.body}');
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Maintenance request submitted successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          Navigator.pop(context, newCard);
+        if (response.statusCode == 201) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Maintenance request submitted successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pop(context, true);
+          }
+        } else {
+          final data = jsonDecode(response.body);
+          throw Exception(data['message'] ?? 'Failed to create request');
         }
+      } on TimeoutException {
+        print('Create request timed out');
+        throw Exception('Request timed out. Please check your network.');
       } catch (e) {
+        print('Error creating request: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error submitting request: ${e.toString()}'),
+              content: Text('Error: ${e.toString()}'),
               backgroundColor: Colors.red,
             ),
           );
         }
       } finally {
         if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
+          setState(() => _isLoading = false);
         }
       }
     }
@@ -135,9 +161,7 @@ class _CreateMaintenanceRequestScreenState
                               color: isDarkMode ? Colors.white60 : Colors.black54,
                             ),
                             filled: true,
-                            fillColor: isDarkMode
-                                ? Colors.grey[800]
-                                : Colors.grey[100],
+                            fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -178,9 +202,7 @@ class _CreateMaintenanceRequestScreenState
                               color: isDarkMode ? Colors.white60 : Colors.black54,
                             ),
                             filled: true,
-                            fillColor: isDarkMode
-                                ? Colors.grey[800]
-                                : Colors.grey[100],
+                            fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -246,14 +268,4 @@ class _CreateMaintenanceRequestScreenState
       ),
     );
   }
-}
-
-// Add this class if it's not already defined in maintenance_screen.dart
-class MaintenanceCard {
-  final String title;
-  final String description;
-  String feedback = '';
-  int rating = 0;
-
-  MaintenanceCard({required this.title, required this.description});
 }

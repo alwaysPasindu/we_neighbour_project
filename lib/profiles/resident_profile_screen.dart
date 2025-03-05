@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:we_neighbour/main.dart';
 import 'dart:io';
 import '../constants/colors.dart';
 import '../utils/auth_utils.dart';
@@ -156,7 +157,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
       }
 
       final response = await http.put(
-        Uri.parse('http://172.20.10.3:3000/api/residents/profile'),
+        Uri.parse('$baseUrl/api/residents/profile'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

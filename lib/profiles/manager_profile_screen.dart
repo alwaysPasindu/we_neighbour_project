@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:we_neighbour/main.dart';
 import 'dart:io';
 import '../constants/colors.dart';
 import '../utils/auth_utils.dart';
@@ -161,7 +162,7 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
       }
 
       final response = await http.put(
-        Uri.parse('http://172.20.10.3:3000/api/managers/profile'),
+        Uri.parse('$baseUrl/api/managers/profile'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -352,11 +353,35 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
                     ? _buildEditableField(_designationController, 'Designation', isDarkMode)
                     : _buildInfoField('Designation', _designationController.text, isDarkMode),
                 const SizedBox(height: 40),
-                _buildOption('Manage Residents', Icons.people, isDarkMode),
+                _buildOption(
+                  'Residents Requests', 
+                  Icons.people, 
+                  isDarkMode,
+                  onTap: () {
+                    Navigator.pushNamed(context, '/resident-req');
+                  },
+                  ),
                 const SizedBox(height: 16),
-                _buildOption('Maintenance Reports', Icons.build, isDarkMode),
+                _buildOption('Pending Tasks', 
+                Icons.build, 
+                isDarkMode,
+                onTap: () {
+                    Navigator.pushNamed(context, '/pending-task');
+                  },
+                ),
+                 const SizedBox(height: 16),
+                _buildOption('Reports Screen', 
+                Icons.report, 
+                isDarkMode,
+                onTap: () {
+                    Navigator.pushNamed(context, '/reports');
+                  },
+                ),
                 const SizedBox(height: 16),
-                _buildOption('Security Management', Icons.security, isDarkMode),
+                _buildOption(
+                  'Security Management', 
+                  Icons.security, 
+                  isDarkMode),
                 const SizedBox(height: 16),
                 _buildOption(
                   'Settings',

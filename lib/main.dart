@@ -1,8 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/features/chat/chat_list_page.dart';
+import 'package:we_neighbour/features/maintenance/maintenance_screen.dart'; // Add this
 import 'package:we_neighbour/features/resource_share/resource_sharing_page.dart';
 import 'package:we_neighbour/features/services/service_page.dart';
 import 'package:we_neighbour/home/home_screen.dart';
@@ -16,12 +18,20 @@ import 'package:we_neighbour/profiles/manager_profile_screen.dart';
 import 'package:we_neighbour/profiles/provider_profile_screen.dart';
 import 'package:we_neighbour/profiles/resident_profile_screen.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
+import 'package:we_neighbour/screens/manager_maintenance_screen.dart';
+import 'package:we_neighbour/screens/pending_tasks_screen.dart';
+import 'package:we_neighbour/screens/reports_screen.dart';
+import 'package:we_neighbour/screens/residents_requests_screen.dart';
 import 'package:we_neighbour/settings/settings_screen.dart';
+import 'package:we_neighbour/splashScreen/splash_screen.dart';
 
 enum UserType { resident, manager, serviceProvider }
 
+const String baseUrl = 'http://172.20.10.3:3000';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   try {
     final prefs = await SharedPreferences.getInstance();
     final isDarkMode = prefs.getBool('isDarkMode') ?? false;
@@ -52,6 +62,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   bool _isLoggedIn = false;
   UserType _userType = UserType.resident;
+  String? _token;
   bool _isLoading = true;
 
   @override
@@ -85,6 +96,7 @@ class _MyAppState extends State<MyApp> {
         setState(() {
           _isLoggedIn = true;
           _userType = userType;
+          _token = token;
           _isLoading = false;
         });
       } else {
@@ -136,6 +148,7 @@ class _MyAppState extends State<MyApp> {
             ),
           ),
           themeMode: themeProvider.themeMode,
+          initialRoute: '/splash',
           home: _isLoading
               ? const Scaffold(body: Center(child: CircularProgressIndicator()))
               : _isLoggedIn
@@ -144,6 +157,7 @@ class _MyAppState extends State<MyApp> {
                       : HomeScreen(userType: _userType)
                   : const LoginPage(),
           routes: {
+            '/splash': (context) => const SplashScreen(),
             '/account-type': (context) => const AccountTypePage(),
             '/resident-signup': (context) => const ResidentSignUpPage(),
             '/manager-signup': (context) => const ManagerSignUpPage(),
@@ -152,12 +166,23 @@ class _MyAppState extends State<MyApp> {
             '/provider-profile': (context) => const CompanyProfileScreen(),
             '/chat': (context) => const ChatListPage(),
             '/resource': (context) => const ResourceSharingPage(),
+            '/resident-req': (context) => const ResidentsRequestsScreen(),
+            '/pending-task': (context) => const PendingTasksScreen(),
+            '/reports': (context) => const ReportsScreen(),
             '/login': (context) => const LoginPage(),
             '/settings': (context) => const SettingsScreen(),
+            '/maintenance': (context) => _token != null
+                ? MaintenanceScreen(authToken: _token!, isManager: _userType == UserType.manager)
+                : const LoginPage(),
+            '/manager-maintenance': (context) => _token != null
+                ? ManagerMaintenanceScreen(authToken: _token!)
+                : const LoginPage(),
             '/home': (context) {
               final args = ModalRoute.of(context)?.settings.arguments;
               final userType = args is UserType ? args : UserType.resident;
-              return userType == UserType.serviceProvider ? ServicesPage(userType: userType) : HomeScreen(userType: userType);
+              return userType == UserType.serviceProvider
+                  ? ServicesPage(userType: userType)
+                  : HomeScreen(userType: userType);
             },
             '/service': (context) {
               final args = ModalRoute.of(context)?.settings.arguments;

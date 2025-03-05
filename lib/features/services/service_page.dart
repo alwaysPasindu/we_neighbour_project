@@ -40,8 +40,6 @@ class _ServicesPageState extends State<ServicesPage> {
   double? _userLongitude;
   String _locationAddress = 'Unknown Location';
 
-  static const String serverUrl = 'http://192.168.43.54:3000';
-
   @override
   void initState() {
     super.initState();
@@ -118,7 +116,7 @@ class _ServicesPageState extends State<ServicesPage> {
         'longitude': _userLongitude?.toString() ?? '',
       };
 
-      final uri = Uri.parse('$serverUrl/api/services').replace(queryParameters: queryParams);
+      final uri = Uri.parse('$baseUrl/api/services').replace(queryParameters: queryParams);
 
       final response = await http.get(
         uri,
@@ -167,7 +165,7 @@ class _ServicesPageState extends State<ServicesPage> {
 
     try {
       final response = await http.delete(
-        Uri.parse('$serverUrl/api/services/${service.id}'),
+        Uri.parse('$baseUrl/api/services/${service.id}'),
         headers: {
           'Authorization': 'Bearer $_token',
           'Content-Type': 'application/json',
@@ -276,7 +274,7 @@ class _ServicesPageState extends State<ServicesPage> {
                       onPressed: () async {
                         try {
                           final response = await http.put(
-                            Uri.parse('$serverUrl/api/services/${service.id}'),
+                            Uri.parse('$baseUrl/api/services/${service.id}'),
                             headers: {
                               'Authorization': 'Bearer $_token',
                               'Content-Type': 'application/json',
@@ -324,7 +322,7 @@ class _ServicesPageState extends State<ServicesPage> {
 
   Future<bool> _checkServerConnection() async {
     try {
-      final response = await http.get(Uri.parse('$serverUrl/health'), headers: {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 5));
+      final response = await http.get(Uri.parse('$baseUrl/health'), headers: {'Content-Type': 'application/json'}).timeout(const Duration(seconds: 5));
       print('Server health check: ${response.statusCode} - ${response.body}');
       return response.statusCode == 200;
     } catch (e) {
@@ -579,7 +577,7 @@ class _ServicesPageState extends State<ServicesPage> {
                                 print('Using token: $_token');
 
                                 final response = await http.post(
-                                  Uri.parse('$serverUrl/api/services'),
+                                  Uri.parse('$baseUrl/api/services'),
                                   headers: {
                                     'Authorization': 'Bearer $_token',
                                     'Content-Type': 'application/json',

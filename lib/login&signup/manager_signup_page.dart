@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:we_neighbour/main.dart';
+
 
 class ManagerSignUpPage extends StatefulWidget {
   const ManagerSignUpPage({super.key});
@@ -69,7 +71,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
 
     // Send the POST request to the backend
     final response = await http.post(
-      Uri.parse('http://172.20.10.3:3000/api/managers/register'), // Change this URL to your backend URL
+      Uri.parse('$baseUrl/api/managers/register'), // Change this URL to backend URL
       headers: {
         'Content-Type': 'application/json',
       },

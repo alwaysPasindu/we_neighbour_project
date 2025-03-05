@@ -61,7 +61,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://172.20.10.3:3000/api/services/${widget.service.id}'), // Fetch specific service by ID
+        Uri.parse('$baseUrl/api/services/${widget.service.id}'), // Fetch specific service by ID
         headers: {
           'Authorization': 'Bearer $_token',
           'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
 
                     try {
                       final response = await http.post(
-                        Uri.parse('http://172.20.10.3:3000/api/services/${widget.service.id}/reviews'),
+                        Uri.parse('$baseUrl/api/services/${widget.service.id}/reviews'),
                         headers: {
                           'Authorization': 'Bearer $token',
                           'Content-Type': 'application/json',
