@@ -31,21 +31,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       ),
     );
     
-    // Create a "pop" animation using a sequence of scales
-    // First scales up quickly, then slightly back down for the "pop" effect
-    _popAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.2, end: 1.2),
-        weight: 60,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0),
-        weight: 40,
-      ),
-    ]).animate(
+    // Create a simpler "pop" animation that stays within bounds
+    _popAnimation = Tween<double>(begin: 0.2, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: const Interval(0.0, 0.8, curve: Curves.elasticOut),
+        // Use bounceOut curve for a pop effect that stays within bounds
+        curve: Curves.bounceOut,
       ),
     );
     
@@ -54,7 +45,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     // Navigate to login page after delay
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/login');
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     });
   }
 
@@ -163,4 +156,3 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
   }
 }
-
