@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,6 +14,8 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isLoading = false;
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -20,16 +24,73 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    // TODO: Implement login logic
-    final email = _emailController.text;
-    final password = _passwordController.text;
-    print('Login attempted with: $email');
+  Future<void> _handleLogin() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userCredential = await _authService.signInWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      
+      if (userCredential.user != null) {
+        // Navigate to home or dashboard
+        // You can add navigation logic here
+        print('Login successful: ${userCredential.user!.email}');
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: ${error.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
-  void _handleGoogleSignIn() {
-    // TODO: Implement Google sign-in logic
-    print('Google sign-in attempted');
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userCredential = await _authService.signInWithGoogle();
+      
+      if (userCredential != null && userCredential.user != null) {
+        // Check if user has an account type
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
+        
+        if (userDoc.exists && userDoc.data()!.containsKey('accountType')) {
+          // User has an account type, navigate to the appropriate dashboard
+          // You can add navigation logic here based on accountType
+          print('Google sign-in successful: ${userCredential.user!.email}');
+        } else {
+          // User doesn't have an account type, navigate to account type selection
+          Navigator.pushNamed(context, '/account-type');
+        }
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in failed: ${error.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -158,7 +219,7 @@ class _LoginPageState extends State<LoginPage> {
                   
                   // Login button
                   ElevatedButton(
-                    onPressed: _handleLogin,
+                    onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A237E),
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -166,13 +227,22 @@ class _LoginPageState extends State<LoginPage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: _isLoading 
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
                   ),
                   
                   // Register link
@@ -208,7 +278,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // Google Sign-In Button (Redesigned)
+                  // Google Sign-In Button
                   Center(
                     child: Container(
                       width: buttonWidth,
@@ -228,7 +298,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: _handleGoogleSignIn,
+                          onTap: _isLoading ? null : _handleGoogleSignIn,
                           borderRadius: BorderRadius.circular(4),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -241,16 +311,27 @@ class _LoginPageState extends State<LoginPage> {
                                   width: 24,
                                 ),
                                 const SizedBox(width: 12),
-                                const Expanded(
-                                  child: Text(
-                                    'Sign in with Google',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xFF757575),
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
+                                Expanded(
+                                  child: _isLoading
+                                    ? const Center(
+                                        child: SizedBox(
+                                          height: 16,
+                                          width: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Color(0xFF757575),
+                                          ),
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Sign in with Google',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF757575),
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
                                 ),
                                 const SizedBox(width: 24), // Balance the button
                               ],
