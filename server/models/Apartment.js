@@ -5,4 +5,4 @@ const ApartmentSchema = new mongoose.Schema({
     createdAt:{type:Date, default:Date.now},
 });
 
-module.exports =  mongoose.model('Apartment',ApartmentSchema);
+module.exports =  ApartmentSchema;
