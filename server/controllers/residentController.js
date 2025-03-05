@@ -1,18 +1,29 @@
-const Resident = require('../models/Resident');
+const ResidentSchema = require('../models/Resident');
+const { connectDB } = require('../config/database');
 const bcrypt = require('bcrypt');
 
 exports.registerResident = async (req, res) => {
   try {
             const { name,nic,email,password,phone,address,apartmentComplexName,apartmentCode } = req.body;
-            if (!name || !email || !password) {
-            return res.status(400).json({ message: "Please provide all required fields." });
+            
+            // Connect to the apartment-specific database
+            const db = await connectDB(apartmentComplexName);
+
+            // Create a model for the apartment's database
+            const Resident = db.model('Resident', ResidentSchema);
+
+            const existingResident = await Resident.findOne({ email });
+            
+            if (existingResident) {
+                return res.status(400).json({ message: 'Resident already exists' });
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
             const newResident = new Resident({name,nic,email,password:hashedPassword,phone,address,apartmentComplexName,apartmentCode});
             await newResident.save();
 
-            res.status(201).json({ message: "Resident registered successfully!" });
+            console.log(`Resident registered successfully in database: ${apartmentComplexName}`);
+            res.status(201).json({ message: "Resident registered successfully..! - Waiting for Manager approval" });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: "Server Error" });

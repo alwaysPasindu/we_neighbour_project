@@ -10,8 +10,9 @@ const ResidentSchema = new mongoose.Schema({
     apartmentCode:{type:String, required:true},
     password:{type:String, required:true},
     role:{type:String, default:'Resident'},
+    status:{type:String, enum:['pending','approved','rejected'], default:'pending'},
 
 },{timestamps:true});
 
 
-module.exports = mongoose.model('Resident', ResidentSchema);
+module.exports = ResidentSchema;
