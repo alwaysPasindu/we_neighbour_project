@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ManagerSignUpPage extends StatefulWidget {
   const ManagerSignUpPage({super.key});
@@ -16,6 +17,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
   final _addressController = TextEditingController();
   final _apartmentNameController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -29,18 +31,29 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
     super.dispose();
   }
 
-  void _handleSignUp() {
+  Future<void> _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement sign up logic
-      print('Name: ${_nameController.text}');
-      print('NIC: ${_nicController.text}');
-      print('Email: ${_emailController.text}');
-      print('Contact: ${_contactController.text}');
-      print('Address: ${_addressController.text}');
-      print('Apartment Name: ${_apartmentNameController.text}');
-      
-      // Navigate to login page after successful signup
-      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      setState(() => _isLoading = true);
+      try {
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Signup successful! Please log in.')),
+          );
+          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+        }
+      } on FirebaseAuthException catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Signup failed: ${e.message}')),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -67,12 +80,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
           border: InputBorder.none,
           errorStyle: const TextStyle(height: 0),
         ),
-        validator: validator ?? (value) {
-          if (value == null || value.isEmpty) {
-            return 'This field is required';
-          }
-          return null;
-        },
+        validator: validator,
       ),
     );
   }
@@ -90,7 +98,6 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo
                   Center(
                     child: Image.asset(
                       'assets/images/logo.png',
@@ -99,8 +106,6 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                     ),
                   ),
                   const SizedBox(height: 0),
-
-                  // Sign Up Text
                   const Text(
                     'Manager Sign Up',
                     style: TextStyle(
@@ -110,20 +115,20 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  // Form Fields
                   _buildTextField(
                     hint: 'Name',
                     controller: _nameController,
+                    validator: (value) =>
+                        value!.isEmpty ? 'Name is required' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'NIC',
                     controller: _nicController,
+                    validator: (value) =>
+                        value!.isEmpty ? 'NIC is required' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Email',
                     controller: _emailController,
@@ -139,26 +144,28 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Contact No',
                     controller: _contactController,
                     keyboardType: TextInputType.phone,
+                    validator: (value) =>
+                        value!.isEmpty ? 'Contact No is required' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Address',
                     controller: _addressController,
+                    validator: (value) =>
+                        value!.isEmpty ? 'Address is required' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Apartment Name',
                     controller: _apartmentNameController,
+                    validator: (value) =>
+                        value!.isEmpty ? 'Apartment Name is required' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Password',
                     controller: _passwordController,
@@ -174,10 +181,8 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                     },
                   ),
                   const SizedBox(height: 20),
-
-                  // Sign Up Button
                   ElevatedButton(
-                    onPressed: _handleSignUp,
+                    onPressed: _isLoading ? null : _handleSignUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A237E),
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -185,33 +190,40 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Sign Up',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                   const SizedBox(height: 10),
-
-                  // Sign In Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
                         'Already have an account? ',
-                        style: TextStyle(
-                          color: Colors.black87,
-                        ),
+                        style: TextStyle(color: Colors.black87),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/',
-                          (route) => false,
-                        ),
+                        onTap: _isLoading
+                            ? null
+                            : () => Navigator.pushNamedAndRemoveUntil(
+                                  context,
+                                  '/',
+                                  (route) => false,
+                                ),
                         child: const Text(
                           'Sign in',
                           style: TextStyle(

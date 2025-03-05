@@ -10,30 +10,20 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  # Add any required third-party libraries below (currently not used)
-  google_fonts: ^6.2.1 # Optional: If you want to use Google Fonts
-  flutter_svg: ^2.0.9  # Optional: For SVG images if required
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.15.3
+  google_sign_in: ^6.2.1
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.9
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
-
   assets:
     - assets/images/white.png
-    - assets/images/facebook.png
     - assets/images/google.png
-    - assets/images/twitter.png
     - assets/images/logo.png
-
-  # fonts:
-  #   - family: Roboto
-  #     fonts:
-  #       - asset: assets/fonts/Roboto-Regular.ttf
-  #       - asset: assets/fonts/Roboto-Bold.ttf
-  #         weight: 700

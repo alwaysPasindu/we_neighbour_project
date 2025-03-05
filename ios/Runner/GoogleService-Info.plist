@@ -7,7 +7,7 @@
 	<key>REVERSED_CLIENT_ID</key>
 	<string>com.googleusercontent.apps.24541811517-9rd504g71qggut24f32hta4qbrfjfjql</string>
 	<key>ANDROID_CLIENT_ID</key>
-	<string>24541811517-545uns7k67i0bdi41takkesqjqrdv2el.apps.googleusercontent.com</string>
+	<string>24541811517-47nhe1i73d384jbep45oeb48bddc0hu6.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyBCpUmbQSO6gRTTwVVuLzeyv8Z0q6Jzmqo</string>
 	<key>GCM_SENDER_ID</key>
@@ -32,5 +32,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:24541811517:ios:f06a45c833433da61eeb54</string>
+	<key>DATABASE_URL</key>
+	<string>https://weneighbour-c2e23-default-rtdb.firebaseio.com</string>
 </dict>
 </plist>

@@ -4,10 +4,7 @@ class AccountTypePage extends StatelessWidget {
   const AccountTypePage({super.key});
 
   Widget _buildAccountTypeButton(
-    BuildContext context, 
-    String title, 
-    VoidCallback onPressed
-  ) {
+      BuildContext context, String title, VoidCallback onPressed) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       width: double.infinity,
@@ -44,7 +41,6 @@ class AccountTypePage extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 48),
-              // Logo
               Center(
                 child: Image.asset(
                   'assets/images/logo.png',
@@ -53,7 +49,6 @@ class AccountTypePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 48),
-              // Heading
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
@@ -68,7 +63,6 @@ class AccountTypePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 64),
-              // Account Type Buttons
               _buildAccountTypeButton(
                 context,
                 'Apartment Residents',
@@ -84,7 +78,6 @@ class AccountTypePage extends StatelessWidget {
                 'Service Providers',
                 () => Navigator.pushNamed(context, '/service-provider-signup'),
               ),
-              // Back to Login Button
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: TextButton(
