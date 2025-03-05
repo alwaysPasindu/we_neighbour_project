@@ -7,6 +7,9 @@ import 'package:intl/intl.dart';
 import '../widgets/feature_column.dart';
 import '../widgets/custom_button.dart';
 import '../services/firebase_service.dart';
+// Import screens
+import '../screens/book_amenities_screen.dart';
+import '../screens/health_wellness_screen.dart';
 
 class EventCalendarScreen extends StatefulWidget {
   const EventCalendarScreen({Key? key}) : super(key: key);
@@ -62,6 +65,11 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                 'id': doc.id,
                 'title': data['title'],
                 'date': date,
+                'type': data['type'] ?? 'event', // Add event type with default
+                'endTime': data['endTime'] != null
+                    ? (data['endTime'] as Timestamp).toDate()
+                    : null, // Add endTime
+                'notes': data['notes'], // Add notes
               });
             } else {
               newEvents[normalizedDate] = [
@@ -69,6 +77,12 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                   'id': doc.id,
                   'title': data['title'],
                   'date': date,
+                  'type':
+                      data['type'] ?? 'event', // Add event type with default
+                  'endTime': data['endTime'] != null
+                      ? (data['endTime'] as Timestamp).toDate()
+                      : null, // Add endTime
+                  'notes': data['notes'], // Add notes
                 }
               ];
             }
@@ -120,102 +134,143 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
         String newEventTitle = "";
         DateTime selectedDate = DateTime.now();
         TimeOfDay selectedTime = TimeOfDay.now();
+        TimeOfDay? selectedEndTime; // Added for endTime
+        String? eventNotes; // Added for notes
 
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Text('Add New Event'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                onChanged: (value) {
-                  newEventTitle = value;
-                },
-                decoration: const InputDecoration(hintText: "Event Title"),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    child: const Text("Select Date"),
-                    onPressed: () async {
-                      final DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2101),
-                      );
-                      if (picked != null && picked != selectedDate) {
-                        setState(() {
-                          selectedDate = picked;
-                        });
-                      }
+        return StatefulBuilder(builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: const Text('Add New Event'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextField(
+                    onChanged: (value) {
+                      newEventTitle = value;
                     },
+                    decoration: const InputDecoration(hintText: "Event Title"),
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        child: const Text("Select Date"),
+                        onPressed: () async {
+                          final DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2101),
+                          );
+                          if (picked != null && picked != selectedDate) {
+                            setState(() {
+                              selectedDate = picked;
+                            });
+                          }
+                        },
+                      ),
+                      ElevatedButton(
+                        child: const Text("Select Time"),
+                        onPressed: () async {
+                          final TimeOfDay? picked = await showTimePicker(
+                            context: context,
+                            initialTime: selectedTime,
+                          );
+                          if (picked != null && picked != selectedTime) {
+                            setState(() {
+                              selectedTime = picked;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   ElevatedButton(
-                    child: const Text("Select Time"),
+                    child: const Text("Select End Time (Optional)"),
                     onPressed: () async {
                       final TimeOfDay? picked = await showTimePicker(
                         context: context,
-                        initialTime: selectedTime,
+                        initialTime: TimeOfDay.now(),
                       );
-                      if (picked != null && picked != selectedTime) {
+                      if (picked != null) {
                         setState(() {
-                          selectedTime = picked;
+                          selectedEndTime = picked;
                         });
                       }
                     },
                   ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    onChanged: (value) {
+                      eventNotes = value;
+                    },
+                    decoration:
+                        const InputDecoration(hintText: "Notes (Optional)"),
+                    maxLines: 3,
+                  ),
                 ],
               ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
             ),
-            TextButton(
-              child: const Text('Add'),
-              onPressed: () async {
-                if (newEventTitle.isNotEmpty) {
-                  final DateTime eventDateTime = DateTime(
-                    selectedDate.year,
-                    selectedDate.month,
-                    selectedDate.day,
-                    selectedTime.hour,
-                    selectedTime.minute,
-                  );
-
-                  try {
-                    await _firebaseService.addEvent(
-                        newEventTitle, eventDateTime);
-
-                    // After adding the event, refresh the calendar view
-                    setState(() {
-                      _selectedDay = selectedDate;
-                      _focusedDay = selectedDate;
-                    });
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Event added successfully')),
-                    );
-                  } catch (e) {
-                    print('Error adding event: $e');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed to add event: $e')),
-                    );
-                  }
-
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
                   Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        );
+                },
+              ),
+              TextButton(
+                child: const Text('Add'),
+                onPressed: () async {
+                  if (newEventTitle.isNotEmpty) {
+                    final DateTime eventDateTime = DateTime(
+                      selectedDate.year,
+                      selectedDate.month,
+                      selectedDate.day,
+                      selectedTime.hour,
+                      selectedTime.minute,
+                    );
+
+                    // Create eventEndTime only if selectedEndTime is not null
+                    DateTime? eventEndTime;
+                    if (selectedEndTime != null) {
+                      eventEndTime = DateTime(
+                        selectedDate.year,
+                        selectedDate.month,
+                        selectedDate.day,
+                      );
+                    }
+
+                    try {
+                      await _firebaseService.addEvent(newEventTitle,
+                          eventDateTime, eventEndTime, eventNotes, 'event');
+
+                      // After adding the event, refresh the calendar view
+                      setState(() {
+                        _selectedDay = selectedDate;
+                        _focusedDay = selectedDate;
+                      });
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Event added successfully')),
+                      );
+                    } catch (e) {
+                      print('Error adding event: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to add event: $e')),
+                      );
+                    }
+
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+            ],
+          );
+        });
       },
     );
   }
@@ -261,6 +316,10 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   }
 
   void _showEventDetails(BuildContext context, Map<String, dynamic> event) {
+    final String eventType = event['type'] ?? 'event';
+    final bool isAmenity = eventType == 'amenity';
+    final bool isHealth = eventType == 'health';
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -304,6 +363,36 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                 'Time: ${DateFormat('h:mm a').format(event['date'])}',
                 style: const TextStyle(fontSize: 16),
               ),
+
+              // Show additional details for amenity or health bookings
+              if ((isAmenity || isHealth) && event['endTime'] != null) ...[
+                Text(
+                  'End Time: ${DateFormat('h:mm a').format(event['endTime'])}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                if (event['notes'] != null &&
+                    event['notes'].toString().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Notes:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          event['notes'],
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -322,6 +411,22 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
           ),
         );
       },
+    );
+  }
+
+  // Navigate to BookAmenitiesScreen
+  void _openAmenitiesBooking() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const BookAmenitiesScreen()),
+    );
+  }
+
+  // Navigate to HealthWellnessScreen
+  void _openHealthWellness() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const HealthWellnessScreen()),
     );
   }
 
@@ -494,6 +599,10 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                 itemCount: _getEventsForDay(_selectedDay!).length,
                 itemBuilder: (context, index) {
                   final event = _getEventsForDay(_selectedDay!)[index];
+                  final String eventType = event['type'] ?? 'event';
+                  final bool isAmenity = eventType == 'amenity';
+                  final bool isHealth = eventType == 'health';
+
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8.0),
                     child: ListTile(
@@ -501,17 +610,27 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                         event['title'],
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle:
-                          Text(DateFormat('h:mm a').format(event['date'])),
+                      subtitle: Text((isAmenity || isHealth) &&
+                              event['endTime'] != null
+                          ? '${DateFormat('h:mm a').format(event['date'])} - ${DateFormat('h:mm a').format(event['endTime'])}'
+                          : DateFormat('h:mm a').format(event['date'])),
                       leading: Container(
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade700,
+                          color: isHealth
+                              ? Colors.purple.shade700
+                              : isAmenity
+                                  ? Colors.green.shade700
+                                  : Colors.blue.shade700,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(
-                          Icons.event,
+                        child: Icon(
+                          isHealth
+                              ? Icons.spa
+                              : isAmenity
+                                  ? Icons.fitness_center
+                                  : Icons.event,
                           color: Colors.white,
                         ),
                       ),
@@ -555,16 +674,12 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                 FeatureColumn(
                   iconPath: 'assets/amenities_icon.png',
                   label: 'Book\nAmenities',
-                  onTap: () {
-                    // Handle Book Amenities tap
-                  },
+                  onTap: _openAmenitiesBooking,
                 ),
                 FeatureColumn(
                   iconPath: 'assets/health_icon.png',
                   label: 'Health &\nWellness',
-                  onTap: () {
-                    // Handle Health & Wellness tap
-                  },
+                  onTap: _openHealthWellness, // Updated to use the new method
                 ),
               ],
             ),
@@ -635,6 +750,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
             final doc = events[index];
             final data = doc.data() as Map<String, dynamic>;
             final DateTime date = (data['date'] as Timestamp).toDate();
+            final String eventType = data['type'] ?? 'event';
 
             return Dismissible(
               key: Key(doc.id),
@@ -690,7 +806,11 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0A1A3B),
+                      color: eventType == 'health'
+                          ? Colors.purple.shade700
+                          : eventType == 'amenity'
+                              ? Colors.green.shade700
+                              : const Color(0xFF0A1A3B),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -724,6 +844,11 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                       'id': doc.id,
                       'title': data['title'],
                       'date': date,
+                      'type': eventType,
+                      'endTime': data['endTime'] != null
+                          ? (data['endTime'] as Timestamp).toDate()
+                          : null,
+                      'notes': data['notes'],
                     });
                   },
                 ),
