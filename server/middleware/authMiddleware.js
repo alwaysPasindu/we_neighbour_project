@@ -16,9 +16,14 @@ exports.authenticate = function(req, res, next){
 };
 
 exports.isResident = function(req, res, next){
-    if(req.user.role != 'Resident'){
+    if(req.user.role !== 'Resident'){
         return res.status(403).json({message:"Access denied. Not authorized as a Resident."});
     }
+
+    if (req.user.status !== 'approved') {
+        return res.status(403).json({ message: 'Access denied. Your registration request is pending or rejected.' });
+    }
+    
     next();
 };
 
