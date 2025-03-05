@@ -3,6 +3,12 @@ require('dotenv').config();
 
 const dbConnections = {};
 
+const centralDB = mongoose.createConnection(process.env.MONGO_URI, {
+    dbName: 'central_db', // Central database name
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+});
+
 const connectDB = async (dbName) => {
     try {
         // Check if the connection already exists in the cache
@@ -25,4 +31,4 @@ const connectDB = async (dbName) => {
     }
 };
 
-module.exports = connectDB;
+module.exports = {connectDB, centralDB};
