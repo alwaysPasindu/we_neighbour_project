@@ -11,23 +11,14 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Add Firebase dependencies
-  firebase_core: ^2.24.2
-  firebase_auth: ^4.16.0
-  cloud_firestore: ^4.13.6
-  google_sign_in: ^6.2.1
-  
-  # Add Supabase dependencies
-  supabase_flutter: ^2.3.4
-  flutter_dotenv: ^5.1.0
-  
-  # Existing dependencies
-  google_fonts: ^6.2.1
-  flutter_svg: ^2.0.9
+  # Add any required third-party libraries below (currently not used)
+  google_fonts: ^6.2.1 # Optional: If you want to use Google Fonts
+  flutter_svg: ^2.0.9  # Optional: For SVG images if required
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
   flutter_lints: ^3.0.0
 
 flutter:
@@ -39,5 +30,10 @@ flutter:
     - assets/images/google.png
     - assets/images/twitter.png
     - assets/images/logo.png
-    - .env
 
+  # fonts:
+  #   - family: Roboto
+  #     fonts:
+  #       - asset: assets/fonts/Roboto-Regular.ttf
+  #       - asset: assets/fonts/Roboto-Bold.ttf
+  #         weight: 700
