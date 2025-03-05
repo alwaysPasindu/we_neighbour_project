@@ -1,11 +1,27 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require ('cors');
-const connectDB = require('./config/database');
+const {connectDB,centralDB} = require('./config/database');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 
-connectDB();
+centralDB.on('error', (err) => {
+    console.error('Central database connection error:', err);
+});
+
+centralDB.once('open', () => {
+    console.log('Connected to central database');
+});
+
+// Initialize the default database connection (if needed)
+connectDB()
+    .then(() => {
+        console.log('Default database connected successfully');
+    })
+    .catch((err) => {
+        console.error('Default database connection failed:', err);
+    });
 
 app.use(cors());
 app.use(express.json());
@@ -49,4 +65,4 @@ app.use('/api/service',serviceRoutes);
 const resourceRoutes = require('./routes/resourceRoutes');
 app.use('/api/resource',resourceRoutes);
 
-app.listen(PORT, () => console.log('Server running on http://localhost:${PORT}'));
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
