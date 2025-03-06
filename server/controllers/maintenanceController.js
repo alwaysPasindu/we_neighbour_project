@@ -1,12 +1,17 @@
-const Maintenance = require('../models/Maintenance');
-const Resident = require('../models/Resident');
-
+const MaintenanceSchema = require('../models/Maintenance');
+const{connectDB} = require('../config/database');
+const ResidentSchema = require('../models/Resident');
 
 //Create the maintenance request
 exports.createMaintenanceRequest = async(req,res) =>{
     try{
         const {title, description} = req.body;
         const residentId = req.user.id;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const Maintenance = db.model('Maintenance',MaintenanceSchema);
+        const Resident = db.model('Resident',ResidentSchema);
 
         const resident = await Resident.findById(residentId);
 
@@ -29,6 +34,12 @@ exports.createMaintenanceRequest = async(req,res) =>{
 //get pending maintenance requests
 exports.getPendingrequests = async(req,res) =>{
     try{
+
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const Maintenance = db.model('Maintenance', MaintenanceSchema);
+
         const request = await Maintenance.find({status:'Pending'}).sort({createdAt:-1}).populate('resident','name apartmentCode');
 
         res.json(request);
@@ -42,6 +53,11 @@ exports.getPendingrequests = async(req,res) =>{
 exports.markRequests = async(req,res) =>{
     try{
         const{id} =req.params;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const Maintenance = db.model('Maintenance', MaintenanceSchema);
+
         const request = await Maintenance.findById(id);
 
         request.status = 'Done';
@@ -57,6 +73,12 @@ exports.markRequests = async(req,res) =>{
 //display marked maintenance requests
 exports.getCompletedRequests = async(req,res) => {
     try{
+
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const Maintenance = db.model('Maintenance',MaintenanceSchema);
+
         const request = await Maintenance.find({status:'Done'}).sort({createdAt:-1}).select('-residentName -apartmentCode').populate('ratings.resident','name');
 
         const requestsWithAverageRatings = request.map((request) => {
@@ -82,6 +104,11 @@ exports.rateMaintenanceRequest = async(req,res) => {
         const{id} = req.params;
         const{stars} = req.body;
         const residentId = req.user.id;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const Maintenance = db.model('Maintenance',MaintenanceSchema);
+
         const request = await Maintenance.findById(id);
         const existingRatings = request.ratings.find(
             (rating) => rating.resident.toString() === residentId
