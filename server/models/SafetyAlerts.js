@@ -7,4 +7,4 @@ const SafetySchema = new mongoose.Schema({
     createdAt: {type:Date, default:Date.now},
 });
 
-module.exports = mongoose.model('safety alerts', SafetySchema);
+module.exports = SafetySchema;
