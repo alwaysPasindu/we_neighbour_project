@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import '../models/user.dart';
+import '../models/app_user.dart';
 import '../models/message.dart';
 import '../utils/date_formatter.dart';
 

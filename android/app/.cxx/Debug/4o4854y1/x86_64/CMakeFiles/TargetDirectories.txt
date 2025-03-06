@@ -1,0 +1,2 @@
+D:/Git Projects/we_neighbour_project/android/app/.cxx/Debug/4o4854y1/x86_64/CMakeFiles/edit_cache.dir
+D:/Git Projects/we_neighbour_project/android/app/.cxx/Debug/4o4854y1/x86_64/CMakeFiles/rebuild_cache.dir
