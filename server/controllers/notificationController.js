@@ -1,11 +1,18 @@
-const ManagementNotification = require('../models/ManagementNotifications');
-const CommunityNotification = require('../models/CommunityNotification');
-
+const ManagementNotificationSchema = require('../models/ManagementNotifications');
+const CommunityNotificationSchema = require('../models/CommunityNotification');
+const {connectDB} = require('../config/database');
+const ResidentSchema = require('../models/Resident');
+const ManagerSchema = require('../models/Manager');
 
 //create Management notifications
 exports.createManagementNotification = async(req,res) => {
     try{
         const{title,message} = req.body;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const ManagementNotification = db.model('ManagementNotification',ManagementNotificationSchema);
+
         const notification = new ManagementNotification({
             title,
             message,
@@ -22,6 +29,11 @@ exports.createManagementNotification = async(req,res) => {
 //Display all management Notifications
 exports.getManagementNotification = async(req,res) => {
     try{
+        const apartmentComplexName = req.user.apartmentComplexName
+
+        const db = await connectDB(apartmentComplexName);
+        const ManagementNotification = db.model('ManagementNotification',ManagementNotificationSchema);
+
         const notifications = await ManagementNotification.find().sort({createdAt:-1}).populate('createdBy','name');
         res.json(notifications);
     }catch(error){
@@ -34,6 +46,11 @@ exports.getManagementNotification = async(req,res) => {
 exports.removeManagementNotification = async (req,res) =>{
     try{
         const{id} = req.params;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const ManagementNotification = db.model('ManagementNotification',ManagementNotificationSchema);
+
         await ManagementNotification.findByIdAndDelete(id);
         res.json({message:"Management notification removed successfully!"});
     }catch(error){
@@ -47,6 +64,12 @@ exports.removeManagementNotification = async (req,res) =>{
 exports.createCommunityNotification = async(req,res) => {
     try{
         const{title,message} = req.body;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const CommunityNotification = db.model('CommunityNotification', CommunityNotificationSchema);
+
+
         const notification = new CommunityNotification({
             title,
             message,
@@ -66,6 +89,10 @@ exports.createCommunityNotification = async(req,res) => {
 exports.getAllCommunityNotifications = async(req,res) => {
     try{
         const userId = req.user.id;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const CommunityNotification = db.model('CommunityNotification',CommunityNotificationSchema);
 
         //const notifications = await CommunityNotification.find().sort({createdAt:-1}).populate('createdBy','name');
         
@@ -88,6 +115,11 @@ exports.getAllCommunityNotifications = async(req,res) => {
 exports.removeCommunityNotificationByManager = async(req,res) => {
     try{
         const{id} = req.params;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const CommunityNotification = db.model('CommunityNotification', CommunityNotificationSchema);
+
         await  CommunityNotification.findByIdAndDelete(id);
         res.json({message:"Community Notification removed successfully!"});
     }catch(error){
@@ -100,7 +132,11 @@ exports.removeCommunityNotificationByManager = async(req,res) => {
 exports.deleteCommunityNotification = async(req,res) => {
     try{
         const{id} = req.params;
+        const apartmentComplexName = req.user.apartmentComplexName;
         const userId = req.user.id;
+
+        const db = await connectDB(apartmentComplexName);
+        const CommunityNotification = db.model('CommunityNotification', CommunityNotificationSchema);
 
         const notification = await CommunityNotification.findById(id);
 
@@ -122,6 +158,10 @@ exports.removeCommunityNotificationsFromUser = async(req,res) => {
     try{
         const{id} = req.params;
         const userId = req.user.id;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const CommunityNotification = db.model('CommunityNotification',CommunityNotificationSchema);
 
         const notification = await CommunityNotification.findById(id);
         
@@ -143,8 +183,13 @@ exports.editCommunityNotification = async(req,res) => {
         const{id} = req.params;
         const{title,message} = req.body;
         const userId = req.user.id;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const CommunityNotification = db.model('CommunityNotification',CommunityNotificationSchema);
 
         const notification = await CommunityNotification.findById(id);
+
 
         if(notification.createdBy.toString() !== userId){
             return res.status(403).json({message:"You are not authorized to edit this notification"});

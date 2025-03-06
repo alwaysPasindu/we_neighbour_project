@@ -8,4 +8,4 @@ const CommunityNotificationSchema = new mongoose.Schema({
     removedFor:[{type:mongoose.Schema.Types.ObjectId, ref:'User'}],    
 });
 
-module.exports = mongoose.model('CommunityNotification',CommunityNotificationSchema);
+module.exports = CommunityNotificationSchema;
