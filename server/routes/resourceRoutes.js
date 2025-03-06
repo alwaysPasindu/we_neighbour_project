@@ -1,5 +1,5 @@
 const express = require('express');
-const {authenticate} = require('../middleware/authMiddleware');
+const {authenticate,isManager} = require('../middleware/authMiddleware');
 const {
     createResourceRequest,
     getResourceRequest,
@@ -10,6 +10,6 @@ const router = express.Router();
 
 router.post('/create-request',authenticate,createResourceRequest);
 router.get('/get-request',authenticate,getResourceRequest);
-router.delete('/delete-request/:id',authenticate,deleteResourceRequest);
+router.delete('/delete-request/:id',authenticate,isManager,deleteResourceRequest);
 
 module.exports = router;

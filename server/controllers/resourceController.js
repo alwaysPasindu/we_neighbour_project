@@ -58,13 +58,18 @@ exports.deleteResourceRequest = async(req,res) =>{
     try{
         const {id} = req.params;
         const userId = req.user.id;
+        const userRole = req.user.role;
         const apartmentComplexName = req.user.apartmentComplexName;
 
         const db = await connectDB(apartmentComplexName);
         const Resource = db.model('Resource',ResourceSchema);
-        
+
 
         const request = await Resource.findById(id);
+
+        if (request.resident.toString() !== userId && userRole !== 'Manager') {
+            return res.status(403).json({ message: 'You are not authorized to delete this resource request' });
+        }
 
         request.status = 'Deleted';
         await request.save();
