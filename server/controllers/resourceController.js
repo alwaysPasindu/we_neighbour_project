@@ -1,12 +1,18 @@
-const Resource = require('../models/Resource');
-
-const Resident = require('../models/Resident');
+const ResourceSchema = require('../models/Resource');
+const ResidentSchema = require('../models/Resident');
+const {connectDB} = require('../config/database');
 
 //create resource request
 exports.createResourceRequest = async(req,res) => {
     try{
-        const{resourceName, description, quantity} = req.body;
+        
+        const {resourceName, description, quantity} = req.body;
         const residentId = req.user.id;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const Resource = db.model('Resource', ResourceSchema);
+        const Resident = db.model('Resident', ResidentSchema);
 
         const resident = await Resident.findById(residentId);
 
@@ -31,6 +37,11 @@ exports.createResourceRequest = async(req,res) => {
 //get resource request
 exports.getResourceRequest = async(req,res) =>{
     try{
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const Resource = db.model('Resource', ResourceSchema);
+
         const request = await Resource.find({status:'Active'})
         .sort({createdAt: -1})
         .populate('resident','name apartmentCode');
@@ -47,6 +58,11 @@ exports.deleteResourceRequest = async(req,res) =>{
     try{
         const {id} = req.params;
         const userId = req.user.id;
+        const apartmentComplexName = req.user.apartmentComplexName;
+
+        const db = await connectDB(apartmentComplexName);
+        const Resource = db.model('Resource',ResourceSchema);
+        
 
         const request = await Resource.findById(id);
 
