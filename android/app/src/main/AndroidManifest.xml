@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="we_neighbour_project"
+        android:label="myapp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -30,11 +30,6 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-
-        <meta-data
-        android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyB_tCxsdQsliAIn1yu5uy8t0A__rkSaYuU"/>
-        
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
