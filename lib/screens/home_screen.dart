@@ -7,15 +7,15 @@ class HomeScreen extends StatelessWidget {
 
   // Mock user list (replace with data from your friend's MongoDB backend)
   final List<AppUser> users = const [
-    AppUser(id: 'user1', email: 'user1@example.com'),
-    AppUser(id: 'user2', email: 'user2@example.com'),
-    AppUser(id: 'user3', email: 'user3@example.com'),
+    AppUser(id: '67be1e8c5b07e787351b78e7', email: 'pasindu2002@gmail.com'),
+    AppUser(id: '67c2f203312ebbd0051043d0', email: 'chamu@gmail.com'),
+    AppUser(id: '67c788ed1d5c2bb7db76d908', email: 'weneighbourresident@gmail.com'),
   ];
 
   @override
   Widget build(BuildContext context) {
     // Mock current user (replace with authenticated user ID from MongoDB)
-    const currentUser = AppUser(id: 'user1', email: 'user1@example.com');
+    const currentUser = AppUser(id: '67be1e8c5b07e787351b78e7', email: 'pasindu2002@gmail.com');
 
     return Scaffold(
       appBar: AppBar(
