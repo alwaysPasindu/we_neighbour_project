@@ -59,6 +59,7 @@ exports.login = async (req, res) => {
           id: user._id,
           role: user.role,
           apartmentComplexName: user.apartmentComplexName || null, // Include apartment name if applicable
+          status:user.status,
       };
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
@@ -71,6 +72,7 @@ exports.login = async (req, res) => {
               email: user.email,
               apartmentComplexName: user.apartmentComplexName || null,
               role: user.role,
+              status:user.status,
           },
       });
   } catch (error) {

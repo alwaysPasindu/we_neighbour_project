@@ -65,4 +65,7 @@ app.use('/api/service',serviceRoutes);
 const resourceRoutes = require('./routes/resourceRoutes');
 app.use('/api/resource',resourceRoutes);
 
+const apartmentRoutes = require('./routes/apartmentsRoutes');
+app.use('/api/apartments', apartmentRoutes);
+
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
