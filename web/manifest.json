@@ -1,6 +1,6 @@
 {
-    "name": "event_calender_new",
-    "short_name": "event_calender_new",
+    "name": "newapp",
+    "short_name": "newapp",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -1,70 +1,121 @@
-// import 'package:flutter/material.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import '../services/chat_service.dart';
-// import '../components/chat_bubble.dart';
-// import '../components/chat_input.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-// class ChatScreen extends StatelessWidget {
-//   final String receiverId;
-//   final String receiverEmail;
+class ChatScreen extends StatefulWidget {
+  final String chatId;
+  final String userName;
+  final String userId;
 
-//   ChatScreen({Key? key, required this.receiverId, required this.receiverEmail})
-//       : super(key: key);
+  ChatScreen({required this.chatId, required this.userName, required this.userId});
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text(receiverEmail),
-//       ),
-//       body: Column(
-//         children: [
-//           // Message List
-//           Expanded(
-//             child: _buildMessageList(),
-//           ),
+  @override
+  _ChatScreenState createState() => _ChatScreenState();
+}
 
-//           // User Input
-//           ChatInput(receiverId: receiverId),
-//           const SizedBox(height: 10)
-//         ],
-//       ),
-//     );
-//   }
+class _ChatScreenState extends State<ChatScreen> {
+  final _database = FirebaseDatabase.instance.ref();
+  final _controller = TextEditingController();
 
-//   // Build Message List
-//   Widget _buildMessageList() {
-//     return StreamBuilder<QuerySnapshot>(
-//       stream: ChatService().getMessages(
-//           FirebaseAuth.instance.currentUser!.uid, receiverId),
-//       builder: (context, snapshot) {
-//         if (snapshot.hasError) {
-//           return Text('Something went wrong: ${snapshot.error}');
-//         }
+  void _sendMessage() {
+    if (_controller.text.isNotEmpty) {
+      _database
+          .child('chats')
+          .child(widget.chatId)
+          .child('messages')
+          .push()
+          .set({
+        'sender_id': widget.userId,
+        'text': _controller.text,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      });
+      _controller.clear();
+    }
+  }
 
-//         if (snapshot.connectionState == ConnectionState.waiting) {
-//           return const Text('Loading...');
-//         }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.userName),
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: StreamBuilder(
+              stream: _database
+                  .child('chats')
+                  .child(widget.chatId)
+                  .child('messages')
+                  .onValue,
+              builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+                if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
+                  return Center(child: Text("No messages yet"));
+                }
+                final messages = Map<String, dynamic>.from(
+                    snapshot.data!.snapshot.value as Map);
+                final messageList = messages.entries.toList()
+                  ..sort((a, b) =>
+                      (b.value['timestamp']).compareTo(a.value['timestamp']));
+                return ListView.builder(
+                  reverse: true,
+                  itemCount: messageList.length,
+                  itemBuilder: (context, index) {
+                    final message = messageList[index].value;
+                    bool isMe = message['sender_id'] == widget.userId;
+                    return Align(
+                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isMe ? Colors.blueAccent : Colors.grey[300],
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Text(
+                          message['text'],
+                          style: TextStyle(
+                              color: isMe ? Colors.white : Colors.black),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      hintText: "Type a message...",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.send),
+                  onPressed: _sendMessage,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-//         return ListView(
-//           children: snapshot.data!.docs
-//               .map((document) => _buildMessageItem(document))
-//               .toList(),
-//         );
-//       },
-//     );
-//   }
-
-//   // Build Message Item
-//   Widget _buildMessageItem(DocumentSnapshot document) {
-//     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-//     bool isSentByCurrentUser = data['senderId'] == FirebaseAuth.instance.currentUser!.uid;
-
-//     return MessageBubble(
-//       message: data['message'],
-//       isSentByCurrentUser: isSentByCurrentUser,
-//       timestamp: (data['timestamp'] as Timestamp),
-//     );
-//   }
-// }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
