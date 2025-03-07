@@ -1,14 +1,9 @@
-// import 'package:flutter/material.dart';
-// import '../models/user.dart';
-// import 'chat_screen.dart';
-
 import 'package:flutter/material.dart';
-import 'package:we_neighbour_project/models/app_user.dart'; // Adjust import path
+import 'package:we_neighbour_project/models/app_user.dart'; // Corrected import
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  // List of users with const constructor
   static const List<AppUser> users = [
     AppUser(id: '67be1e8c5b07e787351b78e7', email: 'pasindu2002@gmail.com'),
     AppUser(id: '67c2f203312ebbd0051043d0', email: 'chamu@gmail.com'),

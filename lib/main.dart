@@ -13,7 +13,6 @@ void main() async {
     print('Firebase initialized successfully');
   } catch (e) {
     print('Error initializing Firebase: $e');
-    // Fallback to a basic app if Firebase fails
   }
 
   runApp(const MyApp());
