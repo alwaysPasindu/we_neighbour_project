@@ -41,20 +41,27 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
+        // Create user account with Firebase Auth
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+        
+        // No Firestore storage, just navigate to pending approval
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Signup successful! Please log in.')),
-          );
-          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+          // Navigate to pending approval page
+          Navigator.pushReplacementNamed(context, '/pending-approval');
         }
       } on FirebaseAuthException catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Signup failed: ${e.message}')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('An error occurred: $e')),
           );
         }
       } finally {

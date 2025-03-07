@@ -6,6 +6,7 @@ import 'screens/account_type_page.dart';
 import 'screens/resident_signup_page.dart';
 import 'screens/manager_signup_page.dart';
 import 'screens/service_provider_signup_page.dart';
+import 'screens/pending_approval_page.dart'; // Import the new page
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,13 +34,14 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         scaffoldBackgroundColor: Colors.white,
       ),
-      initialRoute: '/',
+      initialRoute: '/pending-approval',
       routes: {
         '/': (context) => const LoginPage(),
         '/account-type': (context) => const AccountTypePage(),
         '/resident-signup': (context) => const ResidentSignUpPage(),
         '/manager-signup': (context) => const ManagerSignUpPage(),
         '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
+        // '/pending-approval': (context) => const PendingApprovalPage(), 
       },
       debugShowCheckedModeBanner: false,
     );
