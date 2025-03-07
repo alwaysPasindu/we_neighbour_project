@@ -1,0 +1,60 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.we_neighbour_project.app-mergeDebugResources-28:/values-bs/values-bs.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\a5c87585e40b047312fb9799f0dda496\\transformed\\browser-1.8.0\\res\\values-bs\\values-bs.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,159,259,373",
+                        "endColumns": "103,99,113,99",
+                        "endOffsets": "154,254,368,468"
+                    },
+                    "to": {
+                        "startLines": "10,11,12,13",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "921,1025,1125,1239",
+                        "endColumns": "103,99,113,99",
+                        "endOffsets": "1020,1120,1234,1334"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\4fa87d67bf951ff0e7123ae2353d5e05\\transformed\\jetified-play-services-basement-18.3.0\\res\\values-bs\\values.xml",
+                    "from": {
+                        "startLines": "4",
+                        "startColumns": "0",
+                        "startOffsets": "195",
+                        "endColumns": "136",
+                        "endOffsets": "331"
+                    },
+                    "to": {
+                        "startLines": "9",
+                        "startColumns": "4",
+                        "startOffsets": "780",
+                        "endColumns": "140",
+                        "endOffsets": "916"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\69b6fac3bde875f8857d8278f17ddd7b\\transformed\\core-1.13.1\\res\\values-bs\\values-bs.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,153,255,353,457,561,663,780",
+                        "endColumns": "97,101,97,103,103,101,116,100",
+                        "endOffsets": "148,250,348,452,556,658,775,876"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,14",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,153,255,353,457,561,663,1339",
+                        "endColumns": "97,101,97,103,103,101,116,100",
+                        "endOffsets": "148,250,348,452,556,658,775,1435"
+                    }
+                }
+            ]
+        }
+    ]
+}

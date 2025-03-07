@@ -1,0 +1,60 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.we_neighbour_project.app-mergeDebugResources-28:/values-cs/values-cs.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\a5c87585e40b047312fb9799f0dda496\\transformed\\browser-1.8.0\\res\\values-cs\\values-cs.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,157,260,374",
+                        "endColumns": "101,102,113,100",
+                        "endOffsets": "152,255,369,470"
+                    },
+                    "to": {
+                        "startLines": "10,11,12,13",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "929,1031,1134,1248",
+                        "endColumns": "101,102,113,100",
+                        "endOffsets": "1026,1129,1243,1344"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\4fa87d67bf951ff0e7123ae2353d5e05\\transformed\\jetified-play-services-basement-18.3.0\\res\\values-cs\\values.xml",
+                    "from": {
+                        "startLines": "4",
+                        "startColumns": "0",
+                        "startOffsets": "195",
+                        "endColumns": "138",
+                        "endOffsets": "333"
+                    },
+                    "to": {
+                        "startLines": "9",
+                        "startColumns": "4",
+                        "startOffsets": "786",
+                        "endColumns": "142",
+                        "endOffsets": "924"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\69b6fac3bde875f8857d8278f17ddd7b\\transformed\\core-1.13.1\\res\\values-cs\\values-cs.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,153,255,356,455,560,667,786",
+                        "endColumns": "97,101,100,98,104,106,118,100",
+                        "endOffsets": "148,250,351,450,555,662,781,882"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,14",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,153,255,356,455,560,667,1349",
+                        "endColumns": "97,101,100,98,104,106,118,100",
+                        "endOffsets": "148,250,351,450,555,662,781,1445"
+                    }
+                }
+            ]
+        }
+    ]
+}

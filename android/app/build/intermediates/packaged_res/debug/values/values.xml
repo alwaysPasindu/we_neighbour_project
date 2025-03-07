@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">24541811517-bvglnf8q0ur6lvu9pedue91cevcro8b1.apps.googleusercontent.com</string>
+    <string name="firebase_database_url" translatable="false">https://weneighbour-c2e23-default-rtdb.firebaseio.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">24541811517</string>
+    <string name="google_api_key" translatable="false">AIzaSyCaOLb9uF8TAzAlPk2S5mP8-5rHNoB1bJ8</string>
+    <string name="google_app_id" translatable="false">1:24541811517:android:42d9bb6356dcd0731eeb54</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCaOLb9uF8TAzAlPk2S5mP8-5rHNoB1bJ8</string>
+    <string name="google_storage_bucket" translatable="false">weneighbour-c2e23.firebasestorage.app</string>
+    <string name="project_id" translatable="false">weneighbour-c2e23</string>
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>

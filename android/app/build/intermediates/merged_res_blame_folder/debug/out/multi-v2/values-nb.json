@@ -1,0 +1,60 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.we_neighbour_project.app-mergeDebugResources-28:/values-nb/values-nb.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\69b6fac3bde875f8857d8278f17ddd7b\\transformed\\core-1.13.1\\res\\values-nb\\values-nb.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,149,251,348,447,555,661,781",
+                        "endColumns": "93,101,96,98,107,105,119,100",
+                        "endOffsets": "144,246,343,442,550,656,776,877"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,14",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,149,251,348,447,555,661,1331",
+                        "endColumns": "93,101,96,98,107,105,119,100",
+                        "endOffsets": "144,246,343,442,550,656,776,1427"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\4fa87d67bf951ff0e7123ae2353d5e05\\transformed\\jetified-play-services-basement-18.3.0\\res\\values-nb\\values.xml",
+                    "from": {
+                        "startLines": "4",
+                        "startColumns": "0",
+                        "startOffsets": "195",
+                        "endColumns": "125",
+                        "endOffsets": "320"
+                    },
+                    "to": {
+                        "startLines": "9",
+                        "startColumns": "4",
+                        "startOffsets": "781",
+                        "endColumns": "129",
+                        "endOffsets": "906"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\a5c87585e40b047312fb9799f0dda496\\transformed\\browser-1.8.0\\res\\values-nb\\values-nb.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,165,266,378",
+                        "endColumns": "109,100,111,96",
+                        "endOffsets": "160,261,373,470"
+                    },
+                    "to": {
+                        "startLines": "10,11,12,13",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "911,1021,1122,1234",
+                        "endColumns": "109,100,111,96",
+                        "endOffsets": "1016,1117,1229,1326"
+                    }
+                }
+            ]
+        }
+    ]
+}

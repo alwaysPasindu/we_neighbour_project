@@ -1,0 +1,60 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.we_neighbour_project.app-mergeDebugResources-28:/values-or/values-or.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\69b6fac3bde875f8857d8278f17ddd7b\\transformed\\core-1.13.1\\res\\values-or\\values-or.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,158,260,363,468,569,671,790",
+                        "endColumns": "102,101,102,104,100,101,118,100",
+                        "endOffsets": "153,255,358,463,564,666,785,886"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,14",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,158,260,363,468,569,671,1367",
+                        "endColumns": "102,101,102,104,100,101,118,100",
+                        "endOffsets": "153,255,358,463,564,666,785,1463"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\a5c87585e40b047312fb9799f0dda496\\transformed\\browser-1.8.0\\res\\values-or\\values-or.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,165,270,383",
+                        "endColumns": "109,104,112,108",
+                        "endOffsets": "160,265,378,487"
+                    },
+                    "to": {
+                        "startLines": "10,11,12,13",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "930,1040,1145,1258",
+                        "endColumns": "109,104,112,108",
+                        "endOffsets": "1035,1140,1253,1362"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\always.pasindu\\.gradle\\caches\\transforms-3\\4fa87d67bf951ff0e7123ae2353d5e05\\transformed\\jetified-play-services-basement-18.3.0\\res\\values-or\\values.xml",
+                    "from": {
+                        "startLines": "4",
+                        "startColumns": "0",
+                        "startOffsets": "195",
+                        "endColumns": "135",
+                        "endOffsets": "330"
+                    },
+                    "to": {
+                        "startLines": "9",
+                        "startColumns": "4",
+                        "startOffsets": "790",
+                        "endColumns": "139",
+                        "endOffsets": "925"
+                    }
+                }
+            ]
+        }
+    ]
+}
