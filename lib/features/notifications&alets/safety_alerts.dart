@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:we_neighbour/components/app_bar.dart';
 import 'package:we_neighbour/main.dart';
-import 'package:we_neighbour/constants/text_styles.dart';
+import '../../constants/colors.dart';
+import '../../constants/text_styles.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,7 +26,7 @@ class SafetyAlert {
     return SafetyAlert(
       id: json['_id'],
       title: json['title'],
-      description: json['description'],
+      description: json['description'] ?? json['message'], // Fallback to 'message' if 'description' not used
       createdByName: json['createdBy']['name'] ?? 'Unknown',
       createdAt: DateTime.parse(json['createdAt']),
     );
@@ -36,105 +37,123 @@ class SafetyAlertsScreen extends StatefulWidget {
   const SafetyAlertsScreen({super.key});
 
   @override
-  State<SafetyAlertsScreen> createState() => _SafetyAlertsScreenState();
+  _SafetyAlertsScreenState createState() => _SafetyAlertsScreenState();
 }
 
 class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
   List<SafetyAlert> alerts = [];
   bool _isLoading = true;
   String? userRole;
-  String? authToken;
-  String? currentUserId; // To check if the user is the creator
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadUserRole();
     _fetchAlerts();
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> _loadUserRole() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userRole = prefs.getString('userRole')?.toLowerCase();
-      authToken = prefs.getString('token');
-      currentUserId = prefs.getString('userId'); // Load current user's ID
+      print('Loaded User Role: $userRole');
     });
   }
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    final token = prefs.getString('token');
+    print('Retrieved token: $token');
+    return token;
   }
 
   Future<void> _fetchAlerts() async {
     final token = await _getToken();
     if (token == null) {
       setState(() => _isLoading = false);
+      print('No token available');
       return;
     }
 
+    setState(() => _isLoading = true);
     try {
-      final headers = {'Authorization': 'Bearer $token'};
-      print('Fetching safety alerts with headers: $headers');
-      final response = await http
-          .get(
-            Uri.parse('$baseUrl/api/safety-alerts/get-alerts'),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 15));
+      print('Fetching alerts from: $baseUrl/api/safety-alerts/get-alerts');
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/safety-alerts/get-alerts'),
+        headers: {'x-auth-token': token},
+      ).timeout(const Duration(seconds: 15));
 
-      print('Fetch safety alerts response: ${response.statusCode} - ${response.body}');
+      print('Fetch response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
-          alerts = data.map((alert) => SafetyAlert.fromJson(alert)).toList();
+          alerts = data.map((json) => SafetyAlert.fromJson(json)).toList();
           _isLoading = false;
         });
       } else {
-        throw Exception('Failed to load safety alerts: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to fetch alerts: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
+      print('Fetch error: $e');
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching safety alerts: $e')),
-      );
+      if (mounted) {
+        String errorMessage = 'Failed to load alerts: $e';
+        if (e.toString().contains('Connection refused')) {
+          errorMessage = 'Cannot reach server. Check your network or server status.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
     }
   }
 
   Future<void> _createAlert(String title, String description) async {
     final token = await _getToken();
-    if (token == null) return;
+    if (token == null) {
+      print('No token available for create');
+      return;
+    }
 
     try {
-      final headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      };
-      final body = jsonEncode({'title': title, 'description': description});
-      print('Creating safety alert with headers: $headers');
-      print('Request body: $body');
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/api/safety-alerts/create-alerts'),
-            headers: headers,
-            body: body,
-          )
-          .timeout(const Duration(seconds: 15));
+      final requestBody = jsonEncode({'title': title, 'description': description});
+      print('Create request: $baseUrl/api/safety-alerts/create-alerts');
+      print('Create request body: $requestBody');
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/safety-alerts/create-alerts'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: requestBody,
+      ).timeout(const Duration(seconds: 15));
 
-      print('Create safety alert response: ${response.statusCode} - ${response.body}');
+      print('Create response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 201) {
-        _fetchAlerts(); // Refresh the list
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Safety alert created successfully')),
-        );
+        _fetchAlerts();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Alert created successfully')),
+          );
+        }
+      } else if (response.statusCode == 403) {
+        throw Exception('Unauthorized: You may not have permission to create alerts');
+      } else if (response.statusCode == 500) {
+        throw Exception('Server error: Failed to create alert');
       } else {
-        throw Exception('Failed to create safety alert: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to create: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error creating safety alert: $e')),
-      );
+      print('Create error: $e');
+      if (mounted) {
+        String errorMessage = 'Error creating alert: $e';
+        if (e.toString().contains('Connection refused')) {
+          errorMessage = 'Cannot reach server. Check your network or server status.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
     }
   }
 
@@ -143,28 +162,30 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
     if (token == null) return;
 
     try {
-      final headers = {'Authorization': 'Bearer $token'};
-      print('Deleting safety alert with ID: $id, headers: $headers');
-      final response = await http
-          .delete(
-            Uri.parse('$baseUrl/api/safety-alerts/delete-alerts/$id'),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 15));
+      print('Delete request: $baseUrl/api/safety-alerts/delete-alerts/$id');
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/safety-alerts/delete-alerts/$id'),
+        headers: {'x-auth-token': token},
+      ).timeout(const Duration(seconds: 15));
 
-      print('Delete safety alert response: ${response.statusCode} - ${response.body}');
+      print('Delete response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
-        _fetchAlerts(); // Refresh the list
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Safety alert deleted successfully')),
-        );
+        _fetchAlerts();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Alert deleted')),
+          );
+        }
       } else {
-        throw Exception('Failed to delete safety alert: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to delete: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting safety alert: $e')),
-      );
+      print('Delete error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting alert: $e')),
+        );
+      }
     }
   }
 
@@ -176,12 +197,9 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: isDarkMode ? const Color.fromARGB(255, 146, 4, 4) : const Color.fromARGB(255, 146, 4, 4),
+        backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text(
-          'New Safety Alert',
-          style: AppTextStyles.getGreetingStyle(isDarkMode),
-        ),
+        title: Text('New Safety Alert', style: AppTextStyles.getGreetingStyle(isDarkMode)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -191,7 +209,6 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
               style: AppTextStyles.getBodyTextStyle(isDarkMode),
               autocorrect: false,
               enableSuggestions: false,
-              textCapitalization: TextCapitalization.none,
             ),
             TextField(
               controller: descriptionController,
@@ -199,7 +216,6 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
               style: AppTextStyles.getBodyTextStyle(isDarkMode),
               autocorrect: false,
               enableSuggestions: false,
-              textCapitalization: TextCapitalization.none,
             ),
           ],
         ),
@@ -212,7 +228,7 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
             onPressed: () {
               if (titleController.text.isEmpty || descriptionController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please fill in both title and description')),
+                  const SnackBar(content: Text('Please fill in both fields')),
                 );
                 return;
               }
@@ -220,7 +236,7 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: isDarkMode ? Colors.white : Colors.black,
+              backgroundColor: isDarkMode ? AppColors.primary : const Color.fromARGB(255, 0, 18, 255),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: Text('Create', style: AppTextStyles.getButtonTextStyle(isDarkMode)),
@@ -235,7 +251,7 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDarkMode ? const Color.fromARGB(255, 146, 4, 4) : const Color.fromARGB(255, 146, 4, 4),
+      backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -243,28 +259,23 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
               onBackPressed: () => Navigator.pop(context),
               isDarkMode: isDarkMode,
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Text(
-                'SAFETY ALERTS',
-                style: AppTextStyles.getGreetingStyle(isDarkMode).copyWith(
-                  color: Colors.white, // White text for red background contrast
-                ),
-              ),
+            Text(
+              'Safety\nAlerts',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.getGreetingStyle(isDarkMode),
             ),
-            const SizedBox(height: 20),
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                  ? const Center(child: CircularProgressIndicator())
                   : alerts.isEmpty
-                      ? const Center(child: Text('No safety alerts available', style: TextStyle(color: Colors.white)))
+                      ? const Center(child: Text('No alerts available'))
                       : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.all(16.0),
                           itemCount: alerts.length,
                           itemBuilder: (context, index) {
                             final alert = alerts[index];
                             return SafetyAlertCard(
-                              icon: "⚠️", // Warning icon for safety alerts
+                              icon: "⚠️",
                               title: alert.title,
                               preview: alert.description.length > 50
                                   ? '${alert.description.substring(0, 50)}...'
@@ -273,24 +284,21 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
                               createdByName: alert.createdByName,
                               createdAt: alert.createdAt,
                               isDarkMode: isDarkMode,
-                              onDelete: (userRole == 'manager' || currentUserId == alert.id.split('_')[0])
-                                  ? () => _deleteAlert(alert.id)
-                                  : null, // Managers can delete any, residents can delete their own
+                              onDelete: userRole == 'manager' ? () => _deleteAlert(alert.id) : null,
                             );
                           },
                         ),
             ),
-            if (userRole == 'manager') // Only managers can create
+            if (userRole == 'manager')
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Align(
                   alignment: Alignment.bottomRight,
                   child: FloatingActionButton(
                     onPressed: _showCreateDialog,
-                    backgroundColor: Colors.white,
-                    elevation: isDarkMode ? 2 : 0,
+                    backgroundColor: isDarkMode ? AppColors.primary : const Color.fromARGB(255, 0, 18, 255),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.add, color: Colors.red),
+                    child: const Icon(Icons.add, color: Colors.white),
                   ),
                 ),
               ),
@@ -309,7 +317,7 @@ class SafetyAlertCard extends StatefulWidget {
   final String createdByName;
   final DateTime createdAt;
   final bool isDarkMode;
-  final VoidCallback? onDelete; // Optional delete callback for managers or creators
+  final VoidCallback? onDelete;
 
   const SafetyAlertCard({
     super.key,
@@ -333,20 +341,16 @@ class _SafetyAlertCardState extends State<SafetyAlertCard> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _showFullDescription = !_showFullDescription;
-        });
-      },
+      onTap: () => setState(() => _showFullDescription = !_showFullDescription),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16.0),
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: widget.isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: widget.isDarkMode ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -358,10 +362,7 @@ class _SafetyAlertCardState extends State<SafetyAlertCard> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.icon,
-                  style: const TextStyle(fontSize: 24),
-                ),
+                Text(widget.icon, style: const TextStyle(fontSize: 24)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -369,18 +370,12 @@ class _SafetyAlertCardState extends State<SafetyAlertCard> {
                     children: [
                       Text(
                         widget.title,
-                        style: AppTextStyles.getSubtitleStyle.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16, // Slightly larger for emphasis
-                          color: Colors.black87,
-                        ),
+                        style: AppTextStyles.getSubtitleStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _showFullDescription ? widget.fullDescription : widget.preview,
-                        style: AppTextStyles.getBodyTextStyle(widget.isDarkMode).copyWith(
-                          color: Colors.black54,
-                        ),
+                        style: AppTextStyles.getBodyTextStyle(widget.isDarkMode),
                         maxLines: _showFullDescription ? null : 2,
                         overflow: _showFullDescription ? TextOverflow.visible : TextOverflow.ellipsis,
                       ),
@@ -391,7 +386,7 @@ class _SafetyAlertCardState extends State<SafetyAlertCard> {
                   IconButton(
                     icon: Icon(
                       Icons.delete,
-                      color: Colors.red,
+                      color: widget.isDarkMode ? Colors.redAccent : Colors.red,
                       size: 20,
                     ),
                     onPressed: widget.onDelete,
@@ -403,7 +398,7 @@ class _SafetyAlertCardState extends State<SafetyAlertCard> {
               'By: ${widget.createdByName} • ${widget.createdAt.toLocal().toString().split('.')[0]}',
               style: AppTextStyles.getBodyTextStyle(widget.isDarkMode).copyWith(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: widget.isDarkMode ? Colors.grey[300] : Colors.grey[600],
               ),
             ),
           ],
