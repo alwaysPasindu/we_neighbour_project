@@ -13,6 +13,7 @@ class CommunityNotification {
   final String message;
   final String createdByName;
   final DateTime createdAt;
+  final String createdById;
 
   CommunityNotification({
     required this.id,
@@ -20,6 +21,7 @@ class CommunityNotification {
     required this.message,
     required this.createdByName,
     required this.createdAt,
+    required this.createdById,
   });
 
   factory CommunityNotification.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class CommunityNotification {
       message: json['message'],
       createdByName: json['createdBy']['name'] ?? 'Unknown',
       createdAt: DateTime.parse(json['createdAt']),
+      createdById: json['createdBy']['_id'] ?? json['createdBy'],
     );
   }
 }
@@ -43,7 +46,7 @@ class CommunityNotificationsScreen extends StatefulWidget {
 class _CommunityNotificationsScreenState extends State<CommunityNotificationsScreen> {
   List<CommunityNotification> notifications = [];
   String? userRole;
-  String? currentUserId; // To check if the user is the creator
+  String? currentUserId;
 
   @override
   void initState() {
@@ -56,89 +59,101 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userRole = prefs.getString('userRole')?.toLowerCase();
-      currentUserId = prefs.getString('userId'); // Load current user's ID
-      print('Loaded User Role: $userRole');
+      currentUserId = prefs.getString('userId');
+      print('Loaded User Role: $userRole, User ID: $currentUserId');
     });
   }
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    print('Retrieved Token: $token');
+    print('Retrieved token: $token');
     return token;
   }
 
   Future<void> _fetchNotifications() async {
     final token = await _getToken();
     if (token == null) {
-      print('No token available for fetching community notifications');
+      print('No token available');
       return;
     }
 
     try {
-      final headers = {'Authorization': 'Bearer $token'};
-      print('Fetching with headers: $headers');
-      final response = await http
-          .get(
-            Uri.parse('$baseUrl/api/notifications/community'),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 15));
+      print('Fetching notifications from: $baseUrl/api/notifications/community');
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/notifications/community'),
+        headers: {'x-auth-token': token},
+      ).timeout(const Duration(seconds: 15));
 
       print('Fetch response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
-          notifications = data.map((notification) => CommunityNotification.fromJson(notification)).toList();
+          notifications = data.map((json) => CommunityNotification.fromJson(json)).toList();
         });
       } else {
-        print('Failed to fetch community notifications: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to fetch notifications: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error fetching community notifications: $e');
+      print('Fetch error: $e');
+      if (mounted) {
+        String errorMessage = 'Failed to load notifications: $e';
+        if (e.toString().contains('Connection refused')) {
+          errorMessage = 'Cannot reach server. Check your network or server status.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
     }
   }
 
   Future<void> _createNotification(String title, String message) async {
     final token = await _getToken();
     if (token == null) {
-      print('No token available for creating community notification');
+      print('No token available for create');
       return;
     }
 
     try {
-      final headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      };
-      final body = jsonEncode({'title': title, 'message': message});
-      print('Creating with headers: $headers');
-      print('Request body: $body');
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/api/notifications/community'),
-            headers: headers,
-            body: body,
-          )
-          .timeout(const Duration(seconds: 15));
+      final requestBody = jsonEncode({'title': title, 'message': message});
+      print('Create request: $baseUrl/api/notifications/community');
+      print('Create request body: $requestBody');
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/notifications/community'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: requestBody,
+      ).timeout(const Duration(seconds: 15));
 
       print('Create response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Notification created successfully')),
-        );
         _fetchNotifications();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notification created successfully')),
+          );
+        }
+      } else if (response.statusCode == 403) {
+        throw Exception('Unauthorized: You may not have permission to create notifications');
+      } else if (response.statusCode == 500) {
+        throw Exception('Server error: Failed to create notification');
       } else {
-        print('Failed to create community notification: ${response.statusCode} - ${response.body}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create notification: ${response.statusCode}')),
-        );
+        throw Exception('Failed to create: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error creating community notification: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      print('Create error: $e');
+      if (mounted) {
+        String errorMessage = 'Error creating notification: $e';
+        if (e.toString().contains('Connection refused')) {
+          errorMessage = 'Cannot reach server. Check your network or server status.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
     }
   }
 
@@ -147,28 +162,33 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
     if (token == null) return;
 
     try {
-      final headers = {'Authorization': 'Bearer $token'};
-      print('Deleting community notification with ID: $id, headers: $headers');
-      final response = await http
-          .delete(
-            Uri.parse('$baseUrl/api/notifications/community/$id'),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 15));
+      final url = userRole == 'manager'
+          ? '$baseUrl/api/notifications/community/remove-by-manager/$id'
+          : '$baseUrl/api/notifications/community/$id';
+      print('Delete request: $url');
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: {'x-auth-token': token},
+      ).timeout(const Duration(seconds: 15));
 
-      print('Delete notification response: ${response.statusCode} - ${response.body}');
+      print('Delete response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
-        _fetchNotifications(); // Refresh the list
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Notification deleted successfully')),
-        );
+        _fetchNotifications();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notification deleted')),
+          );
+        }
       } else {
-        throw Exception('Failed to delete notification: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to delete: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting notification: $e')),
-      );
+      print('Delete error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting notification: $e')),
+        );
+      }
     }
   }
 
@@ -177,28 +197,68 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
     if (token == null) return;
 
     try {
-      final headers = {'Authorization': 'Bearer $token'};
-      print('Removing community notification for user with ID: $id, headers: $headers');
-      final response = await http
-          .delete(
-            Uri.parse('$baseUrl/api/notifications/community/$id/remove-for-user'),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 15));
+      print('Remove request: $baseUrl/api/notifications/community/$id/remove-for-user');
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/notifications/community/$id/remove-for-user'),
+        headers: {'x-auth-token': token},
+      ).timeout(const Duration(seconds: 15));
 
-      print('Remove for user response: ${response.statusCode} - ${response.body}');
+      print('Remove response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
-        _fetchNotifications(); // Refresh the list
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Notification removed for you')),
-        );
+        _fetchNotifications();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notification removed for you')),
+          );
+        }
       } else {
-        throw Exception('Failed to remove notification for user: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to remove: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error removing notification: $e')),
-      );
+      print('Remove error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error removing notification: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _editNotification(String id, String title, String message) async {
+    final token = await _getToken();
+    if (token == null) return;
+
+    try {
+      final requestBody = jsonEncode({'title': title, 'message': message});
+      print('Edit request: $baseUrl/api/notifications/community/$id');
+      print('Edit request body: $requestBody');
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/notifications/community/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: requestBody,
+      ).timeout(const Duration(seconds: 15));
+
+      print('Edit response: ${response.statusCode} - ${response.body}');
+      if (response.statusCode == 200) {
+        _fetchNotifications();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notification updated')),
+          );
+        }
+      } else {
+        throw Exception('Failed to edit: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Edit error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error editing notification: $e')),
+        );
+      }
     }
   }
 
@@ -212,10 +272,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
       builder: (context) => AlertDialog(
         backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text(
-          'New Community Notification',
-          style: AppTextStyles.getGreetingStyle(isDarkMode),
-        ),
+        title: Text('New Community Notification', style: AppTextStyles.getGreetingStyle(isDarkMode)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -225,7 +282,6 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
               style: AppTextStyles.getBodyTextStyle(isDarkMode),
               autocorrect: false,
               enableSuggestions: false,
-              textCapitalization: TextCapitalization.none,
             ),
             TextField(
               controller: messageController,
@@ -233,7 +289,6 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
               style: AppTextStyles.getBodyTextStyle(isDarkMode),
               autocorrect: false,
               enableSuggestions: false,
-              textCapitalization: TextCapitalization.none,
             ),
           ],
         ),
@@ -246,7 +301,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
             onPressed: () {
               if (titleController.text.isEmpty || messageController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please fill in both title and message')),
+                  const SnackBar(content: Text('Please fill in both fields')),
                 );
                 return;
               }
@@ -258,6 +313,63 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: Text('Create', style: AppTextStyles.getButtonTextStyle(isDarkMode)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditDialog(CommunityNotification notification) {
+    final TextEditingController titleController = TextEditingController(text: notification.title);
+    final TextEditingController messageController = TextEditingController(text: notification.message);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Text('Edit Community Notification', style: AppTextStyles.getGreetingStyle(isDarkMode)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Title'),
+              style: AppTextStyles.getBodyTextStyle(isDarkMode),
+              autocorrect: false,
+              enableSuggestions: false,
+            ),
+            TextField(
+              controller: messageController,
+              decoration: const InputDecoration(labelText: 'Message'),
+              style: AppTextStyles.getBodyTextStyle(isDarkMode),
+              autocorrect: false,
+              enableSuggestions: false,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: AppTextStyles.getBodyTextStyle(isDarkMode)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (titleController.text.isEmpty || messageController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please fill in both fields')),
+                );
+                return;
+              }
+              _editNotification(notification.id, titleController.text, messageController.text);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDarkMode ? AppColors.primary : const Color.fromARGB(255, 0, 18, 255),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text('Update', style: AppTextStyles.getButtonTextStyle(isDarkMode)),
           ),
         ],
       ),
@@ -300,17 +412,20 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
                           createdByName: notification.createdByName,
                           createdAt: notification.createdAt,
                           isDarkMode: isDarkMode,
-                          onDelete: userRole == 'manager' || currentUserId == notification.id.split('_')[0]
+                          onDelete: (userRole == 'manager' || notification.createdById == currentUserId)
                               ? () => _deleteNotification(notification.id)
-                              : null, // Managers and creators can delete for all
-                          onRemoveForUser: userRole == 'resident' || userRole == 'manager'
+                              : null,
+                          onRemoveForUser: (userRole == 'resident' || userRole == 'manager')
                               ? () => _removeNotificationForUser(notification.id)
-                              : null, // Residents and managers can remove for themselves
+                              : null,
+                          onEdit: notification.createdById == currentUserId
+                              ? () => _showEditDialog(notification)
+                              : null,
                         );
                       },
                     ),
             ),
-            if (userRole == 'resident' || userRole == 'manager') // Residents and managers can create
+            if (userRole == 'resident')
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Align(
@@ -318,7 +433,6 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
                   child: FloatingActionButton(
                     onPressed: _showCreateDialog,
                     backgroundColor: isDarkMode ? AppColors.primary : const Color.fromARGB(255, 0, 18, 255),
-                    elevation: isDarkMode ? 2 : 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: const Icon(Icons.add, color: Colors.white),
                   ),
@@ -339,8 +453,9 @@ class CommunityNotificationCard extends StatefulWidget {
   final String createdByName;
   final DateTime createdAt;
   final bool isDarkMode;
-  final VoidCallback? onDelete; // Optional delete callback for managers or creators
-  final VoidCallback? onRemoveForUser; // Optional remove for user callback for residents/managers
+  final VoidCallback? onDelete;
+  final VoidCallback? onRemoveForUser;
+  final VoidCallback? onEdit;
 
   const CommunityNotificationCard({
     super.key,
@@ -353,6 +468,7 @@ class CommunityNotificationCard extends StatefulWidget {
     required this.isDarkMode,
     this.onDelete,
     this.onRemoveForUser,
+    this.onEdit,
   });
 
   @override
@@ -365,11 +481,7 @@ class _CommunityNotificationCardState extends State<CommunityNotificationCard> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _showFullMessage = !_showFullMessage;
-        });
-      },
+      onTap: () => setState(() => _showFullMessage = !_showFullMessage),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16.0),
         padding: const EdgeInsets.all(16.0),
@@ -390,10 +502,7 @@ class _CommunityNotificationCardState extends State<CommunityNotificationCard> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.icon,
-                  style: const TextStyle(fontSize: 24),
-                ),
+                Text(widget.icon, style: const TextStyle(fontSize: 24)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -401,10 +510,7 @@ class _CommunityNotificationCardState extends State<CommunityNotificationCard> {
                     children: [
                       Text(
                         widget.title,
-                        style: AppTextStyles.getSubtitleStyle.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16, // Slightly larger for emphasis
-                        ),
+                        style: AppTextStyles.getSubtitleStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -416,15 +522,28 @@ class _CommunityNotificationCardState extends State<CommunityNotificationCard> {
                     ],
                   ),
                 ),
-                if (widget.onDelete != null)
-                  IconButton(
-                    icon: Icon(
-                      Icons.delete,
-                      color: widget.isDarkMode ? Colors.redAccent : Colors.red,
-                      size: 20,
-                    ),
-                    onPressed: widget.onDelete,
-                  ),
+                Row(
+                  children: [
+                    if (widget.onEdit != null)
+                      IconButton(
+                        icon: Icon(
+                          Icons.edit,
+                          color: widget.isDarkMode ? Colors.blueAccent : Colors.blue,
+                          size: 20,
+                        ),
+                        onPressed: widget.onEdit,
+                      ),
+                    if (widget.onDelete != null)
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete,
+                          color: widget.isDarkMode ? Colors.redAccent : Colors.red,
+                          size: 20,
+                        ),
+                        onPressed: widget.onDelete,
+                      ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -443,9 +562,7 @@ class _CommunityNotificationCardState extends State<CommunityNotificationCard> {
                   child: Text(
                     'Remove for Me',
                     style: AppTextStyles.getBodyTextStyle(widget.isDarkMode).copyWith(
-                      color: widget.isDarkMode
-                          ? AppColors.primary
-                          : const Color.fromARGB(255, 0, 18, 255),
+                      color: widget.isDarkMode ? AppColors.primary : const Color.fromARGB(255, 0, 18, 255),
                       fontSize: 12,
                     ),
                   ),
