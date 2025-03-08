@@ -18,6 +18,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
   final _serviceTypeController = TextEditingController();
   final _contactController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false; // Added loading state
 
   @override
   void dispose() {
@@ -39,54 +40,53 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
 
   bool _isStrongPassword(String password) {
     return password.length >= 6 &&
-        password.contains(RegExp(r'[0-9]')) &&
-        password.contains(RegExp(r'[a-zA-Z]'));
+        RegExp(r'[0-9]').hasMatch(password) &&
+        RegExp(r'[a-zA-Z]').hasMatch(password);
   }
 
-  void _handleSignUp() async {
+  Future<void> _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
-      // Gather the data from the controllers
-      final companyName = _companyNameController.text;
-      final email = _emailController.text;
-      final serviceType = _serviceTypeController.text;
-      final phone = _contactController.text;
-      final password = _passwordController.text;
+      setState(() => _isLoading = true); // Show loading indicator
+      final providerData = {
+        'name': _companyNameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'serviceType': _serviceTypeController.text.trim(),
+        'phone': _contactController.text.trim(),
+        'password': _passwordController.text.trim(),
+      };
 
-      // Send a POST request to the backend API
       try {
         final response = await http.post(
-          Uri.parse('$baseUrl/api/service-providers/register'), 
+          Uri.parse('$baseUrl/api/service-providers/register'),
           headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'name': companyName,
-            'email': email,
-            'serviceType': serviceType,
-            'phone': phone, 
-            'password': password,
-          }),
+          body: json.encode(providerData),
         );
 
+        final responseData = json.decode(response.body);
         if (response.statusCode == 201) {
-          // Successfully signed up, handle the success
-          print('Sign-up successful');
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/provider-home',
-            (route) => false,
-          );
-        } else {
-          // Handle error from server
-          print('Failed to sign up: ${response.body}');
+          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Sign-up failed: ${response.body}')),
+            SnackBar(content: Text(responseData['message'] ?? 'Service provider registered successfully!')),
           );
+          // Delay navigation to allow the user to see the success message
+          await Future.delayed(const Duration(seconds: 3));
+          // Navigate to login page and clear the navigation stack
+          if (mounted) {
+            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(responseData['message'] ?? 'Sign-up failed: ${response.body}')),
+          );
+          print('Failed to sign up: ${response.body}');
         }
       } catch (e) {
-        // Handle network errors
-        print('Error: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Network error, please try again')),
+          SnackBar(content: Text('Network error: $e')),
         );
+        print('Network error: $e');
+      } finally {
+        if (mounted) setState(() => _isLoading = false); // Reset loading state
       }
     }
   }
@@ -120,10 +120,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
           hintStyle: TextStyle(color: Colors.grey[600]),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
-          errorStyle: const TextStyle(
-            color: Colors.red,
-            fontSize: 12,
-          ),
+          errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
         ),
         validator: validator,
       ),
@@ -151,146 +148,76 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   const Text(
                     'Service Provider Sign Up',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
                   ),
                   const SizedBox(height: 32),
-
                   _buildTextField(
                     hint: 'Company Name/Your Name',
                     controller: _companyNameController,
                     keyboardType: TextInputType.name,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Company name is required';
-                      }
-                      if (value.length < 2) {
-                        return 'Please enter a valid company name';
-                      }
-                      return null;
-                    },
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Company name is required' : value.length < 2 ? 'Please enter a valid company name' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Email',
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Email is required';
-                      }
-                      if (!_isValidEmail(value)) {
-                        return 'Please enter a valid email address';
-                      }
-                      return null;
-                    },
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Email is required' : !_isValidEmail(value) ? 'Please enter a valid email address' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Service Type',
                     controller: _serviceTypeController,
                     keyboardType: TextInputType.text,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Service type is required';
-                      }
-                      if (value.length < 3) {
-                        return 'Please enter a valid service type';
-                      }
-                      return null;
-                    },
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Service type is required' : value.length < 3 ? 'Please enter a valid service type' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Contact No',
                     controller: _contactController,
                     keyboardType: TextInputType.phone,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Contact number is required';
-                      }
-                      if (!_isValidContact(value)) {
-                        return 'Please enter a valid contact number';
-                      }
-                      return null;
-                    },
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Contact number is required' : !_isValidContact(value) ? 'Please enter a valid contact number' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Password',
                     controller: _passwordController,
                     obscureText: true,
                     keyboardType: TextInputType.visiblePassword,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Password is required';
-                      }
-                      if (!_isStrongPassword(value)) {
-                        return 'Password must be at least 6 characters with a letter and number';
-                      }
-                      return null;
-                    },
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Password is required' : !_isStrongPassword(value) ? 'Password must be at least 6 characters with a letter and number' : null,
                   ),
                   const SizedBox(height: 32),
-
                   ElevatedButton(
-                    onPressed: _handleSignUp,
+                    onPressed: _isLoading ? null : _handleSignUp, // Disable button when loading
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A237E),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white) // Show spinner when loading
+                        : const Text(
+                            'Sign Up',
+                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
                   ),
                   const SizedBox(height: 24),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Already have an account? ',
-                        style: TextStyle(
-                          color: Colors.black87,
-                        ),
-                      ),
+                      const Text('Already have an account? ', style: TextStyle(color: Colors.black87)),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/',
-                          (route) => false,
-                        ),
-                        child: const Text(
-                          'Sign in',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        onTap: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
+                        child: const Text('Sign in', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
