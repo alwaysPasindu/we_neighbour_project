@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-import 'package:we_neighbour/main.dart';
-
+import 'package:we_neighbour/main.dart'; // Assuming baseUrl is defined here
 
 class ManagerSignUpPage extends StatefulWidget {
   const ManagerSignUpPage({super.key});
@@ -22,6 +20,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
   final _addressController = TextEditingController();
   final _apartmentNameController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -35,59 +34,61 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
     super.dispose();
   }
 
-  bool _isValidName(String name) {
-    return RegExp(r'^[a-zA-Z\s]+$').hasMatch(name);
-  }
+  bool _isValidName(String name) => RegExp(r'^[a-zA-Z\s]+$').hasMatch(name);
+  bool _isValidNIC(String nic) => RegExp(r'^\d{9}[Vv]$|^\d{12}$').hasMatch(nic);
+  bool _isValidEmail(String email) => RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  bool _isValidContact(String contact) => RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
+  bool _isStrongPassword(String password) =>
+      password.length >= 6 && RegExp(r'[0-9]').hasMatch(password) && RegExp(r'[a-zA-Z]').hasMatch(password);
 
-  bool _isValidNIC(String nic) {
-    return RegExp(r'^\d{9}[Vv]$|^\d{12}$').hasMatch(nic);
-  }
+  Future<void> _handleSignUp() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      final managerData = {
+        'name': _nameController.text.trim(),
+        'nic': _nicController.text.trim(),
+        'email': _emailController.text.trim(),
+        'phone': _contactController.text.trim(),
+        'address': _addressController.text.trim(),
+        'apartmentName': _apartmentNameController.text.trim(),
+        'password': _passwordController.text.trim(),
+      };
 
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-  }
+      try {
+        final response = await http.post(
+          Uri.parse('$baseUrl/api/managers/register'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(managerData),
+        );
 
-  bool _isValidContact(String contact) {
-    return RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
-  }
-
-    bool _isStrongPassword(String password) {
-  return password.length >= 6 && 
-         password.contains(RegExp(r'[0-9]')) && 
-         password.contains(RegExp(r'[a-zA-Z]'));
-}
-  void _handleSignUp() async {
-  if (_formKey.currentState!.validate()) {
-    // Gather the data from the text controllers
-    final managerData = {
-      'name': _nameController.text,
-      'nic': _nicController.text,
-      'email': _emailController.text,
-      'phone': _contactController.text,
-      'address': _addressController.text,
-      'apartmentName': _apartmentNameController.text,
-      'password': _passwordController.text,
-    };
-
-    // Send the POST request to the backend
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/managers/register'), // Change this URL to backend URL
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(managerData),
-    );
-
-    // Handle the response from the backend
-    if (response.statusCode == 201) {
-      // Successfully signed up
-      Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-    } else {
-      // Show error message
-      print('Failed to sign up. Error: ${response.body}');
+        final responseData = json.decode(response.body);
+        if (response.statusCode == 201) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(responseData['message'] ?? 'Manager registered successfully!')),
+          );
+          // Delay navigation to allow the user to see the success message
+          await Future.delayed(const Duration(seconds: 3));
+          // Navigate to login page and clear the navigation stack
+          if (mounted) {
+            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(responseData['message'] ?? 'Failed to sign up: ${response.body}')),
+          );
+          print('Failed to sign up. Error: ${response.body}');
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Network error: $e')),
+        );
+        print('Network error: $e');
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
-}
 
   Widget _buildTextField({
     required String hint,
@@ -118,10 +119,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
           hintStyle: TextStyle(color: Colors.grey[600]),
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
-          errorStyle: const TextStyle(
-            color: Colors.red,
-            fontSize: 12,
-          ),
+          errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
         ),
         validator: validator,
       ),
@@ -149,181 +147,83 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   const Text(
                     'Manager Sign Up',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
                   ),
                   const SizedBox(height: 10),
-
                   _buildTextField(
                     hint: 'Name',
                     controller: _nameController,
                     keyboardType: TextInputType.name,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Name is required';
-                      }
-                      if (!_isValidName(value)) {
-                        return 'Please enter a valid name (letters only)';
-                      }
-                      return null;
-                    },
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
+                    validator: (value) => value == null || value.isEmpty ? 'Name is required' : !_isValidName(value) ? 'Please enter a valid name (letters only)' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'NIC',
                     controller: _nicController,
                     keyboardType: TextInputType.text,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9Vv]')),
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'NIC is required';
-                      }
-                      if (!_isValidNIC(value)) {
-                        return 'Please enter a valid NIC number';
-                      }
-                      return null;
-                    },
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9Vv]'))],
+                    validator: (value) => value == null || value.isEmpty ? 'NIC is required' : !_isValidNIC(value) ? 'Please enter a valid NIC number' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Email',
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Email is required';
-                      }
-                      if (!_isValidEmail(value)) {
-                        return 'Please enter a valid email address';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.isEmpty ? 'Email is required' : !_isValidEmail(value) ? 'Please enter a valid email address' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Contact No',
                     controller: _contactController,
                     keyboardType: TextInputType.phone,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Contact number is required';
-                      }
-                      if (!_isValidContact(value)) {
-                        return 'Please enter a valid contact number';
-                      }
-                      return null;
-                    },
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    validator: (value) => value == null || value.isEmpty ? 'Contact number is required' : !_isValidContact(value) ? 'Please enter a valid contact number' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Address',
                     controller: _addressController,
                     keyboardType: TextInputType.streetAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Address is required';
-                      }
-                      if (value.length < 5) {
-                        return 'Please enter a valid address';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.isEmpty ? 'Address is required' : value.length < 5 ? 'Please enter a valid address' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Apartment Name',
                     controller: _apartmentNameController,
                     keyboardType: TextInputType.text,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Apartment name is required';
-                      }
-                      if (value.length < 3) {
-                        return 'Please enter a valid apartment name';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.isEmpty ? 'Apartment name is required' : value.length < 3 ? 'Please enter a valid apartment name' : null,
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Password',
                     controller: _passwordController,
                     obscureText: true,
                     keyboardType: TextInputType.visiblePassword,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Password is required';
-                      }
-                      if (!_isStrongPassword(value)) {
-                        return 'Password must be at least 6 characters with a letter and number';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value == null || value.isEmpty ? 'Password is required' : !_isStrongPassword(value) ? 'Password must be at least 6 characters with a letter and number' : null,
                   ),
                   const SizedBox(height: 20),
-
                   ElevatedButton(
-                    onPressed: _handleSignUp,
+                    onPressed: _isLoading ? null : _handleSignUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A237E),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Sign Up', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 10),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Already have an account? ',
-                        style: TextStyle(
-                          color: Colors.black87,
-                        ),
-                      ),
+                      const Text('Already have an account? ', style: TextStyle(color: Colors.black87)),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/',
-                          (route) => false,
-                        ),
-                        child: const Text(
-                          'Sign in',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        onTap: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
+                        child: const Text('Sign in', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
