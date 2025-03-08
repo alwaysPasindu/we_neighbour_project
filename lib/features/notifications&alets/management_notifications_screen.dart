@@ -43,7 +43,6 @@ class ManagementNotificationsScreen extends StatefulWidget {
 class _ManagementNotificationsScreenState extends State<ManagementNotificationsScreen> {
   List<ManagementNotification> notifications = [];
   String? userRole;
-  String? currentUserId; // To check if the user is the creator
 
   @override
   void initState() {
@@ -56,7 +55,6 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userRole = prefs.getString('userRole')?.toLowerCase();
-      currentUserId = prefs.getString('userId'); // Load current user's ID
       print('Loaded User Role: $userRole');
     });
   }
@@ -64,79 +62,93 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    print('Retrieved Token: $token');
+    print('Retrieved token: $token');
     return token;
   }
 
   Future<void> _fetchNotifications() async {
     final token = await _getToken();
     if (token == null) {
-      print('No token available for fetching management notifications');
+      print('No token available');
       return;
     }
 
     try {
-      final headers = {'Authorization': 'Bearer $token'};
-      print('Fetching with headers: $headers');
-      final response = await http
-          .get(
-            Uri.parse('$baseUrl/api/notifications/management'),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 15));
+      print('Fetching notifications from: $baseUrl/api/notifications/management');
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/notifications/management'),
+        headers: {'x-auth-token': token},
+      ).timeout(const Duration(seconds: 15));
 
       print('Fetch response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
-          notifications = data.map((notification) => ManagementNotification.fromJson(notification)).toList();
+          notifications = data.map((json) => ManagementNotification.fromJson(json)).toList();
         });
       } else {
-        print('Failed to fetch management notifications: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to fetch notifications: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error fetching management notifications: $e');
+      print('Fetch error: $e');
+      if (mounted) {
+        String errorMessage = 'Failed to load notifications: $e';
+        if (e.toString().contains('Connection refused')) {
+          errorMessage = 'Cannot reach server. Check your network or server status.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
     }
   }
 
   Future<void> _createNotification(String title, String message) async {
     final token = await _getToken();
     if (token == null) {
-      print('No token available for creating management notification');
+      print('No token available for create');
       return;
     }
 
     try {
-      final headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      };
-      print('Creating with headers: $headers');
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/api/notifications/management'),
-            headers: headers,
-            body: jsonEncode({'title': title, 'message': message}),
-          )
-          .timeout(const Duration(seconds: 15));
+      final requestBody = jsonEncode({'title': title, 'message': message});
+      print('Create request: $baseUrl/api/notifications/management');
+      print('Create request body: $requestBody');
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/notifications/management'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: requestBody,
+      ).timeout(const Duration(seconds: 15));
 
       print('Create response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Notification created successfully')),
-        );
         _fetchNotifications();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notification created successfully')),
+          );
+        }
+      } else if (response.statusCode == 403) {
+        throw Exception('Unauthorized: You may not have permission to create notifications');
+      } else if (response.statusCode == 500) {
+        throw Exception('Server error: Failed to create notification');
       } else {
-        print('Failed to create management notification: ${response.statusCode} - ${response.body}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create notification: ${response.statusCode}')),
-        );
+        throw Exception('Failed to create: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error creating management notification: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      print('Create error: $e');
+      if (mounted) {
+        String errorMessage = 'Error creating notification: $e';
+        if (e.toString().contains('Connection refused')) {
+          errorMessage = 'Cannot reach server. Check your network or server status.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
     }
   }
 
@@ -145,28 +157,30 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
     if (token == null) return;
 
     try {
-      final headers = {'Authorization': 'Bearer $token'};
-      print('Deleting management notification with ID: $id, headers: $headers');
-      final response = await http
-          .delete(
-            Uri.parse('$baseUrl/api/notifications/management/$id'),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 15));
+      print('Delete request: $baseUrl/api/notifications/management/$id');
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/notifications/management/$id'),
+        headers: {'x-auth-token': token},
+      ).timeout(const Duration(seconds: 15));
 
-      print('Delete notification response: ${response.statusCode} - ${response.body}');
+      print('Delete response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
-        _fetchNotifications(); // Refresh the list
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Notification deleted successfully')),
-        );
+        _fetchNotifications();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notification deleted')),
+          );
+        }
       } else {
-        throw Exception('Failed to delete notification: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to delete: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting notification: $e')),
-      );
+      print('Delete error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting notification: $e')),
+        );
+      }
     }
   }
 
@@ -180,10 +194,7 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
       builder: (context) => AlertDialog(
         backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text(
-          'New Management Notification',
-          style: AppTextStyles.getGreetingStyle(isDarkMode),
-        ),
+        title: Text('New Management Notification', style: AppTextStyles.getGreetingStyle(isDarkMode)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -193,7 +204,6 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
               style: AppTextStyles.getBodyTextStyle(isDarkMode),
               autocorrect: false,
               enableSuggestions: false,
-              textCapitalization: TextCapitalization.none,
             ),
             TextField(
               controller: messageController,
@@ -201,7 +211,6 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
               style: AppTextStyles.getBodyTextStyle(isDarkMode),
               autocorrect: false,
               enableSuggestions: false,
-              textCapitalization: TextCapitalization.none,
             ),
           ],
         ),
@@ -214,7 +223,7 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
             onPressed: () {
               if (titleController.text.isEmpty || messageController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please fill in both title and message')),
+                  const SnackBar(content: Text('Please fill in both fields')),
                 );
                 return;
               }
@@ -268,14 +277,12 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
                           createdByName: notification.createdByName,
                           createdAt: notification.createdAt,
                           isDarkMode: isDarkMode,
-                          onDelete: userRole == 'manager' || currentUserId == notification.id.split('_')[0]
-                              ? () => _deleteNotification(notification.id)
-                              : null, // Managers can delete any, residents can delete their own
+                          onDelete: userRole == 'manager' ? () => _deleteNotification(notification.id) : null,
                         );
                       },
                     ),
             ),
-            if (userRole == 'manager') // Only managers can create
+            if (userRole == 'manager')
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Align(
@@ -283,7 +290,6 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
                   child: FloatingActionButton(
                     onPressed: _showCreateDialog,
                     backgroundColor: isDarkMode ? AppColors.primary : const Color.fromARGB(255, 0, 18, 255),
-                    elevation: isDarkMode ? 2 : 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: const Icon(Icons.add, color: Colors.white),
                   ),
@@ -304,7 +310,7 @@ class ManagementNotificationCard extends StatefulWidget {
   final String createdByName;
   final DateTime createdAt;
   final bool isDarkMode;
-  final VoidCallback? onDelete; // Optional delete callback for managers or creators
+  final VoidCallback? onDelete;
 
   const ManagementNotificationCard({
     super.key,
@@ -328,11 +334,7 @@ class _ManagementNotificationCardState extends State<ManagementNotificationCard>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _showFullMessage = !_showFullMessage;
-        });
-      },
+      onTap: () => setState(() => _showFullMessage = !_showFullMessage),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16.0),
         padding: const EdgeInsets.all(16.0),
@@ -353,10 +355,7 @@ class _ManagementNotificationCardState extends State<ManagementNotificationCard>
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.icon,
-                  style: const TextStyle(fontSize: 24),
-                ),
+                Text(widget.icon, style: const TextStyle(fontSize: 24)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -364,10 +363,7 @@ class _ManagementNotificationCardState extends State<ManagementNotificationCard>
                     children: [
                       Text(
                         widget.title,
-                        style: AppTextStyles.getSubtitleStyle.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16, // Slightly larger for emphasis
-                        ),
+                        style: AppTextStyles.getSubtitleStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const SizedBox(height: 4),
                       Text(
