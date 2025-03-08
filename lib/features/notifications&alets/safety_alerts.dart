@@ -81,7 +81,7 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
       final response = await http.get(
         Uri.parse('$baseUrl/api/safety-alerts/get-alerts'),
         headers: {'x-auth-token': token},
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 30));
 
       print('Fetch response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
