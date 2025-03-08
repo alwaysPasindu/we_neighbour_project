@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/features/chat/chat_list_page.dart';
-import 'package:we_neighbour/features/maintenance/maintenance_screen.dart'; // Add this
+import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'package:we_neighbour/features/resource_share/resource_sharing_page.dart';
 import 'package:we_neighbour/features/services/service_page.dart';
 import 'package:we_neighbour/home/home_screen.dart';
@@ -17,13 +17,16 @@ import 'package:we_neighbour/login&signup/resident_signup_page.dart';
 import 'package:we_neighbour/profiles/manager_profile_screen.dart';
 import 'package:we_neighbour/profiles/provider_profile_screen.dart';
 import 'package:we_neighbour/profiles/resident_profile_screen.dart';
+import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
 import 'package:we_neighbour/screens/manager_maintenance_screen.dart';
+import 'package:we_neighbour/screens/pending_approval_page.dart';
 import 'package:we_neighbour/screens/pending_tasks_screen.dart';
 import 'package:we_neighbour/screens/reports_screen.dart';
 import 'package:we_neighbour/screens/residents_requests_screen.dart';
 import 'package:we_neighbour/settings/settings_screen.dart';
 import 'package:we_neighbour/splashScreen/splash_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 enum UserType { resident, manager, serviceProvider }
 
@@ -36,16 +39,22 @@ void main() async {
     final prefs = await SharedPreferences.getInstance();
     final isDarkMode = prefs.getBool('isDarkMode') ?? false;
     runApp(
-      ChangeNotifierProvider(
-        create: (_) => ThemeProvider(isDarkMode: isDarkMode),
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider(isDarkMode: isDarkMode)),
+          ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ],
         child: const MyApp(),
       ),
     );
   } catch (e) {
     print('Error initializing app: $e');
     runApp(
-      ChangeNotifierProvider(
-        create: (_) => ThemeProvider(isDarkMode: false),
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider(isDarkMode: false)),
+          ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ],
         child: const MyApp(),
       ),
     );
@@ -78,8 +87,9 @@ class _MyAppState extends State<MyApp> {
 
       if (token != null) {
         final userRole = prefs.getString('userRole')?.toLowerCase() ?? 'resident';
-        UserType userType;
+        final userStatus = prefs.getString('userStatus')?.toLowerCase(); // Check status
 
+        UserType userType;
         switch (userRole) {
           case 'manager':
             userType = UserType.manager;
@@ -99,6 +109,13 @@ class _MyAppState extends State<MyApp> {
           _token = token;
           _isLoading = false;
         });
+
+        // If resident and pending, redirect to pending approval
+        if (userType == UserType.resident && userStatus == 'pending') {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/pending-approval');
+          }
+        }
       } else {
         setState(() {
           _isLoggedIn = false;
@@ -111,6 +128,16 @@ class _MyAppState extends State<MyApp> {
         _isLoggedIn = false;
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _syncFirebaseWithJwt(String jwtToken) async {
+    try {
+      // Placeholder for syncing Firebase with JWT (requires backend custom token)
+      const customToken = 'your-custom-token-from-backend';
+      await FirebaseAuth.instance.signInWithCustomToken(customToken);
+    } catch (e) {
+      print('Error syncing Firebase with JWT: $e');
     }
   }
 
@@ -149,13 +176,6 @@ class _MyAppState extends State<MyApp> {
           ),
           themeMode: themeProvider.themeMode,
           initialRoute: '/splash',
-          home: _isLoading
-              ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-              : _isLoggedIn
-                  ? _userType == UserType.serviceProvider
-                      ? ServicesPage(userType: _userType)
-                      : HomeScreen(userType: _userType)
-                  : const LoginPage(),
           routes: {
             '/splash': (context) => const SplashScreen(),
             '/account-type': (context) => const AccountTypePage(),
@@ -165,6 +185,7 @@ class _MyAppState extends State<MyApp> {
             '/provider-home': (context) => const ProviderHomePage(),
             '/provider-profile': (context) => const CompanyProfileScreen(),
             '/chat': (context) => const ChatListPage(),
+            '/pending-approval': (context) => const PendingApprovalPage(),
             '/resource': (context) => const ResourceSharingPage(),
             '/resident-req': (context) => const ResidentsRequestsScreen(),
             '/pending-task': (context) => const PendingTasksScreen(),
@@ -179,21 +200,21 @@ class _MyAppState extends State<MyApp> {
                 : const LoginPage(),
             '/home': (context) {
               final args = ModalRoute.of(context)?.settings.arguments;
-              final userType = args is UserType ? args : UserType.resident;
+              final userType = args is UserType ? args : _userType;
               return userType == UserType.serviceProvider
                   ? ServicesPage(userType: userType)
                   : HomeScreen(userType: userType);
             },
             '/service': (context) {
               final args = ModalRoute.of(context)?.settings.arguments;
-              final userType = args is UserType ? args : UserType.resident;
+              final userType = args is UserType ? args : _userType;
               return ServicesPage(userType: userType);
             },
           },
           onGenerateRoute: (settings) {
             if (settings.name == '/profile') {
               final args = settings.arguments;
-              final userType = args is UserType ? args : UserType.resident;
+              final userType = args is UserType ? args : _userType;
               switch (userType) {
                 case UserType.resident:
                   return MaterialPageRoute(builder: (_) => const ResidentProfileScreen());
