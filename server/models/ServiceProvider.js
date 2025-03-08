@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const ServiceSchema = new mongoose.Schema({
+const ServiceProviderSchema = new mongoose.Schema({
     name: {type:String, required:true},
     email: {type:String, required:true, unique:true},
     serviceType: {type:String, required:true},
@@ -9,4 +9,4 @@ const ServiceSchema = new mongoose.Schema({
     role:{type:String, default:'ServiceProvider'},
 },{timestamps:true});
 
-module.exports = ServiceSchema;
+module.exports = ServiceProviderSchema;

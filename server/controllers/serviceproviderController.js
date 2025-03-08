@@ -1,9 +1,9 @@
 const bcrypt = require('bcrypt');
 const { centralDB } = require('../config/database');
-const ServiceSchema = require('../models/ServiceProvider');
+const ServiceProviderSchema = require('../models/ServiceProvider');
 
 // Create a model for the central database
-const ServiceProvider = centralDB.model('ServiceProvider', ServiceSchema);
+const ServiceProvider = centralDB.model('ServiceProvider', ServiceProviderSchema);
 
 exports.registerServiceProvider = async (req,res) => {
      try{
