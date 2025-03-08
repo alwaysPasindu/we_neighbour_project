@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/auth_utils.dart'; // Add this import
+import '../utils/auth_utils.dart';
 
 enum UserType { resident, manager, serviceProvider }
 
@@ -54,88 +54,59 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _handleLogin() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showErrorDialog('Please enter both email and password');
-      return;
-    }
-
     setState(() => _isLoading = true);
-
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
     try {
-      final headers = {'Content-Type': 'application/json'};
-      print('Login request headers: $headers');
-      print('Login request body: ${jsonEncode({'email': email, 'password': password})}');
       final response = await http.post(
         Uri.parse('$baseUrl/api/auth/login'),
-        headers: headers,
-        body: jsonEncode({'email': email, 'password': password}),
-      ).timeout(const Duration(seconds: 15),
-          onTimeout: () => throw TimeoutException('Login request timed out'));
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': _emailController.text, 'password': _passwordController.text}),
+      );
 
+      print('Login request headers: ${response.request?.headers}');
+      print('Login request body: {"email":"${_emailController.text}","password":"${_passwordController.text}"}');
       print('Login status code: ${response.statusCode}');
       print('Login response body: ${response.body}');
 
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = jsonDecode(response.body);
+      print('Parsed response data: $data');
 
-      if (response.statusCode == 200) {
-        if (data.containsKey('token') && data.containsKey('user')) {
-          await AuthUtils.updateUserDataOnLogin(data); // Use AuthUtils to store data
-          print('Stored token: ${data['token']}');
-          print('Stored user role: ${data['user']['role']}');
+      if (response.statusCode == 200 || response.statusCode == 403) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear(); // Clear stale data
+        await prefs.setString('token', data['token']);
+        await prefs.setString('userId', data['user']['id']);
+        await prefs.setString('userRole', data['user']['role'].toLowerCase());
+        await prefs.setString('userName', data['user']['name'] ?? 'User');
+        await prefs.setString('userEmail', data['user']['email'] ?? 'N/A');
+        await prefs.setString('userStatus', data['user']['status'] ?? 'approved');
+        await prefs.setString('apartmentComplexName', data['user']['apartmentComplexName'] ?? 'N/A');
 
-          final role = data['user']['role'].toString().toLowerCase();
-          UserType userType;
-          switch (role) {
-            case 'resident':
-              userType = UserType.resident;
-              break;
-            case 'manager':
-              userType = UserType.manager;
-              break;
-            case 'serviceprovider':
-            case 'service_provider':
-            case 'provider':
-              userType = UserType.serviceProvider;
-              break;
-            default:
-              _showErrorDialog('Invalid user role: $role');
-              setState(() => _isLoading = false);
-              return;
-          }
-
-          if (_rememberMe) {
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setBool('rememberMe', true);
-            await prefs.setString('savedEmail', email);
-          } else {
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setBool('rememberMe', false);
-            await prefs.remove('savedEmail');
-          }
-
-          if (mounted) {
-            Navigator.pushReplacementNamed(
-              context,
-              userType == UserType.serviceProvider ? '/provider-home' : '/home',
-              arguments: userType,
-            );
-          }
+        if (_rememberMe) {
+          await prefs.setString('savedEmail', _emailController.text);
+          await prefs.setBool('rememberMe', true);
         } else {
-          _showErrorDialog('Invalid response from server');
+          await prefs.remove('savedEmail');
+          await prefs.setBool('rememberMe', false);
+        }
+
+        final role = data['user']['role'].toLowerCase();
+        final status = data['user']['status'];
+
+        if (role == 'resident' && status == 'approved') {
+          Navigator.pushReplacementNamed(context, '/home');
+        } else if (role == 'manager') {
+          Navigator.pushReplacementNamed(context, '/home');
+        } else if (role == 'serviceprovider') {
+          Navigator.pushReplacementNamed(context, '/provider-home');
+        } else if (status == 'pending') {
+          Navigator.pushReplacementNamed(context, '/pending-approval');
         }
       } else {
-        final message = data['message'] ?? 'An error occurred';
-        _showErrorDialog(response.statusCode == 400 ? message : 'Server error: $message');
+        _showErrorDialog('Login failed: ${response.body}');
       }
-    } on TimeoutException {
-      print('Login request timed out');
-      _showErrorDialog('Request timed out. Please check your network and try again.');
     } catch (e) {
-      print('Error during login: $e');
-      _showErrorDialog('Network error: ${e.toString()}');
+      print('Login error: $e');
+      _showErrorDialog('Network error: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -170,31 +141,31 @@ class _LoginPageState extends State<LoginPage> {
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color.fromARGB(255, 0, 0, 0) : Colors.white,
-      body: Stack(
-        children: [
-          ClipPath(
-            clipper: WaveClipper(),
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.39,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDarkMode
-                      ? [const Color.fromARGB(255, 0, 18, 152), const Color(0xFF2B5BA9).withOpacity(0.8)]
-                      : [const Color.fromARGB(255, 14, 105, 213), const Color(0xFF4285F4)],
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ClipPath(
+              clipper: WaveClipper(),
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.39,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDarkMode
+                        ? [const Color.fromARGB(255, 0, 18, 152), const Color(0xFF2B5BA9).withOpacity(0.8)]
+                        : [const Color.fromARGB(255, 14, 105, 213), const Color(0xFF4285F4)],
+                  ),
                 ),
+                child: Center(child: Image.asset('assets/images/white.png', width: 170, height: 170)),
               ),
-              child: Center(child: Image.asset('assets/images/white.png', width: 170, height: 170)),
             ),
-          ),
-          SingleChildScrollView(
-            child: Padding(
+            Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.33),
                   Text(
                     'WELCOME!',
                     style: TextStyle(
@@ -351,11 +322,12 @@ class _LoginPageState extends State<LoginPage> {
                       _socialButton('assets/images/twitter.png', () => _handleSocialLogin('Twitter'), isDarkMode),
                     ],
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
