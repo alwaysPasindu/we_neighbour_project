@@ -1,5 +1,5 @@
 const express = require('express');
-const{authenticate,isManager,isServiceProvider} = require('../middleware/authMiddleware');
+const{authenticate,isServiceProvider} = require('../middleware/authMiddleware');
 const {
     createService,
     getService,

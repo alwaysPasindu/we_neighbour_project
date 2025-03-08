@@ -1,11 +1,15 @@
-const Service = require('../models/Service');
-const ServiceProvider = require('../models/ServiceProvider');
+const ServiceSchema = require('../models/Service');
+const ServiceProviderSchema = require('../models/ServiceProvider');
+const {centralDB} = require('../config/database');
 
 //create a service
 exports.createService = async (req,res) => {
     try{
         const{title,description,images,location,availableHours} = req.body;
         const serviceProviderId = req.user.id;
+
+        const Service = centralDB.model('Service', ServiceSchema);
+        const ServiceProvider = centralDB.model('ServiceProvider',ServiceProviderSchema);
 
         const serviceProvider = await ServiceProvider.findById(serviceProviderId);
 
@@ -33,11 +37,18 @@ exports.createService = async (req,res) => {
 //get all services
 exports.getService = async(req,res) => {
     try{
-        const{latitude,longtude} = req.query;
+        const{latitude,longitude} = req.query;
+
+        // Validate latitude and longitude
+        if (!latitude || !longitude || isNaN(parseFloat(latitude)) || isNaN(parseFloat(longitude))) {
+            return res.status(400).json({ message: 'Invalid or missing latitude/longitude' });
+        }
+
+        const Service = centralDB.model('Service', ServiceSchema);
 
         const userLocation ={
             type:'Point',
-            coordinates:[parseFloat(longtude),parseFloat(latitude)],
+            coordinates:[parseFloat(longitude),parseFloat(latitude)],
         };
         
         const services = await Service.find({
@@ -66,6 +77,8 @@ exports.editService = async(req,res) => {
         const{title, description,images,location,availableHours} = req.body;
         const serviceProviderId = req.user.id;
 
+        const Service = centralDB.model('Service', ServiceSchema);
+
         const service = await Service.findById(id);
 
         if(service.serviceProvider.toString() !== serviceProviderId) {
@@ -91,6 +104,8 @@ exports.deleteService = async(req,res) => {
     try{
         const{id} = req.params;
         const serviceProviderId = req.user.id;
+
+        const Service = centralDB.model('Service',ServiceSchema);
 
         const service = await Service.findById(id);
 
