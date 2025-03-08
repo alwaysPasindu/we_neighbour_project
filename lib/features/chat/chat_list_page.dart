@@ -1,271 +1,302 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:we_neighbour/constants/colors.dart';
+import 'package:we_neighbour/constants/text_styles.dart';
+import 'package:we_neighbour/models/chat.dart';
+import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
+import 'chat_screen.dart';
 
-class ChatModel {
-  final String id;
-  final String name;
-  final String lastMessage;
-  final String avatar;
-  final DateTime timestamp;
-  final bool isRead;
-  final String messageType; // 'text', 'photo', 'voice'
-
-  ChatModel({
-    required this.id,
-    required this.name,
-    required this.lastMessage,
-    required this.avatar,
-    required this.timestamp,
-    this.isRead = false,
-    this.messageType = 'text',
-  });
-}
-
-class ChatListPage extends StatelessWidget {
+class ChatListPage extends StatefulWidget {
   const ChatListPage({super.key});
 
   @override
+  State<ChatListPage> createState() => _ChatListPageState();
+}
+
+class _ChatListPageState extends State<ChatListPage> {
+  @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
-
-    final List<ChatModel> chats = [
-      ChatModel(
-        id: '1',
-        name: 'Local Legends',
-        lastMessage: 'Yes, 2pm is awesome',
-        avatar: 'assets/avatars/local_legends.png',
-        timestamp: DateTime(2024, 11, 19),
-        isRead: true,
-        messageType: 'text',
-      ),
-      ChatModel(
-        id: '2',
-        name: 'Around the corner',
-        lastMessage: 'What kind of strategy is better?',
-        avatar: 'assets/avatars/troll_face.png',
-        timestamp: DateTime(2024, 11, 16),
-        isRead: true,
-        messageType: 'text',
-      ),
-      ChatModel(
-        id: '3',
-        name: 'Floor 6',
-        lastMessage: '0:14',
-        avatar: 'assets/avatars/floor6.png',
-        timestamp: DateTime(2024, 11, 15),
-        isRead: false,
-        messageType: 'voice',
-      ),
-      ChatModel(
-        id: '4',
-        name: 'Our happy place',
-        lastMessage: 'Bro, I have a good idea!',
-        avatar: 'assets/avatars/happy_place.png',
-        timestamp: DateTime(2024, 10, 30),
-        isRead: true,
-        messageType: 'text',
-      ),
-      ChatModel(
-        id: '5',
-        name: 'Lend a hand',
-        lastMessage: 'Photo',
-        avatar: 'assets/avatars/lend_hand.png',
-        timestamp: DateTime(2024, 10, 28),
-        isRead: false,
-        messageType: 'photo',
-      ),
-      ChatModel(
-        id: '6',
-        name: 'The social circle',
-        lastMessage: 'Welcome, to make design process faster, look at Pixsellz',
-        avatar: 'assets/avatars/social_circle.png',
-        timestamp: DateTime(2024, 8, 20),
-        isRead: true,
-        messageType: 'text',
-      ),
-      ChatModel(
-        id: '7',
-        name: 'Chatter box',
-        lastMessage: 'Ok, have a good trip!',
-        avatar: 'assets/avatars/chatter_box.png',
-        timestamp: DateTime(2024, 7, 29),
-        isRead: true,
-        messageType: 'text',
-      ),
-    ];
+    final isDarkMode = themeProvider.isDarkMode; // Correctly typed as bool
+    final chatProvider = Provider.of<ChatProvider>(context);
 
     return Scaffold(
-      backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Custom App Bar with fixed height
-            Container(
-              height: 80, // Fixed height for the header
-              color: const Color(0xFF042347),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 25, // Slightly smaller radius
-                    backgroundImage: AssetImage('assets/avatars/profile.png'),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'John Doe',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20, // Slightly smaller font
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Chats',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: 16, // Slightly smaller font
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // New Group Button
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Handle new group creation
-                },
-                child: Text(
-                  'New Group',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            // Chat List
-            Expanded(
-              child: ListView.separated(
-                padding: EdgeInsets.zero, // Remove default padding
-                itemCount: chats.length,
-                separatorBuilder: (context, index) => Divider(
-                  height: 1,
-                  color: isDarkMode ? Colors.grey[800] : Colors.grey[300],
-                ),
-                itemBuilder: (context, index) {
-                  final chat = chats[index];
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: CircleAvatar(
-                      radius: 24, // Slightly smaller radius
-                      backgroundColor: Colors.grey[300],
-                      backgroundImage: AssetImage(chat.avatar),
-                    ),
-                    title: Text(
-                      chat.name,
-                      style: TextStyle(
-                        fontSize: 16, // Slightly smaller font
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                      ),
-                    ),
-                    subtitle: Row(
-                      children: [
-                        if (chat.isRead)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4.0),
-                            child: Icon(
-                              Icons.done_all,
-                              size: 14,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        if (chat.messageType == 'voice')
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4.0),
-                            child: Icon(
-                              Icons.mic,
-                              size: 14,
-                              color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                            ),
-                          ),
-                        if (chat.messageType == 'photo')
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4.0),
-                            child: Icon(
-                              Icons.photo_camera,
-                              size: 14,
-                              color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                            ),
-                          ),
-                        Expanded(
-                          child: Text(
-                            chat.lastMessage,
-                            style: TextStyle(
-                              fontSize: 14, // Slightly smaller font
-                              color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    trailing: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          _formatDate(chat.timestamp),
-                          style: TextStyle(
-                            color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Icon(
-                          Icons.chevron_right,
-                          color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      // Navigate to chat detail
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
+      appBar: AppBar(
+        title: Text(
+          'Chats',
+          style: AppTextStyles.getGreetingStyle(isDarkMode).copyWith(color: Colors.white),
         ),
+        backgroundColor: AppColors.primary,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'One-on-One Chats',
+              style: AppTextStyles.getSubtitleStyle .copyWith(
+                color: isDarkMode ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+          Expanded(
+            child: _buildChatList(context, false, isDarkMode, chatProvider),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Groups',
+              style: AppTextStyles.getSubtitleStyle.copyWith(
+                color: isDarkMode ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+          Expanded(
+            child: _buildChatList(context, true, isDarkMode, chatProvider),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showCreateGroupDialog(context, isDarkMode, chatProvider),
+        backgroundColor: AppColors.primary,
+        child: Icon(Icons.group_add, color: Colors.white),
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date).inDays;
+  Widget _buildChatList(BuildContext context, bool isGroup, bool isDarkMode, ChatProvider chatProvider) {
+    return StreamBuilder<List<Chat>>(
+      stream: isGroup ? chatProvider.getGroups() : chatProvider.getChats(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: Colors.white as Color)); // Explicit cast to Color
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error: ${snapshot.error}',
+              style: AppTextStyles.getBodyTextStyle(isDarkMode),
+            ),
+          );
+        }
+        final chats = snapshot.data ?? [];
+        return ListView.builder(
+          itemCount: chats.length,
+          itemBuilder: (context, index) {
+            final chat = chats[index];
+            return FutureBuilder<String?>(
+              future: _getChatTitle(chat, chatProvider, isGroup),
+              builder: (context, titleSnapshot) {
+                if (titleSnapshot.connectionState == ConnectionState.waiting) {
+                  return ListTile(
+                    title: Text('Loading...', 
+                      style: AppTextStyles.getSubtitleStyle.copyWith(
+                        color: isDarkMode ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    tileColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  );
+                }
+                final title = titleSnapshot.data ?? 'Unknown Chat';
+                return ListTile(
+                  title: Text(
+                    title,
+                    style: AppTextStyles.getSubtitleStyle.copyWith(
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  subtitle: Text(
+                    chat.lastMessage ?? 'No messages yet',
+                    style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ChatScreen(chatId: chat.id, isGroup: chat.isGroup)),
+                  ),
+                  tileColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
 
-    if (difference == 0) {
-      return 'Today';
-    } else if (difference == 1) {
-      return 'Yesterday';
-    } else {
-      return '${date.month}/${date.day}/${date.year.toString().substring(2)}';
+  Future<String?> _getChatTitle(Chat chat, ChatProvider chatProvider, bool isGroup) async {
+    if (isGroup && chat.name != null) {
+      return chat.name; // Use group name for groups
+    } else if (!isGroup && chat.participants.length == 2) {
+      // For one-on-one chats, get the other participant's name, ensuring same apartment
+      final currentUserId = chatProvider.currentUserId;
+      if (currentUserId == null) return 'Unknown User';
+      
+      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
+      final currentApartmentCode = currentUserDoc.data()?['apartmentCode'] as String?;
+
+      final otherUserId = chat.participants.firstWhere((id) => id != currentUserId);
+      final otherUserDoc = await FirebaseFirestore.instance.collection('users').doc(otherUserId).get();
+      final otherApartmentCode = otherUserDoc.data()?['apartmentCode'] as String?;
+
+      if (currentApartmentCode != null && otherApartmentCode != null && currentApartmentCode == otherApartmentCode) {
+        return otherUserDoc.data()?['name'] ?? 'Unknown User';
+      }
+      return null; // Return null if not from the same apartment
+    }
+    return 'Unknown Chat';
+  }
+
+  void _showCreateGroupDialog(BuildContext context, bool isDarkMode, ChatProvider chatProvider) async {
+    final TextEditingController nameController = TextEditingController();
+    final List<String> selectedMembers = [];
+    String? currentApartmentCode;
+
+    // Fetch current user's apartment code with enhanced error handling
+    final currentUserId = chatProvider.currentUserId;
+    if (currentUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User not authenticated. Please log in again.')),
+      );
+      print('Error: currentUserId is null in _showCreateGroupDialog');
+      return;
+    }
+
+    try {
+      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
+      if (!currentUserDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('User data not found in Firestore. Please contact support.')),
+        );
+        print('Error: User document does not exist for userId: $currentUserId');
+        return;
+      }
+
+      currentApartmentCode = currentUserDoc.data()?['apartmentCode'] as String?;
+      if (currentApartmentCode == null || currentApartmentCode.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Unable to determine your apartment. Please ensure your profile has an apartment code.')),
+        );
+        print('Error: apartmentCode is null or empty for userId: $currentUserId. Data: ${currentUserDoc.data()}');
+        return;
+      }
+
+      print('Successfully fetched apartmentCode: $currentApartmentCode for userId: $currentUserId');
+
+      // Fetch users from the same apartment
+      final usersSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('apartmentCode', isEqualTo: currentApartmentCode)
+          .where('id', isNotEqualTo: currentUserId) // Exclude current user
+          .get();
+
+      final List<Map<String, dynamic>> apartmentUsers = usersSnapshot.docs
+          .map((doc) => {
+                'id': doc.id,
+                'name': doc.data()['name'] as String?,
+              })
+          .where((user) => user['name'] != null) // Filter out users without names
+          .toList();
+
+      showDialog(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            title: Text(
+              'Create Group',
+              style: AppTextStyles.getGreetingStyle(isDarkMode),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Group Name',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    labelStyle: AppTextStyles.getBodyTextStyle(isDarkMode),
+                  ),
+                  style: AppTextStyles.getBodyTextStyle(isDarkMode),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Add Members from Your Apartment',
+                  style: AppTextStyles.getBodyTextStyle(isDarkMode),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: apartmentUsers.length,
+                    itemBuilder: (context, index) {
+                      final user = apartmentUsers[index];
+                      final isSelected = selectedMembers.contains(user['id']);
+                      return CheckboxListTile(
+                        title: Text(
+                          user['name'] ?? 'Unknown User',
+                          style: AppTextStyles.getBodyTextStyle(isDarkMode),
+                        ),
+                        value: isSelected,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            if (value == true) {
+                              selectedMembers.add(user['id'] as String);
+                            } else {
+                              selectedMembers.remove(user['id'] as String);
+                            }
+                          });
+                        },
+                        tileColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+                        activeColor: AppColors.primary,
+                        checkColor: Colors.white,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Cancel',
+                  style: AppTextStyles.getBodyTextStyle(isDarkMode),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (nameController.text.isNotEmpty && selectedMembers.isNotEmpty) {
+                    await chatProvider.createGroup(nameController.text, selectedMembers);
+                    Navigator.pop(context);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please enter a group name and select at least one member.')),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text(
+                  'Create',
+                  style: AppTextStyles.getButtonTextStyle(isDarkMode).copyWith(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred while fetching apartment data: $e')),
+      );
+      print('Error in _showCreateGroupDialog: $e');
     }
   }
 }
