@@ -27,6 +27,7 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
   final TextEditingController _designationController = TextEditingController();
   bool _isEditing = false;
   bool _isLoading = true;
+  String? _token;
 
   @override
   void initState() {
@@ -46,127 +47,66 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
   }
 
   Future<void> _loadProfileData() async {
-    try {
-      final profileData = await AuthUtils.getUserProfileData();
-      
-      setState(() {
-        _nameController.text = profileData['name'] ?? '';
-        _emailController.text = profileData['email'] ?? '';
-        _phoneController.text = profileData['phone'] ?? '';
-        _apartmentController.text = profileData['apartment'] ?? '';
-        _designationController.text = profileData['designation'] ?? '';
-        _isLoading = false;
-      });
-    } catch (e) {
-      print('Error loading profile data: $e');
-      setState(() {
-        _isLoading = false;
-      });
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString('token');
+    if (_token == null) {
+      print('No token found, navigating to login');
+      if (mounted) Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      return;
     }
+
+    setState(() {
+      _nameController.text = prefs.getString('userName') ?? '';
+      _emailController.text = prefs.getString('userEmail') ?? '';
+      _phoneController.text = prefs.getString('userPhone') ?? '';
+      _apartmentController.text = prefs.getString('apartmentComplexName') ?? '';
+      _designationController.text = prefs.getString('designation') ?? '';
+      _isLoading = false;
+    });
   }
 
   Future<void> _loadProfileImage() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final imagePath = prefs.getString('manager_profile_image');
-      if (imagePath != null) {
-        final file = File(imagePath);
-        if (await file.exists()) {
-          setState(() {
-            _profileImage = file;
-          });
-        }
+      final imagePath = await AuthUtils.getProfileImagePath(UserType.manager);
+      if (imagePath != null && await File(imagePath).exists()) {
+        setState(() => _profileImage = File(imagePath));
       }
     } catch (e) {
       print('Error loading profile image: $e');
     }
   }
 
-  Future<void> _saveProfileData() async {
-    try {
-      await AuthUtils.saveUserProfileData(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        phone: _phoneController.text.trim(),
-        apartment: _apartmentController.text.trim(),
-        designation: _designationController.text.trim(),
-      );
-    } catch (e) {
-      print('Error saving profile data: $e');
-      throw e;
-    }
-  }
-
   Future<void> _pickImage() async {
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1000,
-        maxHeight: 1000,
-        imageQuality: 85,
-      );
-
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1000, maxHeight: 1000, imageQuality: 85);
       if (image != null) {
         final directory = await getApplicationDocumentsDirectory();
         final fileName = 'manager_profile_${DateTime.now().millisecondsSinceEpoch}${path.extension(image.path)}';
         final savedImage = File('${directory.path}/$fileName');
-
         await savedImage.writeAsBytes(await image.readAsBytes());
 
         if (_profileImage != null && await _profileImage!.exists()) {
           await _profileImage!.delete();
         }
 
-        setState(() {
-          _profileImage = savedImage;
-        });
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('manager_profile_image', savedImage.path);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile photo updated successfully')),
-          );
-        }
+        setState(() => _profileImage = savedImage);
+        await AuthUtils.saveProfileImagePath(savedImage.path, UserType.manager);
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile photo updated')));
       }
     } catch (e) {
       print('Error picking image: $e');
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: const Text('Failed to pick image. Please try again.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
     }
   }
 
-
   Future<void> _updateProfileOnServer() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-    
-      if (token == null) {
-        throw 'No authentication token found';
-      }
+    if (_token == null) return;
 
+    try {
       final response = await http.put(
         Uri.parse('$baseUrl/api/managers/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $_token'},
         body: jsonEncode({
           'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
@@ -177,18 +117,21 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
       );
 
       if (response.statusCode == 200) {
-        await _saveProfileData();
+        await AuthUtils.saveUserProfileData(
+          name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          phone: _phoneController.text.trim(),
+          apartmentComplexName: _apartmentController.text.trim(),
+          designation: _designationController.text.trim(),
+        );
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
       } else {
-        throw 'Failed to update profile: ${response.statusCode}';
+        print('Failed to update profile: ${response.statusCode} - ${response.body}');
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to update profile on server')));
       }
     } catch (e) {
-      print('Error updating profile on server: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating profile: $e')),
-        );
-      }
-      throw e;
+      print('Error updating profile: $e');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
     }
   }
 
@@ -196,20 +139,7 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
     setState(() {
       if (_isEditing) {
         if (_validateFields()) {
-          _updateProfileOnServer().then((_) {
-            setState(() {
-              _isEditing = false;
-            });
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile updated successfully')),
-              );
-            }
-          }).catchError((error) {
-            setState(() {
-              _isEditing = true;
-            });
-          });
+          _updateProfileOnServer().then((_) => setState(() => _isEditing = false));
         }
       } else {
         _isEditing = true;
@@ -219,76 +149,46 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
 
   bool _validateFields() {
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(_emailController.text.trim())) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid email address')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid email')));
       return false;
     }
-
     if (!_isValidPhoneNumber(_phoneController.text.trim())) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid phone number')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid phone number')));
       return false;
     }
-
     if (_apartmentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the apartment complex name')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Apartment complex name is required')));
       return false;
     }
-
     if (_designationController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your designation')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Designation is required')));
       return false;
     }
-
     return true;
   }
 
-  bool _isValidPhoneNumber(String phone) {
-    return RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(phone);
-  }
+  bool _isValidPhoneNumber(String phone) => RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(phone);
 
   TextInputType _getKeyboardType(String label) {
     switch (label) {
-      case 'Phone Number':
-        return TextInputType.phone;
-      case 'Email':
-        return TextInputType.emailAddress;
-      case 'Apartment':
-        return TextInputType.streetAddress;
-      default:
-        return TextInputType.text;
+      case 'Phone Number': return TextInputType.phone;
+      case 'Email': return TextInputType.emailAddress;
+      case 'Apartment Complex': return TextInputType.streetAddress;
+      default: return TextInputType.text;
     }
   }
 
   List<TextInputFormatter>? _getInputFormatters(String label) {
-    switch (label) {
-      case 'Phone Number':
-        return [
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9\+]')),
-          LengthLimitingTextInputFormatter(12),
-        ];
-      default:
-        return null;
+    if (label == 'Phone Number') {
+      return [FilteringTextInputFormatter.allow(RegExp(r'[0-9\+]')), LengthLimitingTextInputFormatter(12)];
     }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
+    if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
@@ -296,104 +196,54 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: isDarkMode ? Colors.white : AppColors.textPrimary,
-          ),
+          icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           TextButton.icon(
             onPressed: _toggleEdit,
-            icon: Icon(
-              _isEditing ? Icons.check : Icons.edit,
-              color: AppColors.primary,
-            ),
-            label: Text(
-              _isEditing ? 'Save' : 'Edit',
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            icon: Icon(_isEditing ? Icons.check : Icons.edit, color: AppColors.primary),
+            label: Text(_isEditing ? 'Save' : 'Edit', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 20),
-                _buildProfileImage(isDarkMode),
-                const SizedBox(height: 16),
-                _isEditing
-                    ? _buildEditableField(_nameController, 'Name', isDarkMode)
-                    : Text(
-                        _nameController.text,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
-                          color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                        ),
-                      ),
-                const SizedBox(height: 32),
-                _isEditing
-                    ? _buildEditableField(_emailController, 'Email', isDarkMode)
-                    : _buildInfoField('Email', _emailController.text, isDarkMode),
-                _isEditing
-                    ? _buildEditableField(_phoneController, 'Phone Number', isDarkMode)
-                    : _buildInfoField('Phone Number', _phoneController.text, isDarkMode),
-                _isEditing
-                    ? _buildEditableField(_apartmentController, 'Apartment Complex', isDarkMode)
-                    : _buildInfoField('Apartment Complex', _apartmentController.text, isDarkMode),
-                _isEditing
-                    ? _buildEditableField(_designationController, 'Designation', isDarkMode)
-                    : _buildInfoField('Designation', _designationController.text, isDarkMode),
-                const SizedBox(height: 40),
-                _buildOption(
-                  'Residents Requests', 
-                  Icons.people, 
-                  isDarkMode,
-                  onTap: () {
-                    Navigator.pushNamed(context, '/resident-req');
-                  },
-                  ),
-                const SizedBox(height: 16),
-                _buildOption('Pending Tasks', 
-                Icons.build, 
-                isDarkMode,
-                onTap: () {
-                    Navigator.pushNamed(context, '/pending-task');
-                  },
-                ),
-                 const SizedBox(height: 16),
-                _buildOption('Reports Screen', 
-                Icons.report, 
-                isDarkMode,
-                onTap: () {
-                    Navigator.pushNamed(context, '/reports');
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildOption(
-                  'Security Management', 
-                  Icons.security, 
-                  isDarkMode),
-                const SizedBox(height: 16),
-                _buildOption(
-                  'Settings',
-                  Icons.settings,
-                  isDarkMode,
-                  onTap: () {
-                    Navigator.pushNamed(context, '/settings');
-                  },
-                ),
-                const SizedBox(height: 32),
-              ],
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
+              _buildProfileImage(isDarkMode),
+              const SizedBox(height: 16),
+              _isEditing
+                  ? _buildEditableField(_nameController, 'Name', isDarkMode)
+                  : Text(_nameController.text, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary)),
+              const SizedBox(height: 32),
+              _isEditing
+                  ? _buildEditableField(_emailController, 'Email', isDarkMode)
+                  : _buildInfoField('Email', _emailController.text, isDarkMode),
+              _isEditing
+                  ? _buildEditableField(_phoneController, 'Phone Number', isDarkMode)
+                  : _buildInfoField('Phone Number', _phoneController.text, isDarkMode),
+              _isEditing
+                  ? _buildEditableField(_apartmentController, 'Apartment Complex', isDarkMode)
+                  : _buildInfoField('Apartment Complex', _apartmentController.text, isDarkMode),
+              _isEditing
+                  ? _buildEditableField(_designationController, 'Designation', isDarkMode)
+                  : _buildInfoField('Designation', _designationController.text, isDarkMode),
+              const SizedBox(height: 40),
+              _buildOption('Residents Requests', Icons.people, isDarkMode, onTap: () => Navigator.pushNamed(context, '/resident-req')),
+              const SizedBox(height: 16),
+              _buildOption('Pending Tasks', Icons.build, isDarkMode, onTap: () => Navigator.pushNamed(context, '/pending-task')),
+              const SizedBox(height: 16),
+              _buildOption('Reports Screen', Icons.report, isDarkMode, onTap: () => Navigator.pushNamed(context, '/reports')),
+              const SizedBox(height: 16),
+              _buildOption('Security Management', Icons.security, isDarkMode),
+              const SizedBox(height: 16),
+              _buildOption('Settings', Icons.settings, isDarkMode, onTap: () => Navigator.pushNamed(context, '/settings')),
+              const SizedBox(height: 32),
+            ],
           ),
         ),
       ),
@@ -411,26 +261,8 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
             child: _profileImage != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(50),
-                    child: Image.file(
-                      _profileImage!,
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        print('Error loading profile image: $error');
-                        return Icon(
-                          Icons.person,
-                          size: 50,
-                          color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                        );
-                      },
-                    ),
-                  )
-                : Icon(
-                    Icons.person,
-                    size: 50,
-                    color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                  ),
+                    child: Image.file(_profileImage!, width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (_, e, __) => _buildDefaultIcon(isDarkMode)))
+                : _buildDefaultIcon(isDarkMode),
           ),
         ),
         if (_isEditing)
@@ -441,22 +273,8 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
               onTap: _pickImage,
               child: Container(
                 padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.camera_alt,
-                  size: 20,
-                  color: Colors.white,
-                ),
+                decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))]),
+                child: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
               ),
             ),
           ),
@@ -464,29 +282,19 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
     );
   }
 
+  Widget _buildDefaultIcon(bool isDarkMode) => Icon(Icons.person, size: 50, color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary);
+
   Widget _buildEditableField(TextEditingController controller, String label, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: controller,
-        style: TextStyle(
-          color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
-        ),
+        style: TextStyle(color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(
-            color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-          ),
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(
-              color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-            ),
-          ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(
-              color: AppColors.primary,
-            ),
-          ),
+          labelStyle: TextStyle(color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary),
+          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary)),
+          focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
         ),
         autocorrect: false,
         textCapitalization: label == 'Name' ? TextCapitalization.words : TextCapitalization.none,
@@ -501,29 +309,10 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary)),
         const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Divider(
-            color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-          ),
-        ),
+        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary)),
+        Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Divider(color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary)),
       ],
     );
   }
@@ -534,34 +323,17 @@ class _ManagerProfileScreenState extends State<ManagerProfileScreen> {
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(border: Border.all(color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary), borderRadius: BorderRadius.circular(8)),
         child: Row(
           children: [
             Icon(icon, color: AppColors.primary),
             const SizedBox(width: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary,
-              ),
-            ),
+            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary)),
             const Spacer(),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary,
-              size: 16,
-            ),
+            Icon(Icons.arrow_forward_ios, color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary, size: 16),
           ],
         ),
       ),
     );
   }
 }
-
