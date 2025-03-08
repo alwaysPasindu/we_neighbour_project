@@ -31,6 +31,11 @@ exports.isManager = function(req,res,next){
     if(req.user.role != 'Manager'){
         return res.status(403).json({message:"Access denied. Not authorized as a Manager."});
     }
+
+    if (req.user.status !== 'approved') {
+        return res.status(403).json({ message: 'Access denied. Your registration request is pending or rejected.' });
+    }
+
     next();
 };
 

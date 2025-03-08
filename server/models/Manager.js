@@ -9,6 +9,7 @@ const ManagerSchema = new mongoose.Schema({
     apartmentName:{type:String,required:true}, 
     password:{type:String, required:true},
     role:{type:String, default:'Manager'},
+    status:{type:String, enum:['pending','approved','rejected'], default:'pending'},
     
 },{timestamps:true});
 
