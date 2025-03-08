@@ -4,12 +4,15 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:we_neighbour/widgets/calendar_feature_column.dart';
-import 'package:we_neighbour/widgets/calendar_custom_button.dart';
+import 'package:we_neighbour/features/event_calendar/book_amenities_screen.dart';
 import 'package:we_neighbour/features/event_calendar/firebase_service.dart';
+import 'package:we_neighbour/features/event_calendar/health_wellness_screen.dart';
+import 'package:we_neighbour/widgets/calendar_custom_button.dart';
+import 'package:we_neighbour/widgets/calendar_feature_column.dart';
+
 
 class EventCalendarScreen extends StatefulWidget {
-  const EventCalendarScreen({super.key});
+  const EventCalendarScreen({Key? key}) : super(key: key);
 
   @override
   _EventCalendarScreenState createState() => _EventCalendarScreenState();
@@ -62,6 +65,11 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                 'id': doc.id,
                 'title': data['title'],
                 'date': date,
+                'type': data['type'] ?? 'event', // Add event type with default
+                'endTime': data['endTime'] != null
+                    ? (data['endTime'] as Timestamp).toDate()
+                    : null, // Add endTime
+                'notes': data['notes'], // Add notes
               });
             } else {
               newEvents[normalizedDate] = [
@@ -69,6 +77,12 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                   'id': doc.id,
                   'title': data['title'],
                   'date': date,
+                  'type':
+                      data['type'] ?? 'event', // Add event type with default
+                  'endTime': data['endTime'] != null
+                      ? (data['endTime'] as Timestamp).toDate()
+                      : null, // Add endTime
+                  'notes': data['notes'], // Add notes
                 }
               ];
             }
@@ -120,57 +134,154 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
         String newEventTitle = "";
         DateTime selectedDate = DateTime.now();
         TimeOfDay selectedTime = TimeOfDay.now();
+        TimeOfDay? selectedEndTime; // Added for endTime
+        String? eventNotes; // Added for notes
 
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Text('Add New Event'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                onChanged: (value) {
-                  newEventTitle = value;
-                },
-                decoration: const InputDecoration(hintText: "Event Title"),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    child: const Text("Select Date"),
-                    onPressed: () async {
-                      final DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: selectedDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2101),
-                      );
-                      if (picked != null && picked != selectedDate) {
-                        setState(() {
-                          selectedDate = picked;
-                        });
-                      }
+        return StatefulBuilder(builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: const Text('Add New Event'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextField(
+                    onChanged: (value) {
+                      newEventTitle = value;
                     },
+                    decoration: const InputDecoration(hintText: "Event Title"),
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        child: const Text("Select Date"),
+                        onPressed: () async {
+                          final DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2101),
+                          );
+                          if (picked != null && picked != selectedDate) {
+                            setState(() {
+                              selectedDate = picked;
+                            });
+                          }
+                        },
+                      ),
+                      ElevatedButton(
+                        child: const Text("Select Time"),
+                        onPressed: () async {
+                          final TimeOfDay? picked = await showTimePicker(
+                            context: context,
+                            initialTime: selectedTime,
+                          );
+                          if (picked != null && picked != selectedTime) {
+                            setState(() {
+                              selectedTime = picked;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   ElevatedButton(
-                    child: const Text("Select Time"),
+                    child: const Text("Select End Time (Optional)"),
                     onPressed: () async {
                       final TimeOfDay? picked = await showTimePicker(
                         context: context,
-                        initialTime: selectedTime,
+                        initialTime: TimeOfDay.now(),
                       );
-                      if (picked != null && picked != selectedTime) {
+                      if (picked != null) {
                         setState(() {
-                          selectedTime = picked;
+                          selectedEndTime = picked;
                         });
                       }
                     },
                   ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    onChanged: (value) {
+                      eventNotes = value;
+                    },
+                    decoration:
+                        const InputDecoration(hintText: "Notes (Optional)"),
+                    maxLines: 3,
+                  ),
                 ],
               ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: const Text('Add'),
+                onPressed: () async {
+                  if (newEventTitle.isNotEmpty) {
+                    final DateTime eventDateTime = DateTime(
+                      selectedDate.year,
+                      selectedDate.month,
+                      selectedDate.day,
+                      selectedTime.hour,
+                      selectedTime.minute,
+                    );
+
+                    // Create eventEndTime only if selectedEndTime is not null
+                    DateTime? eventEndTime;
+                    if (selectedEndTime != null) {
+                      eventEndTime = DateTime(
+                        selectedDate.year,
+                        selectedDate.month,
+                        selectedDate.day,
+                      );
+                    }
+
+                    try {
+                      await _firebaseService.addEvent(newEventTitle,
+                          eventDateTime, eventEndTime, eventNotes, 'event');
+
+                      // After adding the event, refresh the calendar view
+                      setState(() {
+                        _selectedDay = selectedDate;
+                        _focusedDay = selectedDate;
+                      });
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Event added successfully')),
+                      );
+                    } catch (e) {
+                      print('Error adding event: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to add event: $e')),
+                      );
+                    }
+
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
             ],
-          ),
+          );
+        });
+      },
+    );
+  }
+
+  void _deleteEvent(BuildContext context, String eventId, String eventTitle) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Event'),
+          content: Text('Are you sure you want to delete "$eventTitle"?'),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
@@ -179,44 +290,143 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               },
             ),
             TextButton(
-              child: const Text('Add'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
               onPressed: () async {
-                if (newEventTitle.isNotEmpty) {
-                  final DateTime eventDateTime = DateTime(
-                    selectedDate.year,
-                    selectedDate.month,
-                    selectedDate.day,
-                    selectedTime.hour,
-                    selectedTime.minute,
+                try {
+                  await _firebaseService.deleteEvent(eventId);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Event deleted successfully')),
                   );
-
-                  try {
-                    await _firebaseService.addEvent(
-                        newEventTitle, eventDateTime);
-
-                    // After adding the event, refresh the calendar view
-                    setState(() {
-                      _selectedDay = selectedDate;
-                      _focusedDay = selectedDate;
-                    });
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Event added successfully')),
-                    );
-                  } catch (e) {
-                    print('Error adding event: $e');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed to add event: $e')),
-                    );
-                  }
-
-                  Navigator.of(context).pop();
+                } catch (e) {
+                  print('Error deleting event: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete event: $e')),
+                  );
                 }
+                Navigator.of(context).pop();
               },
             ),
           ],
         );
       },
+    );
+  }
+
+  void _showEventDetails(BuildContext context, Map<String, dynamic> event) {
+    final String eventType = event['type'] ?? 'event';
+    final bool isAmenity = eventType == 'amenity';
+    final bool isHealth = eventType == 'health';
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      event['title'],
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      Navigator.pop(context); // Close the bottom sheet
+                      _deleteEvent(context, event['id'], event['title']);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Date: ${DateFormat('EEEE, MMMM d, yyyy').format(event['date'])}',
+                style: const TextStyle(fontSize: 16),
+              ),
+              Text(
+                'Time: ${DateFormat('h:mm a').format(event['date'])}',
+                style: const TextStyle(fontSize: 16),
+              ),
+
+              // Show additional details for amenity or health bookings
+              if ((isAmenity || isHealth) && event['endTime'] != null) ...[
+                Text(
+                  'End Time: ${DateFormat('h:mm a').format(event['endTime'])}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                if (event['notes'] != null &&
+                    event['notes'].toString().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Notes:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          event['notes'],
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0A1A3B),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Close'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Navigate to BookAmenitiesScreen
+  void _openAmenitiesBooking() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const BookAmenitiesScreen()),
+    );
+  }
+
+  // Navigate to HealthWellnessScreen
+  void _openHealthWellness() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const HealthWellnessScreen()),
     );
   }
 
@@ -242,7 +452,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                     const Spacer(),
                     Image.asset(
                       'assets/images/logo.png',
-                      height: 90,
+                      height: 40,
                       fit: BoxFit.contain,
                     ),
                     const Spacer(),
@@ -311,66 +521,132 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   }
 
   Widget _buildCalendarView() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TableCalendar(
-        firstDay: DateTime.utc(2020, 1, 1),
-        lastDay: DateTime.utc(2030, 12, 31),
-        focusedDay: _focusedDay,
-        calendarFormat: _calendarFormat,
-        eventLoader: _getEventsForDay,
-        selectedDayPredicate: (day) {
-          return isSameDay(_selectedDay, day);
-        },
-        onDaySelected: (selectedDay, focusedDay) {
-          setState(() {
-            _selectedDay = selectedDay;
-            _focusedDay = focusedDay;
-          });
-        },
-        headerStyle: const HeaderStyle(
-          formatButtonVisible: false,
-          titleCentered: true,
-          titleTextStyle: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
           ),
-          leftChevronIcon: Icon(Icons.chevron_left, size: 28),
-          rightChevronIcon: Icon(Icons.chevron_right, size: 28),
+          child: TableCalendar(
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.utc(2030, 12, 31),
+            focusedDay: _focusedDay,
+            calendarFormat: _calendarFormat,
+            eventLoader: _getEventsForDay,
+            selectedDayPredicate: (day) {
+              return isSameDay(_selectedDay, day);
+            },
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+            },
+            headerStyle: const HeaderStyle(
+              formatButtonVisible: false,
+              titleCentered: true,
+              titleTextStyle: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              leftChevronIcon: Icon(Icons.chevron_left, size: 28),
+              rightChevronIcon: Icon(Icons.chevron_right, size: 28),
+            ),
+            calendarStyle: CalendarStyle(
+              markersMaxCount: 3,
+              markerDecoration: BoxDecoration(
+                color: Colors.blue.shade700,
+                shape: BoxShape.circle,
+              ),
+              todayDecoration: const BoxDecoration(
+                color: Color(0xFF0A1A3B),
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: const BoxDecoration(
+                color: Color(0xFF0A1A3B),
+                shape: BoxShape.circle,
+              ),
+              outsideDaysVisible: false,
+              weekendTextStyle: const TextStyle(color: Colors.black87),
+              defaultTextStyle: const TextStyle(color: Colors.black87),
+            ),
+            daysOfWeekStyle: const DaysOfWeekStyle(
+              weekdayStyle: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+              weekendStyle: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
         ),
-        calendarStyle: CalendarStyle(
-          markersMaxCount: 3,
-          markerDecoration: BoxDecoration(
-            color: Colors.blue.shade700,
-            shape: BoxShape.circle,
+
+        // Show events for selected day
+        if (_selectedDay != null && _getEventsForDay(_selectedDay!).isNotEmpty)
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListView.builder(
+                padding: const EdgeInsets.all(8.0),
+                itemCount: _getEventsForDay(_selectedDay!).length,
+                itemBuilder: (context, index) {
+                  final event = _getEventsForDay(_selectedDay!)[index];
+                  final String eventType = event['type'] ?? 'event';
+                  final bool isAmenity = eventType == 'amenity';
+                  final bool isHealth = eventType == 'health';
+
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8.0),
+                    child: ListTile(
+                      title: Text(
+                        event['title'],
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text((isAmenity || isHealth) &&
+                              event['endTime'] != null
+                          ? '${DateFormat('h:mm a').format(event['date'])} - ${DateFormat('h:mm a').format(event['endTime'])}'
+                          : DateFormat('h:mm a').format(event['date'])),
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: isHealth
+                              ? Colors.purple.shade700
+                              : isAmenity
+                                  ? Colors.green.shade700
+                                  : Colors.blue.shade700,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          isHealth
+                              ? Icons.spa
+                              : isAmenity
+                                  ? Icons.fitness_center
+                                  : Icons.event,
+                          color: Colors.white,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () =>
+                            _deleteEvent(context, event['id'], event['title']),
+                      ),
+                      onTap: () => _showEventDetails(context, event),
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
-          todayDecoration: const BoxDecoration(
-            color: Color(0xFF0A1A3B),
-            shape: BoxShape.circle,
-          ),
-          selectedDecoration: const BoxDecoration(
-            color: Color(0xFF0A1A3B),
-            shape: BoxShape.circle,
-          ),
-          outsideDaysVisible: false,
-          weekendTextStyle: const TextStyle(color: Colors.black87),
-          defaultTextStyle: const TextStyle(color: Colors.black87),
-        ),
-        daysOfWeekStyle: const DaysOfWeekStyle(
-          weekdayStyle: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-          weekendStyle: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
+      ],
     );
   }
 
@@ -398,16 +674,12 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                 CalendarFeatureColumn(
                   iconPath: 'assets/images/amenities_icon.png',
                   label: 'Book\nAmenities',
-                  onTap: () {
-                    // Handle Book Amenities tap
-                  },
+                  onTap: _openAmenitiesBooking,
                 ),
                 CalendarFeatureColumn(
                   iconPath: 'assets/images/health_icon.png',
                   label: 'Health &\nWellness',
-                  onTap: () {
-                    // Handle Health & Wellness tap
-                  },
+                  onTap: _openHealthWellness, // Updated to use the new method
                 ),
               ],
             ),
@@ -475,44 +747,110 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               ? 5
               : events.length, // Show only 5 upcoming events
           itemBuilder: (context, index) {
-            final data = events[index].data() as Map<String, dynamic>;
+            final doc = events[index];
+            final data = doc.data() as Map<String, dynamic>;
             final DateTime date = (data['date'] as Timestamp).toDate();
+            final String eventType = data['type'] ?? 'event';
 
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8.0),
-              child: ListTile(
-                title: Text(
-                  data['title'],
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+            return Dismissible(
+              key: Key(doc.id),
+              background: Container(
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 20.0),
+                child: const Icon(
+                  Icons.delete,
+                  color: Colors.white,
                 ),
-                subtitle: Text(DateFormat('MMM d, yyyy - h:mm a').format(date)),
-                leading: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0A1A3B),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        DateFormat('d').format(date),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+              ),
+              direction: DismissDirection.endToStart,
+              confirmDismiss: (direction) async {
+                return await showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text("Confirm"),
+                      content: Text(
+                          "Are you sure you want to delete ${data['title']}?"),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text("CANCEL"),
                         ),
-                      ),
-                      Text(
-                        DateFormat('MMM').format(date),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text("DELETE",
+                              style: TextStyle(color: Colors.red)),
                         ),
-                      ),
-                    ],
+                      ],
+                    );
+                  },
+                );
+              },
+              onDismissed: (direction) {
+                _firebaseService.deleteEvent(doc.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${data['title']} deleted')),
+                );
+              },
+              child: Card(
+                margin: const EdgeInsets.only(bottom: 8.0),
+                child: ListTile(
+                  title: Text(
+                    data['title'],
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  subtitle:
+                      Text(DateFormat('MMM d, yyyy - h:mm a').format(date)),
+                  leading: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: eventType == 'health'
+                          ? Colors.purple.shade700
+                          : eventType == 'amenity'
+                              ? Colors.green.shade700
+                              : const Color(0xFF0A1A3B),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          DateFormat('d').format(date),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        Text(
+                          DateFormat('MMM').format(date),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () =>
+                        _deleteEvent(context, doc.id, data['title']),
+                  ),
+                  onTap: () {
+                    _showEventDetails(context, {
+                      'id': doc.id,
+                      'title': data['title'],
+                      'date': date,
+                      'type': eventType,
+                      'endTime': data['endTime'] != null
+                          ? (data['endTime'] as Timestamp).toDate()
+                          : null,
+                      'notes': data['notes'],
+                    });
+                  },
                 ),
               ),
             );
