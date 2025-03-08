@@ -3,56 +3,59 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
 import 'package:we_neighbour/features/notifications&alets/notifications_screen.dart';
 import 'package:we_neighbour/features/notifications&alets/safety_alerts.dart';
+import '../main.dart';
 
 class HeaderWidget extends StatefulWidget {
   final bool isDarkMode;
 
-  const HeaderWidget({
-    super.key,
-    required this.isDarkMode,
-  });
+  const HeaderWidget({super.key, required this.isDarkMode});
 
   @override
   State<HeaderWidget> createState() => _HeaderWidgetState();
 }
 
 class _HeaderWidgetState extends State<HeaderWidget> {
-  String _userName = '';
+  String _userName = 'User';
+  String _userStatus = 'approved';
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    _loadUserData();
   }
 
   String _getFirstName(String fullName) {
-    // Split the name and get the first part
     final nameParts = fullName.trim().split(' ');
     if (nameParts.isEmpty) return 'User';
-    
-    // Capitalize first letter and make rest lowercase
     String firstName = nameParts[0];
     if (firstName.isEmpty) return 'User';
-    
     return firstName[0].toUpperCase() + firstName.substring(1).toLowerCase();
   }
 
-  Future<void> _loadUserName() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final fullName = prefs.getString('userName');
-      
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token == null) {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+      return;
+    }
+
+    final fullName = prefs.getString('userName') ?? 'User';
+    final status = prefs.getString('userStatus') ?? 'approved';
+
+    if (mounted) {
       setState(() {
-        _userName = fullName != null ? _getFirstName(fullName) : 'User';
+        _userName = _getFirstName(fullName);
+        _userStatus = status;
         _isLoading = false;
       });
-    } catch (e) {
-      print('Error loading user name: $e');
-      setState(() {
-        _userName = 'User';
-        _isLoading = false;
-      });
+    }
+
+    if (prefs.getString('userRole') == 'resident' && status == 'pending' && mounted) {
+      Navigator.pushReplacementNamed(context, '/pending-approval');
     }
   }
 
@@ -60,20 +63,13 @@ class _HeaderWidgetState extends State<HeaderWidget> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: widget.isDarkMode 
-            ? const Color.fromARGB(255, 0, 18, 152) 
-            : const Color.fromARGB(255, 14, 105, 213),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
+        color: widget.isDarkMode ? const Color.fromARGB(255, 0, 18, 152) : const Color.fromARGB(255, 14, 105, 213),
+        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
       ),
       child: Column(
         children: [
           Container(
-            color: widget.isDarkMode 
-                ? const Color.fromARGB(255, 0, 18, 152) 
-                : const Color.fromARGB(255, 14, 105, 213),
+            color: widget.isDarkMode ? const Color.fromARGB(255, 0, 18, 152) : const Color.fromARGB(255, 14, 105, 213),
             height: MediaQuery.of(context).padding.top,
           ),
           Padding(
@@ -87,9 +83,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                     Row(
                       children: [
                         Image.asset(
-                          widget.isDarkMode 
-                              ? 'assets/images/logo.png'
-                              : 'assets/images/logo.png',
+                          'assets/images/logo.png',
                           height: 90,
                         ),
                         const SizedBox(width: 8),
@@ -100,60 +94,38 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                         ? const SizedBox(
                             height: 24,
                             width: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                           )
-                        : Text(
-                            'Hello, \n$_userName...!',
-                            style: AppTextStyles.greeting,
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Hello, $_userName...!', style: AppTextStyles.greeting),
+                              if (_userStatus == 'pending')
+                                Text(
+                                  'Awaiting Approval',
+                                  style: TextStyle(fontSize: 14, color: Colors.yellowAccent, fontWeight: FontWeight.w500),
+                                ),
+                            ],
                           ),
                   ],
                 ),
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SafetyAlertsScreen(),
-                          ),
-                        );
-                      },
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SafetyAlertsScreen())),
                       child: Container(
                         padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.warning_amber_rounded,
-                          color: Color.fromARGB(255, 249, 56, 56),
-                          size: 30,
-                        ),
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+                        child: const Icon(Icons.warning_amber_rounded, color: Color.fromARGB(255, 249, 56, 56), size: 30),
                       ),
                     ),
                     const SizedBox(width: 1),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const NotificationsScreen(),
-                          ),
-                        );
-                      },
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
                       child: Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.notifications,
-                          color: Colors.white,
-                          size: 30,
-                        ),
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+                        child: const Icon(Icons.notifications, color: Colors.white, size: 30),
                       ),
                     ),
                   ],
@@ -166,4 +138,3 @@ class _HeaderWidgetState extends State<HeaderWidget> {
     );
   }
 }
-
