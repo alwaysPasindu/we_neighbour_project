@@ -39,15 +39,15 @@ class AuthUtils {
     final profileData = {
       'name': prefs.getString('userName') ?? '',
       'email': prefs.getString('userEmail') ?? '',
-      'phone': prefs.getString('userPhone') ?? '',
-      'apartmentCode': prefs.getString('userApartment') ?? '',
+      'phone': prefs.getString('userPhone') ?? '', // Re-added
+      'apartmentComplexName': prefs.getString('userApartment') ?? '',
     };
     switch (userType) {
       case UserType.resident:
-        profileData['apartmentCode'] = prefs.getString('userApartment') ?? '';
+        profileData['apartmentComplexName'] = prefs.getString('userApartment') ?? '';
         break;
       case UserType.manager:
-        profileData['apartment'] = prefs.getString('userApartment') ?? '';
+        profileData['apartmentComplexName'] = prefs.getString('userApartment') ?? '';
         profileData['designation'] = prefs.getString('designation') ?? '';
         break;
       case UserType.serviceProvider:
@@ -60,8 +60,8 @@ class AuthUtils {
   static Future<void> saveUserProfileData({
     required String name,
     required String email,
-    required String phone,
-    String? apartment,
+    required String phone, // Re-added
+    String? apartmentComplexName,
     String? address,
     String? serviceType,
     String? designation,
@@ -69,8 +69,8 @@ class AuthUtils {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userName', name);
     await prefs.setString('userEmail', email);
-    await prefs.setString('userPhone', phone);
-    if (apartment != null) await prefs.setString('userApartment', apartment);
+    await prefs.setString('userPhone', phone); // Re-added
+    if (apartmentComplexName != null) await prefs.setString('userApartment', apartmentComplexName);
     if (address != null) await prefs.setString('userAddress', address);
     if (serviceType != null) await prefs.setString('serviceType', serviceType);
     if (designation != null) await prefs.setString('designation', designation);
@@ -102,26 +102,21 @@ class AuthUtils {
   static Future<void> updateUserDataOnLogin(Map<String, dynamic> userData) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', userData['token'] ?? '');
-    await prefs.setString('userId', userData['user']['id'] ?? ''); // Ensure user ID is stored
+    await prefs.setString('userId', userData['user']['id'] ?? '');
     await prefs.setString('userName', userData['user']['name'] ?? '');
     await prefs.setString('userEmail', userData['user']['email'] ?? '');
     await prefs.setString('userRole', userData['user']['role'].toLowerCase() ?? 'resident');
-    await prefs.setString('userPhone', userData['user']['phone'] ?? '');
+    await prefs.setString('userPhone', userData['user']['phone'] ?? ''); // Re-added
 
     final role = userData['user']['role'].toLowerCase();
     if (role == 'resident' || role == 'manager') {
-      await prefs.setString('userApartment', userData['user']['apartmentCode'] ?? '');
-    }
-    if (role == 'manager') {
-      await prefs.setString('designation', userData['user']['designation'] ?? '');
+      await prefs.setString('userApartment', userData['user']['apartmentComplexName'] ?? '');
     }
     if (role == 'serviceprovider') {
-      await prefs.setString('userAddress', userData['user']['address'] ?? '');
-      await prefs.setString('serviceType', userData['user']['serviceType'] ?? '');
+      await prefs.setString('userAddress', userData['user']['address'] ?? ''); // Optional
     }
   }
 
-  // Add getUserId method
   static Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('userId');
