@@ -10,7 +10,7 @@ import '../widgets/feature_grid.dart';
 import '../widgets/bottom_navigation.dart';
 import '../constants/colors.dart';
 import '../main.dart';
-import '../models/service.dart'; // Updated to use your Service model
+import '../models/service.dart';
 import '../utils/auth_utils.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _timer;
   String? _token;
   late SharedPreferences prefs;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -48,15 +49,27 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _initializePrefs() async {
     prefs = await SharedPreferences.getInstance();
     await _loadUserData();
+    setState(() => _isLoading = false);
   }
 
   Future<void> _loadUserData() async {
-    setState(() {
-      _token = prefs.getString('token');
-    });
-    if (_token != null) {
-      await _loadServices();
+    _token = prefs.getString('token');
+    if (_token == null) {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+      return;
     }
+
+    final userStatus = prefs.getString('userStatus') ?? 'approved';
+    if (userStatus == 'pending' && widget.userType == UserType.resident) {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/pending-approval');
+      }
+      return;
+    }
+
+    await _loadServices();
   }
 
   Future<void> _loadServices() async {
@@ -67,52 +80,48 @@ class _HomeScreenState extends State<HomeScreen> {
           'Authorization': 'Bearer $_token',
           'Content-Type': 'application/json',
         },
-      ).timeout(const Duration(seconds: 15)); // Increased timeout to 15 seconds
+      ).timeout(const Duration(seconds: 15));
 
       print('HomeScreen load services response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
-        final List<dynamic> servicesJson = jsonDecode(response.body) as List<dynamic>;
-        final services = servicesJson.map((json) => Service.fromJson(json as Map<String, dynamic>)).toList();
+        final List<dynamic> servicesJson = jsonDecode(response.body);
+        final services = servicesJson.map((json) => Service.fromJson(json)).toList();
         setState(() {
           _featuredServices = services;
         });
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
       } else {
-        throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to load services: ${response.body}');
       }
     } on TimeoutException catch (e) {
-      print('Timeout loading services in HomeScreen: $e');
-      final String? servicesJson = prefs.getString('services');
-      if (servicesJson != null) {
-        final List<dynamic> decodedServices = jsonDecode(servicesJson);
-        setState(() {
-          _featuredServices = decodedServices.map((service) => Service.fromJson(service as Map<String, dynamic>)).toList();
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Timeout loading services. Showing cached data.')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Timeout loading services. No cached data available.')),
-        );
-      }
+      print('Timeout loading services: $e');
+      _loadCachedServices('Timeout loading services. Showing cached data.');
     } catch (e) {
-      print('Error loading services in HomeScreen: $e');
-      final String? servicesJson = prefs.getString('services');
-      if (servicesJson != null) {
-        final List<dynamic> decodedServices = jsonDecode(servicesJson);
-        setState(() {
-          _featuredServices = decodedServices.map((service) => Service.fromJson(service as Map<String, dynamic>)).toList();
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading services: $e. Showing cached data if available.')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading services: $e. No cached data available.')),
-        );
-      }
+      print('Error loading services: $e');
+      _loadCachedServices('Error loading services: $e. Showing cached data if available.');
+    }
+  }
+
+  void _loadCachedServices(String message) {
+    final String? servicesJson = prefs.getString('services');
+    if (servicesJson != null) {
+      final List<dynamic> decodedServices = jsonDecode(servicesJson);
+      setState(() {
+        _featuredServices = decodedServices.map((service) => Service.fromJson(service)).toList();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No cached services available.')),
+      );
+    }
+  }
+
+  Future<void> _signOut() async {
+    await prefs.clear();
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     }
   }
 
@@ -135,32 +144,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onTabTapped(int index) async {
-    setState(() {
-      _currentIndex = index;
-    });
+    setState(() => _currentIndex = index);
 
-    if (index == 1) { // Chat tab
-      Navigator.pushNamed(context, '/chat', arguments: widget.userType);
-    } else if (index == 2) { // Resource tab
-      Navigator.pushNamed(context, '/resource');
-    } else if (index == 3) { // Service tab
-      Navigator.pushNamed(context, '/service', arguments: widget.userType);
-    } else if (index == 4) { // Profile tab
-      final token = prefs.getString('token');
-
-      if (token == null) {
-        Navigator.pushReplacementNamed(context, '/login');
-        return;
-      }
-
-      final userType = await AuthUtils.getUserType();
-      Navigator.pushNamed(context, '/profile', arguments: userType);
+    switch (index) {
+      case 1:
+        Navigator.pushNamed(context, '/chat', arguments: widget.userType);
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/resource');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/service', arguments: widget.userType);
+        break;
+      case 4:
+        if (_token == null) {
+          Navigator.pushReplacementNamed(context, '/login');
+          return;
+        }
+        final userType = await AuthUtils.getUserType();
+        Navigator.pushNamed(context, '/profile', arguments: userType);
+        break;
     }
   }
 
   void _onServiceTap(Service service) async {
     final currentUserId = prefs.getString('userId') ?? '';
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -178,6 +186,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
 
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackground : const Color.fromARGB(255, 255, 254, 254),
       body: Column(
@@ -185,7 +197,9 @@ class _HomeScreenState extends State<HomeScreen> {
           HeaderWidget(isDarkMode: isDarkMode),
           Expanded(
             child: RefreshIndicator(
-              onRefresh: _loadServices,
+              onRefresh: () async {
+                await _loadServices(); // Refresh services only
+              },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
@@ -224,11 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: PageView.builder(
                           controller: _pageController,
                           itemCount: _featuredServices.length,
-                          onPageChanged: (int page) {
-                            setState(() {
-                              _currentPage = page;
-                            });
-                          },
+                          onPageChanged: (int page) => setState(() => _currentPage = page),
                           itemBuilder: (context, index) {
                             final service = _featuredServices[index];
                             return Card(
@@ -253,6 +263,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                               height: size.height * 0.2,
                                               width: double.infinity,
                                               fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) => Container(
+                                                height: size.height * 0.2,
+                                                color: Colors.grey,
+                                                child: const Icon(Icons.image_not_supported, color: Colors.white),
+                                              ),
                                             ),
                                           ),
                                           Positioned.fill(
@@ -261,10 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 gradient: LinearGradient(
                                                   begin: Alignment.topCenter,
                                                   end: Alignment.bottomCenter,
-                                                  colors: [
-                                                    Colors.transparent,
-                                                    Colors.black.withOpacity(0.8),
-                                                  ],
+                                                  colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
                                                 ),
                                               ),
                                             ),
@@ -278,20 +290,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                               children: [
                                                 Text(
                                                   service.title,
-                                                  style: const TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
-                                                  ),
+                                                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                                                 ),
                                                 const SizedBox(height: 4),
                                                 Text(
                                                   service.serviceProviderName,
-                                                  style: TextStyle(
-                                                    color: Colors.white.withOpacity(0.9),
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
+                                                  style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14, fontWeight: FontWeight.w500),
                                                 ),
                                               ],
                                             ),
@@ -379,10 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.all(16),
                         child: Text(
                           'No featured services available',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                          ),
+                          style: TextStyle(fontSize: 18, color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
                         ),
                       ),
                     ],
