@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
 import 'package:we_neighbour/main.dart';
-import 'package:we_neighbour/models/resource.dart';
-import 'package:we_neighbour/widgets/resource_form_dialog.dart';
-import 'package:we_neighbour/widgets/resource_card.dart';
+import 'package:we_neighbour/models/resource.dart' as model;
+import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/widgets/share_dialog.dart';
 import '../../providers/theme_provider.dart';
 import '../../constants/colors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:we_neighbour/widgets/resource_card.dart'; // Updated to use your ResourceCard
 
 class ResourceSharingPage extends StatefulWidget {
   const ResourceSharingPage({super.key});
@@ -20,9 +20,9 @@ class ResourceSharingPage extends StatefulWidget {
 }
 
 class _ResourceSharingPageState extends State<ResourceSharingPage> {
-  List<Resource> resources = [];
+  List<model.Resource> resources = [];
   bool _isLoading = true;
-  String? userId; // To store the current user's ID for authorization
+  String? userId;
   String? authToken;
 
   @override
@@ -35,14 +35,17 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      userId = prefs.getString('userId'); // Get user ID from SharedPreferences
+      userId = prefs.getString('userId');
       authToken = prefs.getString('token');
+      print('Loaded User ID: $userId, Token: $authToken');
     });
   }
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    final token = prefs.getString('token');
+    print('Retrieved token: $token');
+    return token;
   }
 
   Future<void> _fetchResources() async {
@@ -56,11 +59,11 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     }
 
     try {
-      final headers = {'Authorization': 'Bearer $token'};
+      final headers = {'x-auth-token': token};
       print('Fetching resources with headers: $headers');
       final response = await http
           .get(
-            Uri.parse('$baseUrl/api/resources/get-request'), // Ensure path matches backend
+            Uri.parse('$baseUrl/api/resource/get-request'),
             headers: headers,
           )
           .timeout(const Duration(seconds: 15));
@@ -69,7 +72,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
-          resources = data.map((r) => Resource.fromJson(r)).toList();
+          resources = data.map((r) => model.Resource.fromJson(r)).toList();
           _isLoading = false;
         });
       } else if (response.statusCode == 404) {
@@ -106,7 +109,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       print('Request body: $body');
       final response = await http
           .post(
-            Uri.parse('$baseUrl/api/resources/create-request'),
+            Uri.parse('$baseUrl/api/resource/create-request'),
             headers: headers,
             body: body,
           )
@@ -114,20 +117,24 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
 
       print('Create resource response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 201) {
-        final newResource = Resource.fromJson(jsonDecode(response.body)); // Parse the full resource from the 201 response
+        final newResource = model.Resource.fromJson(jsonDecode(response.body));
         setState(() {
-          resources.insert(0, newResource); // Add the new resource at the top of the list for instant visibility
+          resources.insert(0, newResource);
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Resource request created successfully')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Resource request created successfully')),
+          );
+        }
       } else {
         throw Exception('Failed to create resource: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error creating resource: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error creating resource: $e')),
+        );
+      }
     }
   }
 
@@ -136,11 +143,11 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     if (token == null) return;
 
     try {
-      final headers = {'Authorization': 'Bearer $token'};
+      final headers = {'x-auth-token': token};
       print('Deleting resource with ID: $id, headers: $headers');
       final response = await http
           .delete(
-            Uri.parse('$baseUrl/api/resources/delete-request/$id'),
+            Uri.parse('$baseUrl/api/resource/delete-request/$id'),
             headers: headers,
           )
           .timeout(const Duration(seconds: 15));
@@ -148,18 +155,22 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       print('Delete resource response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
         setState(() {
-          resources.removeWhere((resource) => resource.id == id); // Remove the resource from the list instantly
+          resources.removeWhere((resource) => resource.id == id);
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Resource request deleted successfully')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Resource request deleted successfully')),
+          );
+        }
       } else {
         throw Exception('Failed to delete resource: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting resource: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting resource: $e')),
+        );
+      }
     }
   }
 
@@ -216,7 +227,9 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              if (titleController.text.isEmpty || descriptionController.text.isEmpty || quantityController.text.isEmpty) {
+              if (titleController.text.isEmpty ||
+                  descriptionController.text.isEmpty ||
+                  quantityController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Please fill in all fields')),
                 );
@@ -278,64 +291,71 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
 
     return Scaffold(
-      backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        title: const Text(
-          'Resources',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+    backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
+    appBar: AppBar(
+      backgroundColor: AppColors.primary,
+      title: const Text(
+        'Resources',
+        style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.white))
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: resources.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final resource = resources[index];
-                return ResourceCard(
-                  title: resource.title,
-                  description: resource.description,
-                  requestId: resource.requestId,
-                  userName: resource.userName,
-                  userId: resource.userId, // Pass the creator's user ID to ResourceCard
-                  currentUserId: userId, // Pass the current user's ID to determine visibility
-                  isDarkMode: isDarkMode,
-                  onShare: userId != resource.userId // Only show share for non-creators
-                      ? () async {
-                          final message = await showDialog(
-                            context: context,
-                            builder: (context) => ShareDialog(resource: resource),
-                          );
-                          if (message != null) {
-                            // Here you would implement the actual message sending logic
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Message sent to ${resource.userName}'),
-                                backgroundColor: AppColors.primary,
-                              ),
-                            );
-                          }
-                        }
-                      : null, // Hide share for creator
-                  onDelete: userId == resource.userId // Only show delete for creator
-                      ? () => _showDeleteDialog(resource.id)
-                      : null,
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showCreateDialog,
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-    );
-  }
+    ),
+    body: _isLoading
+        ? const Center(child: CircularProgressIndicator(color: Colors.white))
+        : ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: resources.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              final resource = resources[index];
+              return ResourceCard(
+                title: resource.title,
+                description: resource.description,
+                userName: resource.userName,
+                apartmentCode: resource.apartmentCode,
+                userId: resource.userId,
+                currentUserId: userId,
+                isDarkMode: isDarkMode,
+                onShare: userId != resource.userId ? () async {
+                  final message = await showDialog<String>(
+                    context: context,
+                    builder: (context) => ShareDialog(resource: resource),
+                  );
+                  if (message != null && message.isNotEmpty) {
+                    try {
+                      final chatId = await chatProvider.getOrCreateChat(resource.userId);
+                      await chatProvider.sendMessage(chatId, message, replyTo: resource.id);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Message sent to ${resource.userName}'),
+                          backgroundColor: AppColors.primary,
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error sending message: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                } : null,
+                onDelete: userId == resource.userId ? () => _showDeleteDialog(resource.id) : null,
+              );
+            },
+          ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: _showCreateDialog,
+      backgroundColor: AppColors.primary,
+      child: const Icon(Icons.add, color: Colors.white),
+    ),
+  );
+}
 }

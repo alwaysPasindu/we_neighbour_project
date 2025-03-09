@@ -2,17 +2,19 @@ class Resource {
   final String id;
   final String title;
   final String description;
-  final String requestId;
+  final String quantity;
   final String userId;
   final String userName;
+  final String apartmentCode;
 
   Resource({
     required this.id,
     required this.title,
     required this.description,
-    required this.requestId,
+    required this.quantity,
     required this.userId,
     required this.userName,
+    required this.apartmentCode,
   });
 
   factory Resource.fromJson(Map<String, dynamic> json) {
@@ -20,9 +22,10 @@ class Resource {
       id: json['_id'],
       title: json['resourceName'],
       description: json['description'],
-      requestId: 'REQ${DateTime.now().millisecondsSinceEpoch}', // Adjust if backend provides a requestId
-      userId: json['resident']['_id'] ?? json['resident'], // Handle both object and string formats
+      quantity: json['quantity'],
+      userId: json['resident']['_id'] ?? json['resident'],
       userName: json['residentName'],
+      apartmentCode: json['apartmentCode'],
     );
   }
 }

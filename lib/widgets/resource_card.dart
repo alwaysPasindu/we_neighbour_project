@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
+import 'package:we_neighbour/widgets/share_dialog.dart';
+import '../models/resource.dart';
 
 class ResourceCard extends StatelessWidget {
   final String title;
   final String description;
-  final String requestId;
   final String userName;
+  final String apartmentCode;
   final String userId; // Creator's user ID
   final String? currentUserId; // Current user's ID to determine button visibility
   final bool isDarkMode;
@@ -17,8 +19,8 @@ class ResourceCard extends StatelessWidget {
     super.key,
     required this.title,
     required this.description,
-    required this.requestId,
     required this.userName,
+    required this.apartmentCode,
     required this.userId,
     required this.currentUserId,
     required this.isDarkMode,
@@ -30,7 +32,7 @@ class ResourceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // You can add tap behavior here if needed (e.g., navigate to details)
+        // Optional tap behavior (e.g., navigate to details)
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16.0),
@@ -93,25 +95,60 @@ class ResourceCard extends StatelessWidget {
                     ),
                     onPressed: onDelete,
                   ),
-                // Show Share button only for non-creators
-                if (onShare != null)
-                  IconButton(
-                    icon: Icon(
-                      Icons.share,
-                      color: AppColors.primary,
-                      size: 20,
-                    ),
-                    onPressed: onShare,
-                  ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              'By: $userName • Request ID: $requestId',
-              style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.person, size: 16, color: Color.fromARGB(255, 117, 117, 117)),
+                    const SizedBox(width: 4),
+                    Text(
+                      'By: $userName',
+                      style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Apt: $apartmentCode',
+                        style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Show Share button only for non-creators
+                if (onShare != null)
+                  OutlinedButton(
+                    onPressed: onShare,
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.grey),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    ),
+                    child: const Text(
+                      'SHARE',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),
