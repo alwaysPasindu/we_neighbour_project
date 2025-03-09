@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'dart:convert';
 
+import 'package:we_neighbour/main.dart';
+
 
 class ManagerMaintenanceScreen extends StatefulWidget {
   final String authToken;
@@ -16,7 +18,6 @@ class ManagerMaintenanceScreen extends StatefulWidget {
 class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
   List<MaintenanceCard> _pendingRequests = [];
   bool _isLoading = true;
-  static const String baseUrl = 'http://172.20.10.3:3000'; // Match with main.dart
 
   @override
   void initState() {
@@ -29,7 +30,7 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
       final response = await http.get(
         Uri.parse('$baseUrl/api/maintenance/get-pending-request'),
         headers: {
-          'Authorization': 'Bearer ${widget.authToken}',
+          'x-auth-token': widget.authToken,
         },
       );
 
@@ -55,7 +56,7 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
       final response = await http.put(
         Uri.parse('$baseUrl/api/maintenance/mark-request/$id/done'),
         headers: {
-          'Authorization': 'Bearer ${widget.authToken}',
+          'x-auth-token': widget.authToken,
         },
       );
 

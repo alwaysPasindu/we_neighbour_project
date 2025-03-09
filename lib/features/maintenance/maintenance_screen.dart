@@ -44,10 +44,10 @@ class MaintenanceScreen extends StatefulWidget {
   final bool isManager;
 
   const MaintenanceScreen({
-    Key? key,
+    super.key,
     required this.authToken,
     required this.isManager,
-  }) : super(key: key);
+  });
 
   @override
   State<MaintenanceScreen> createState() => _MaintenanceScreenState();
@@ -77,12 +77,13 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
           ? '$baseUrl/api/maintenance/get-pending-request'
           : '$baseUrl/api/maintenance/get-completed-request';
       
+      print('Fetching requests for ${widget.isManager ? "Manager" : "Resident"} with URL: $url');
       print('Fetching requests with token: ${widget.authToken}');
-      print('Authorization header: Bearer ${widget.authToken}');
+      print('Authorization header: x-auth-token: ${widget.authToken}');
       final response = await http.get(
         Uri.parse(url),
         headers: {
-          'authorization': 'Bearer ${widget.authToken}',
+          'x-auth-token': widget.authToken,
         },
       );
 
@@ -96,14 +97,15 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
           _isLoading = false;
         });
       } else {
-        throw Exception('Failed to load requests: ${response.body}');
+        throw Exception('Failed to load requests: Status ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: Text('Failed to load requests: ${e.toString()}')),
         );
+        print('Fetch requests error: $e');
       }
     }
   }
@@ -115,7 +117,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
       final response = await http.put(
         Uri.parse('$baseUrl/api/maintenance/mark-request/$id/done'),
         headers: {
-          'authorization': 'Bearer ${widget.authToken}',
+          'x-auth-token': widget.authToken,
         },
       );
 
@@ -145,7 +147,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         Uri.parse('$baseUrl/api/maintenance/rate/$id'),
         headers: {
           'Content-Type': 'application/json',
-          'authorization': 'Bearer ${widget.authToken}',
+          'x-auth-token': widget.authToken,
         },
         body: jsonEncode({'stars': rating}),
       );
