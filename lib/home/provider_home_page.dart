@@ -88,19 +88,18 @@ class _HomePageState extends State<ProviderHomePage> {
       }
       return;
     }
-
     await _loadServices();
   }
 
   Future<void> _loadServices() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/services?latitude=6.9271&longitude=79.8612'),
+        Uri.parse('$baseUrl/api/service/get-service?latitude=6.9271&longitude=79.8612'),
         headers: {
-          'Authorization': 'Bearer $_token',
+          'x-auth-token': _token!,
           'Content-Type': 'application/json',
         },
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 30));
 
       print('ProviderHomePage load services response: ${response.statusCode} - ${response.body}');
 
@@ -111,18 +110,25 @@ class _HomePageState extends State<ProviderHomePage> {
           _featuredServices = services;
         });
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
+      } else if (response.statusCode == 401) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/login');
+        }
+        throw Exception('Unauthorized: Invalid or expired token');
       } else {
-        throw Exception('Failed to load services: ${response.body}');
+        throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error loading services: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e')));
+      }
       final String? servicesJson = prefs.getString('services');
       if (servicesJson != null) {
         final List<dynamic> decodedServices = jsonDecode(servicesJson);
         setState(() {
           _featuredServices = decodedServices.map((service) => Service.fromJson(service)).toList();
         });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e. Showing cached data.')));
       }
     }
   }
@@ -187,9 +193,7 @@ class _HomePageState extends State<ProviderHomePage> {
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () async {
-          await _loadServices(); // Refresh services only
-        },
+        onRefresh: _loadServices,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(

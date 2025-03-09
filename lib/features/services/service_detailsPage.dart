@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/main.dart';
 import 'package:we_neighbour/models/service.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
+import 'package:we_neighbour/utils/auth_utils.dart';
 import 'dart:io';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ServiceDetailsPage extends StatefulWidget {
@@ -30,43 +31,42 @@ class ServiceDetailsPage extends StatefulWidget {
 class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   final CarouselSliderController _sliderController = CarouselSliderController();
   int _currentImageIndex = 0;
-  List<dynamic> _reviews = []; // Store reviews fetched from the backend
-  String? _token;
+  List<dynamic> _reviews = [];
   bool _isLoadingReviews = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUserDataAndFetchReviews(); // Load user data and fetch reviews on init
+    _fetchReviews();
   }
 
-  Future<void> _loadUserDataAndFetchReviews() async {
-    await _loadUserData();
-    await _fetchReviews(); // Fetch reviews after loading token
-  }
-
-  Future<void> _loadUserData() async {
+  Future<String?> _getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _token = prefs.getString('token');
-    });
+    final token = prefs.getString('token');
+    print('Retrieved auth token: $token');
+    return token;
   }
 
   Future<void> _fetchReviews() async {
-    if (_token == null) return;
-
     setState(() {
       _isLoadingReviews = true;
     });
 
     try {
+      final token = await _getAuthToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
       final response = await http.get(
-        Uri.parse('$baseUrl/api/services/${widget.service.id}'), // Fetch specific service by ID
+        Uri.parse('$baseUrl/api/service/${widget.service.id}'),
         headers: {
-          'Authorization': 'Bearer $_token',
           'Content-Type': 'application/json',
+          'x-auth-token': token,
         },
       );
+
+      print('Fetch reviews response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
         final serviceData = jsonDecode(response.body);
@@ -86,18 +86,37 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
     }
   }
 
-  void _addReview() {
-    final TextEditingController commentController = TextEditingController();
-    int rating = 5;
+  Future<Map<String, String>> _getUserData() async {
+    final profileData = await AuthUtils.getUserProfileData();
+    final role = await AuthUtils.getUserType().then((userType) => userType.toString().split('.').last);
+    print('Retrieved user data: name=${profileData['name']}, role=$role');
+    return {
+      'name': profileData['name'] ?? 'Anonymous', // Still used for display, not payload
+      'role': role ?? 'Unknown',
+    };
+  }
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Add Review'),
-              content: Column(
+  void _addReview() async {
+  final TextEditingController commentController = TextEditingController();
+  int rating = 5;
+
+  final userData = await _getUserData();
+  final token = await _getAuthToken();
+
+  if (token == null) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to add a review')));
+    return;
+  }
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Add Review'),
+            content: SingleChildScrollView(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButton<int>(
@@ -114,6 +133,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                       });
                     },
                   ),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: commentController,
                     decoration: const InputDecoration(labelText: 'Comment'),
@@ -121,75 +141,53 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                   ),
                 ],
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final prefs = await SharedPreferences.getInstance();
-                    final token = prefs.getString('token');
-                    final userId = prefs.getString('userId') ?? '';
-                    final userRole = prefs.getString('userRole')?.toLowerCase() ?? 'resident';
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    final response = await http.post(
+                      Uri.parse('$baseUrl/api/service/${widget.service.id}/reviews'),
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': token,
+                      },
+                      body: jsonEncode({
+                        'rating': rating,
+                        'comment': commentController.text,
+                        // Remove 'role' from payload
+                      }),
+                    );
 
-                    if (token == null) {
+                    print('Add review response: ${response.statusCode} - ${response.body}');
+
+                    if (response.statusCode == 201) {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to add a review')));
-                      return;
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review added successfully')));
+                      await _fetchReviews();
+                      setState(() {});
+                    } else {
+                      final errorData = jsonDecode(response.body);
+                      throw Exception('Failed to add review: ${errorData['message'] ?? response.statusCode}');
                     }
-
-                    try {
-                      final response = await http.post(
-                        Uri.parse('$baseUrl/api/services/${widget.service.id}/reviews'),
-                        headers: {
-                          'Authorization': 'Bearer $token',
-                          'Content-Type': 'application/json',
-                        },
-                        body: jsonEncode({
-                          'rating': rating,
-                          'comment': commentController.text,
-                          'role': userRole, // Send the user's role (e.g., 'serviceprovider', 'resident', 'manager')
-                        }),
-                      );
-
-                      print('Add review response: ${response.statusCode} - ${response.body}');
-
-                      if (response.statusCode == 201) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review added successfully')));
-                        await _fetchReviews(); // Auto-refresh reviews after adding
-                        // Force a full refresh to handle user switch
-                        setState(() {});
-                      } else if (response.statusCode == 401) {
-                        try {
-                          final errorData = jsonDecode(response.body);
-                          throw Exception(errorData['message'] ?? 'Unauthorized: Please check your role or token');
-                        } catch (e) {
-                          throw Exception('Unauthorized: Unable to add review - ${response.statusCode} - ${response.body}');
-                        }
-                      } else {
-                        try {
-                          final errorData = jsonDecode(response.body);
-                          throw Exception('Failed to add review: ${errorData['message'] ?? response.statusCode}');
-                        } catch (e) {
-                          throw Exception('Failed to add review: ${response.statusCode} - ${response.body}');
-                        }
-                      }
-                    } catch (e) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                    }
-                  },
-                  child: const Text('Submit'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+                  } catch (e) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  }
+                },
+                child: const Text('Submit'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
 
   void _openGoogleMaps(double latitude, double longitude) async {
     final url = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
@@ -344,7 +342,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                               Icon(Icons.star, color: Colors.yellow[700], size: 20),
                               const SizedBox(width: 4),
                               Text(
-                                averageRating.toStringAsFixed(1), // Display dynamic average rating
+                                averageRating.toStringAsFixed(1),
                                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                               ),
                             ],
@@ -425,7 +423,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                   _isLoadingReviews
                       ? const Center(child: CircularProgressIndicator())
                       : RefreshIndicator(
-                          onRefresh: _fetchReviews, // Allow manual refresh
+                          onRefresh: _fetchReviews,
                           child: _reviews.isEmpty
                               ? const Center(child: Text('No reviews yet'))
                               : ListView.builder(
@@ -436,7 +434,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                                     name: _reviews[index]['name'] ?? 'Anonymous',
                                     rating: _reviews[index]['rating']?.toInt() ?? 0,
                                     comment: _reviews[index]['comment'] ?? '',
-                                    date: _formatDate(_reviews[index]['date']),
+                                    date: _reviews[index]['date'] ?? 'Unknown Date',
                                     isDarkMode: isDarkMode,
                                   ),
                                 ),
@@ -495,7 +493,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
     required bool isDarkMode,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16), // Fixed to 'bottom'
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDarkMode ? Colors.grey[850] : Colors.grey[100],
@@ -530,7 +528,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            date,
+            _formatDate(date),
             style: TextStyle(fontSize: 12, color: isDarkMode ? Colors.grey[500] : Colors.grey[600]),
           ),
         ],
@@ -539,17 +537,12 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   }
 
   String _formatDate(dynamic date) {
-    if (date is String) {
-      return date; // If date is already a string, return it as is
-    } else if (date is DateTime) {
-      return date.toString().substring(0, 10); // Format DateTime to YYYY-MM-DD
-    } else if (date != null) {
-      try {
-        return DateTime.parse(date.toString()).toString().substring(0, 10);
-      } catch (e) {
-        return 'Unknown Date';
-      }
+    if (date == null) return 'Unknown Date';
+    try {
+      final dateTime = DateTime.parse(date.toString()).toLocal();
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return 'Unknown Date';
     }
-    return 'Unknown Date';
   }
 }

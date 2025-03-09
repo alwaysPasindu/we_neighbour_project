@@ -72,17 +72,17 @@ class _HomeScreenState extends State<HomeScreen> {
     await _loadServices();
   }
 
-  Future<void> _loadServices() async {
+Future<void> _loadServices() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/services?latitude=6.9271&longitude=79.8612'),
+        Uri.parse('$baseUrl/api/service?latitude=6.9271&longitude=79.8612'),
         headers: {
-          'Authorization': 'Bearer $_token',
+          'x-auth-token': _token!,
           'Content-Type': 'application/json',
         },
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 30));
 
-      print('HomeScreen load services response: ${response.statusCode} - ${response.body}');
+      print('ProviderHomePage load services response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> servicesJson = jsonDecode(response.body);
@@ -91,30 +91,26 @@ class _HomeScreenState extends State<HomeScreen> {
           _featuredServices = services;
         });
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
+      } else if (response.statusCode == 401) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/login');
+        }
+        throw Exception('Unauthorized: Invalid or expired token');
       } else {
-        throw Exception('Failed to load services: ${response.body}');
+        throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
       }
-    } on TimeoutException catch (e) {
-      print('Timeout loading services: $e');
-      _loadCachedServices('Timeout loading services. Showing cached data.');
     } catch (e) {
       print('Error loading services: $e');
-      _loadCachedServices('Error loading services: $e. Showing cached data if available.');
-    }
-  }
-
-  void _loadCachedServices(String message) {
-    final String? servicesJson = prefs.getString('services');
-    if (servicesJson != null) {
-      final List<dynamic> decodedServices = jsonDecode(servicesJson);
-      setState(() {
-        _featuredServices = decodedServices.map((service) => Service.fromJson(service)).toList();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No cached services available.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e')));
+      }
+      final String? servicesJson = prefs.getString('services');
+      if (servicesJson != null) {
+        final List<dynamic> decodedServices = jsonDecode(servicesJson);
+        setState(() {
+          _featuredServices = decodedServices.map((service) => Service.fromJson(service)).toList();
+        });
+      }
     }
   }
 
