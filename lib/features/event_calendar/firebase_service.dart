@@ -3,11 +3,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> addEvent(String title, DateTime date) async {
+  // Updated method with all required parameters
+  Future<void> addEvent(
+    String title, 
+    DateTime date, 
+    DateTime? endTime, 
+    String? notes, 
+    String type
+  ) async {
     try {
       await _firestore.collection('events').add({
         'title': title,
         'date': date,
+        'endTime': endTime,
+        'notes': notes,
+        'type': type,
         'createdAt': FieldValue.serverTimestamp(),
       });
       print('Event added successfully: $title on $date');
@@ -17,6 +27,53 @@ class FirebaseService {
     }
   }
 
+  // New method for booking amenities
+  Future<void> bookAmenity(
+    String amenityName,
+    DateTime startDateTime,
+    DateTime endDateTime,
+    String? notes
+  ) async {
+    try {
+      await _firestore.collection('events').add({
+        'title': amenityName,
+        'date': startDateTime,
+        'endTime': endDateTime,
+        'notes': notes,
+        'type': 'amenity',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      print('Amenity booked successfully: $amenityName');
+    } catch (e) {
+      print('Error booking amenity: $e');
+      rethrow;
+    }
+  }
+
+  // New method for booking health activities
+  Future<void> bookHealthActivity(
+    String activityName,
+    DateTime startDateTime,
+    DateTime endDateTime,
+    String? notes
+  ) async {
+    try {
+      await _firestore.collection('events').add({
+        'title': activityName,
+        'date': startDateTime,
+        'endTime': endDateTime,
+        'notes': notes,
+        'type': 'health',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      print('Health activity booked successfully: $activityName');
+    } catch (e) {
+      print('Error booking health activity: $e');
+      rethrow;
+    }
+  }
+
+  // Existing methods below
   Stream<QuerySnapshot> getEvents() {
     try {
       print('Getting events from Firestore');
