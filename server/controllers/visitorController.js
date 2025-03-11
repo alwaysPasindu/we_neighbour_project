@@ -1,18 +1,29 @@
-const Resident = require('../models/Resident');
-const Visitor = require('../models/Visitor');
+const { connectDB } = require('../config/database');
+const VisitorSchema = require('../models/Visitor');
+const ResidentSchema = require('../models/Resident');
 const qr = require('qr-image');
 const path = require('path');
 const fs = require('fs');
 
-
-exports.generateQRCodeData = async(req,res) => {
-    try{
-        //retrieve resident data
-        const { numOfVisitors, visitorNames} = req.body;
+// Generate QR Code Data
+exports.generateQRCodeData = async (req, res) => {
+    try {
+        const { numOfVisitors, visitorNames } = req.body;
         const residentId = req.user.id;
-        const resident= await Resident.findById(residentId);
+        const apartmentComplexName = req.user.apartmentComplexName;
 
-        //prepare qr
+        // Connect to the apartment-specific database
+        const db = await connectDB(apartmentComplexName);
+        const Visitor = db.model('Visitor', VisitorSchema);
+        const Resident = db.model('Resident', ResidentSchema);
+
+        // Fetch the resident
+        const resident = await Resident.findById(residentId);
+        if (!resident) {
+            return res.status(404).json({ message: 'Resident not found' });
+        }
+
+        // Prepare QR data
         const qrData = {
             residentName: resident.name,
             apartmentCode: resident.apartmentCode,
@@ -21,35 +32,35 @@ exports.generateQRCodeData = async(req,res) => {
             phone: resident.phone,
         };
 
-        //save the visitor info under "pending"
-        const visitor= new Visitor({
-            resident:residentId,
+        // Save the visitor info
+        const visitor = new Visitor({
+            resident: residentId,
             residentName: resident.name,
-            apartmentCode:resident.apartmentCode,
+            apartmentCode: resident.apartmentCode,
             numOfVisitors,
             visitorNames,
             phone: resident.phone,
         });
         await visitor.save();
-        
-        //qr data to string
+
+        // Convert QR data to a string
         const qrString = JSON.stringify(qrData);
-        const qrImage = qr.imageSync(qrString, {type:'png'});
+        const qrImage = qr.imageSync(qrString, { type: 'png' });
         const qrBase64 = qrImage.toString('base64');
 
-        //genaraete qr img
-        const qrSvg = qr.imageSync(qrString, {type:'svg'});
-        const filePath = path.join(__dirname,'../public', `${visitor._id}.svg`);
+        // Generate QR image and save it
+        const qrSvg = qr.imageSync(qrString, { type: 'svg' });
+        const filePath = path.join(__dirname, '../public', `${visitor._id}.svg`);
         fs.writeFileSync(filePath, qrSvg);
 
+        // Return QR data and image
         res.json({
             qrData,
             qrImage: `data:image/png;base64,${qrBase64}`, // Base64 image for frontend
-          });
-
-    }catch(error){
-        console.error(error);
-        res.status(500).json({message:"Server Error"});
+        });
+    } catch (error) {
+        console.error('Error in generateQRCodeData:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 

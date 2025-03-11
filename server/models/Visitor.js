@@ -11,8 +11,7 @@ const VisitorSchema = new mongoose.Schema({
     numOfVisitors:{type:Number, required:true},
     visitorNames: [{type:String,required:true}],
     phone:{type:String, required:true},
-    status:{type:String, enum:['Pending','Confirmed','Rejected'], default:'Pending'},
     createdAt:{type:Date, default:Date.now},
 });
 
-module.exports = mongoose.model('Visitor',VisitorSchema);
+module.exports = VisitorSchema;
