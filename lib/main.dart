@@ -44,7 +44,7 @@ void main() async {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider(isDarkMode: isDarkMode)),
-          ChangeNotifierProvider(create: (_) => ChatProvider()),
+          // ChangeNotifierProvider(create: (_) => ChatProvider()),
         ],
         child: const MyApp(),
       ),
@@ -55,7 +55,7 @@ void main() async {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider(isDarkMode: false)),
-          ChangeNotifierProvider(create: (_) => ChatProvider()),
+          // ChangeNotifierProvider(create: (_) => ChatProvider()),
         ],
         child: const MyApp(),
       ),
@@ -198,7 +198,7 @@ class _MyAppState extends State<MyApp> {
             '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
             '/provider-home': (context) => const ProviderHomePage(),
             '/provider-profile': (context) => const CompanyProfileScreen(),
-            '/chat': (context) => ChatListScreen(),
+            // '/chat': (context) => ChatListScreen(),
             '/pending-approval': (context) => const PendingApprovalPage(),
             '/resource': (context) => const ResourceSharingPage(),
             '/resident-req': (context) => const ResidentsRequestsScreen(),
