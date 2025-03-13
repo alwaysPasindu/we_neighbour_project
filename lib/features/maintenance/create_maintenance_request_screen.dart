@@ -39,11 +39,12 @@ class _CreateMaintenanceRequestScreenState
       try {
         final headers = {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${widget.authToken}',
+          'x-auth-token': widget.authToken,
         };
         final body = jsonEncode({
           'title': _titleController.text,
           'description': _descriptionController.text,
+          'status': 'pending',
           // No need to send apartmentCode here; it’s fetched from Resident on the backend
         });
         print('Submitting request with headers: $headers');
