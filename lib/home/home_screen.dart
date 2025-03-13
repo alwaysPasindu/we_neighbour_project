@@ -97,7 +97,7 @@ Future<void> _loadServices() async {
         }
         throw Exception('Unauthorized: Invalid or expired token');
       } else {
-        throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
+        // throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error loading services: $e');

@@ -49,5 +49,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location when in use to pick service locations.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location even when not in use for location-based services.</string>
 </dict>
 </plist>

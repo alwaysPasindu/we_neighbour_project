@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/colors.dart';
-import 'package:we_neighbour/features/chat/chat_list_page.dart';
+import 'package:we_neighbour/features/chat/chat_list_screen.dart';
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'package:we_neighbour/features/resource_share/resource_sharing_page.dart';
 import 'package:we_neighbour/features/services/service_page.dart';
@@ -27,6 +27,8 @@ import 'package:we_neighbour/screens/residents_requests_screen.dart';
 import 'package:we_neighbour/settings/settings_screen.dart';
 import 'package:we_neighbour/splashScreen/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 enum UserType { resident, manager, serviceProvider }
 
@@ -87,7 +89,7 @@ class _MyAppState extends State<MyApp> {
 
       if (token != null) {
         final userRole = prefs.getString('userRole')?.toLowerCase() ?? 'resident';
-        final userStatus = prefs.getString('userStatus')?.toLowerCase(); // Check status
+        final userStatus = prefs.getString('userStatus')?.toLowerCase();
 
         UserType userType;
         switch (userRole) {
@@ -103,6 +105,9 @@ class _MyAppState extends State<MyApp> {
             userType = UserType.resident;
         }
 
+        // Sync Firebase with JWT
+        await _syncFirebaseWithJwt(token);
+
         setState(() {
           _isLoggedIn = true;
           _userType = userType;
@@ -110,7 +115,6 @@ class _MyAppState extends State<MyApp> {
           _isLoading = false;
         });
 
-        // If resident and pending, redirect to pending approval
         if (userType == UserType.resident && userStatus == 'pending') {
           if (mounted) {
             Navigator.pushReplacementNamed(context, '/pending-approval');
@@ -133,9 +137,19 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _syncFirebaseWithJwt(String jwtToken) async {
     try {
-      // Placeholder for syncing Firebase with JWT (requires backend custom token)
-      const customToken = 'your-custom-token-from-backend';
-      await FirebaseAuth.instance.signInWithCustomToken(customToken);
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/auth/firebase-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'jwtToken': jwtToken}),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final customToken = data['firebaseToken'];
+        await FirebaseAuth.instance.signInWithCustomToken(customToken);
+        print('Firebase synced with JWT successfully');
+      } else {
+        print('Failed to get Firebase token: ${response.statusCode} - ${response.body}');
+      }
     } catch (e) {
       print('Error syncing Firebase with JWT: $e');
     }
@@ -184,7 +198,7 @@ class _MyAppState extends State<MyApp> {
             '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
             '/provider-home': (context) => const ProviderHomePage(),
             '/provider-profile': (context) => const CompanyProfileScreen(),
-            '/chat': (context) => const ChatListPage(),
+            '/chat': (context) => ChatListScreen(),
             '/pending-approval': (context) => const PendingApprovalPage(),
             '/resource': (context) => const ResourceSharingPage(),
             '/resident-req': (context) => const ResidentsRequestsScreen(),
