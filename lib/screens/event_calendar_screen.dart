@@ -117,7 +117,28 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   List<dynamic> _getEventsForDay(DateTime day) {
     // Normalize date to remove time component
     final normalizedDate = DateTime(day.year, day.month, day.day);
-    return _events[normalizedDate] ?? [];
+
+    // Get events for this day
+    final eventsForDay = _events[normalizedDate] ?? [];
+
+    // If the day is today or in the future, return all events
+    // If the day is in the past, only return events for display purposes (not for "upcoming")
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (normalizedDate.isBefore(today)) {
+      // For past days in the calendar, we still show the events (just with markers)
+      return eventsForDay;
+    } else if (normalizedDate.isAtSameMomentAs(today)) {
+      // For today, filter out events that have already passed
+      return eventsForDay.where((event) {
+        final eventTime = event['date'] as DateTime;
+        return eventTime.isAfter(now);
+      }).toList();
+    } else {
+      // For future days, show all events
+      return eventsForDay;
+    }
   }
 
   Future<void> _openGoogleCalendar() async {
@@ -731,23 +752,45 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final events = snapshot.data?.docs ?? [];
+        final allEvents = snapshot.data?.docs ?? [];
 
-        if (events.isEmpty) {
+        // Get current date and time
+        final now = DateTime.now();
+
+        // Filter to only include future events
+        final futureEvents = allEvents.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final DateTime eventDate = (data['date'] as Timestamp).toDate();
+          // Only include events that haven't happened yet
+          return eventDate.isAfter(now);
+        }).toList();
+
+        if (futureEvents.isEmpty) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Text('No upcoming events'),
           );
         }
 
+        // Sort events by date (earliest first)
+        futureEvents.sort((a, b) {
+          final aData = a.data() as Map<String, dynamic>;
+          final bData = b.data() as Map<String, dynamic>;
+          final DateTime aDate = (aData['date'] as Timestamp).toDate();
+          final DateTime bDate = (bData['date'] as Timestamp).toDate();
+          return aDate.compareTo(bDate);
+        });
+
+        // Show only the first 5 upcoming events
+        final eventsToShow =
+            futureEvents.length > 5 ? futureEvents.sublist(0, 5) : futureEvents;
+
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: events.length > 5
-              ? 5
-              : events.length, // Show only 5 upcoming events
+          itemCount: eventsToShow.length,
           itemBuilder: (context, index) {
-            final doc = events[index];
+            final doc = eventsToShow[index];
             final data = doc.data() as Map<String, dynamic>;
             final DateTime date = (data['date'] as Timestamp).toDate();
             final String eventType = data['type'] ?? 'event';
