@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/auth_utils.dart';
+import 'dart:ui';
 
 enum UserType { resident, manager, serviceProvider }
 
@@ -20,6 +21,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   static const String baseUrl = 'http://172.20.10.3:3000';
 
   @override
@@ -128,16 +130,23 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _handleSocialLogin(String platform) {
-    print('$platform login attempted');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$platform login is not implemented yet')),
-    );
+  void _handleGoogleSignIn() {
+    setState(() => _isGoogleLoading = true);
+    
+    // Simulate sign-in process
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = const Color.fromARGB(255, 0, 18, 152);
+    final secondaryColor = const Color.fromARGB(255, 14, 105, 213);
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color.fromARGB(255, 0, 0, 0) : Colors.white,
@@ -305,22 +314,80 @@ class _LoginPageState extends State<LoginPage> {
                       Expanded(child: Divider(color: isDarkMode ? Colors.white38 : Colors.grey[400])),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Sign in with another account',
-                    style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _socialButton('assets/images/facebook.png', () => _handleSocialLogin('Facebook'), isDarkMode),
-                      const SizedBox(width: 16),
-                      _socialButton('assets/images/google.png', () => _handleSocialLogin('Google'), isDarkMode),
-                      const SizedBox(width: 16),
-                      _socialButton('assets/images/twitter.png', () => _handleSocialLogin('Twitter'), isDarkMode),
-                    ],
+                  const SizedBox(height: 16),
+                  
+                  // Google sign-in bar
+                  Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: isDarkMode 
+                          ? Colors.white.withOpacity(0.05) 
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isDarkMode 
+                            ? Colors.white24 
+                            : Colors.grey[300]!,
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                          spreadRadius: -2,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _isGoogleLoading ? null : _handleGoogleSignIn,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              children: [
+                                Image.asset(
+                                  'assets/images/google.png',
+                                  height: 24,
+                                  width: 24,
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    'Sign in with Google',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDarkMode ? Colors.white : Colors.black87,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: _isGoogleLoading
+                                      ? CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                            isDarkMode ? Colors.white : primaryColor,
+                                          ),
+                                        )
+                                      : Icon(
+                                          Icons.arrow_forward_rounded,
+                                          color: isDarkMode ? Colors.white70 : primaryColor,
+                                          size: 20,
+                                        ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -328,21 +395,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _socialButton(String iconPath, VoidCallback onPressed, bool isDarkMode) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: isDarkMode ? Colors.white24 : Colors.grey[300]!),
-          color: isDarkMode ? const Color(0xFF2A2F35) : Colors.white,
-        ),
-        child: Image.asset(iconPath, height: 24, width: 24),
       ),
     );
   }
