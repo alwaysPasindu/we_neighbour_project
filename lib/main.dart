@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/colors.dart';
-import 'package:we_neighbour/features/chat/chat_list_screen.dart';
+// import 'package:we_neighbour/features/chat/chat_list_screen.dart';
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'package:we_neighbour/features/resource_share/resource_sharing_page.dart';
 import 'package:we_neighbour/features/services/service_page.dart';

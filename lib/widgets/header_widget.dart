@@ -99,7 +99,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Hello, \n$_userName...!', style: AppTextStyles.greeting),
+                              Text('Hello, \n$_userName !', style: AppTextStyles.greeting),
                               if (_userStatus == 'pending')
                                 Text(
                                   'Awaiting Approval',
