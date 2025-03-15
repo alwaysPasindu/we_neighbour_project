@@ -318,14 +318,14 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     final secondaryColor = const Color.fromARGB(255, 14, 105, 213);
     
     // Calculate responsive dimensions
-    final headerHeight = size.height * 0.25 + padding.top; // Increased from 0.22
+    final headerHeight = size.height * 0.25 + padding.top;
     final contentPadding = EdgeInsets.symmetric(
-      horizontal: size.width < 360 ? 16.0 : 20.0, // Reduced from 20.0/24.0
-      vertical: 8.0, // Reduced from 12.0
+      horizontal: size.width < 360 ? 16.0 : 20.0,
+      vertical: 8.0,
     );
-    final logoSize = size.width < 360 ? 100.0 : 120.0; // Smaller logo
-    final titleFontSize = size.width < 360 ? 24.0 : 28.0; // Smaller title
-    final buttonHeight = size.width < 360 ? 45.0 : 50.0; // Smaller buttons
+    final logoSize = size.width < 360 ? 100.0 : 120.0;
+    final titleFontSize = size.width < 360 ? 28.0 : 32.0;
+    final buttonHeight = size.width < 360 ? 45.0 : 50.0;
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.white,
@@ -387,665 +387,666 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           ),
           
           // Main content with animations - no SafeArea to allow full screen coverage
-          Container(
-            height: size.height,
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Header section
-                AnimatedBuilder(
-                  animation: _scaleAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: child,
-                    );
-                  },
-                  child: ClipPath(
-                    clipper: WaveClipper(),
-                    child: Container(
-                      height: headerHeight,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: isDarkMode
-                              ? [primaryColor, secondaryColor.withOpacity(0.8)]
-                              : [secondaryColor, const Color(0xFF4285F4)],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Padding(
-                          padding: EdgeInsets.only(top: padding.top / 2),
-                          child: AnimatedBuilder(
-                            animation: _animationController,
-                            builder: (context, child) {
-                              return Transform.translate(
-                                offset: Offset(
-                                  0,
-                                  math.sin(_animationController.value * math.pi * 2) * 5,
-                                ),
-                                child: child,
-                              );
-                            },
-                            child: Hero(
-                              tag: 'app_logo',
-                              child: Container(
-                                width: logoSize,
-                                height: logoSize,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 20,
-                                      spreadRadius: 5,
-                                    ),
-                                  ],
-                                ),
-                                child: Image.asset(
-                                  'assets/images/white.png',
-                                  width: logoSize,
-                                  height: logoSize,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+          SafeArea(
+            // Added SafeArea to handle system insets properly
+            bottom: false, // Allow content to extend to bottom edge
+            child: SingleChildScrollView(
+              // Added SingleChildScrollView to prevent overflow
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: size.height - padding.top,
                 ),
-                
-                // Content section - make it expand to fill available space
-                Expanded(
-                  child: Padding(
-                    padding: contentPadding,
-                    child: AnimatedBuilder(
-                      animation: _slideAnimation,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Header section
+                    AnimatedBuilder(
+                      animation: _scaleAnimation,
                       builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(0, _slideAnimation.value),
-                          child: Opacity(
-                            opacity: _fadeAnimation.value,
-                            child: child,
-                          ),
+                        return Transform.scale(
+                          scale: _scaleAnimation.value,
+                          child: child,
                         );
                       },
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Welcome text with gradient
-                            ShaderMask(
-                              shaderCallback: (bounds) => LinearGradient(
-                                colors: [
-                                  primaryColor,
-                                  secondaryColor,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ).createShader(bounds),
-                              child: Text(
-                                'WELCOME!',
-                                style: TextStyle(
-                                  fontSize: size.width < 360 ? 28.0 : 32.0, // Increased from 24.0/28.0
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  letterSpacing: 1.2, // Increased from 1.0
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                      child: ClipPath(
+                        clipper: WaveClipper(),
+                        child: Container(
+                          height: headerHeight,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: isDarkMode
+                                  ? [primaryColor, secondaryColor.withOpacity(0.8)]
+                                  : [secondaryColor, const Color(0xFF4285F4)],
                             ),
-                            SizedBox(height: size.height * 0.01),
-                            Text(
-                              'Sign in to continue',
-                              style: TextStyle(
-                                fontSize: 18, // Increased from 16
-                                color: isDarkMode ? Colors.white70 : Colors.black54,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(height: size.height * 0.015),
-                            
-                            // Email field with glass effect
-                            Container(
-                              margin: const EdgeInsets.symmetric(vertical: 8), // Added margin
-                              decoration: BoxDecoration(
-                                color: isDarkMode 
-                                    ? Colors.white.withOpacity(0.05) 
-                                    : Colors.black.withOpacity(0.03),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: !_isEmailValid
-                                      ? Colors.red
-                                      : (isDarkMode 
-                                          ? Colors.white.withOpacity(0.1) 
-                                          : Colors.black.withOpacity(0.05)),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 5),
+                            ],
+                          ),
+                          child: Center(
+                            child: AnimatedBuilder(
+                              animation: _animationController,
+                              builder: (context, child) {
+                                return Transform.translate(
+                                  offset: Offset(
+                                    0,
+                                    math.sin(_animationController.value * math.pi * 2) * 5,
                                   ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                                  child: TextField(
-                                    controller: _emailController,
-                                    keyboardType: TextInputType.emailAddress,
-                                    enableSuggestions: false,
-                                    autocorrect: false,
-                                    onChanged: (value) {
-                                      if (!_isEmailValid) {
-                                        setState(() {
-                                          _isEmailValid = true;
-                                        });
-                                      }
-                                    },
-                                    style: TextStyle(
-                                      color: isDarkMode ? Colors.white : Colors.black,
-                                      fontSize: 16,
-                                    ),
-                                    decoration: InputDecoration(
-                                      hintText: 'Email',
-                                      hintStyle: TextStyle(
-                                        color: isDarkMode 
-                                            ? Colors.white60 
-                                            : Colors.black54,
-                                      ),
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 16, 
-                                        vertical: size.width < 360 ? 14 : 16, // Increased padding
-                                      ),
-                                      border: InputBorder.none,
-                                      prefixIcon: Container(
-                                        margin: const EdgeInsets.only(
-                                          left: 16, 
-                                          right: 8,
-                                        ),
-                                        child: Icon(
-                                          Icons.email_outlined,
-                                          color: isDarkMode 
-                                              ? primaryColor.withOpacity(0.9) 
-                                              : primaryColor,
-                                          size: 22,
-                                        ),
-                                      ),
-                                      suffixIcon: !_isEmailValid
-                                          ? Container(
-                                              margin: const EdgeInsets.only(right: 16),
-                                              child: Icon(
-                                                Icons.error_outline,
-                                                color: Colors.red,
-                                                size: 22,
-                                              ),
-                                            )
-                                          : null,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (!_isEmailValid)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 16, top: 8),
-                                child: Text(
-                                  'Please enter a valid email',
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            SizedBox(height: size.height * 0.008),
-                            
-                            // Password field with glass effect
-                            Container(
-                              margin: const EdgeInsets.symmetric(vertical: 8), // Added margin
-                              decoration: BoxDecoration(
-                                color: isDarkMode 
-                                    ? Colors.white.withOpacity(0.05) 
-                                    : Colors.black.withOpacity(0.03),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: !_isPasswordValid
-                                      ? Colors.red
-                                      : (isDarkMode 
-                                          ? Colors.white.withOpacity(0.1) 
-                                          : Colors.black.withOpacity(0.05)),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                                  child: TextField(
-                                    controller: _passwordController,
-                                    obscureText: _obscurePassword,
-                                    enableSuggestions: false,
-                                    autocorrect: false,
-                                    onChanged: (value) {
-                                      if (!_isPasswordValid) {
-                                        setState(() {
-                                          _isPasswordValid = true;
-                                        });
-                                      }
-                                    },
-                                    style: TextStyle(
-                                      color: isDarkMode ? Colors.white : Colors.black,
-                                      fontSize: 16,
-                                    ),
-                                    decoration: InputDecoration(
-                                      hintText: 'Password',
-                                      hintStyle: TextStyle(
-                                        color: isDarkMode 
-                                            ? Colors.white60 
-                                            : Colors.black54,
-                                      ),
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 16, 
-                                        vertical: size.width < 360 ? 14 : 16, // Increased padding
-                                      ),
-                                      border: InputBorder.none,
-                                      prefixIcon: Container(
-                                        margin: const EdgeInsets.only(
-                                          left: 16, 
-                                          right: 8,
-                                        ),
-                                        child: Icon(
-                                          Icons.lock_outline,
-                                          color: isDarkMode 
-                                              ? primaryColor.withOpacity(0.9) 
-                                              : primaryColor,
-                                          size: 22,
-                                        ),
-                                      ),
-                                      suffixIcon: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (!_isPasswordValid)
-                                            Container(
-                                              margin: const EdgeInsets.only(right: 8),
-                                              child: Icon(
-                                                Icons.error_outline,
-                                                color: Colors.red,
-                                                size: 22,
-                                              ),
-                                            ),
-                                          Container(
-                                            margin: const EdgeInsets.only(right: 16),
-                                            child: IconButton(
-                                              icon: Icon(
-                                                _obscurePassword 
-                                                    ? Icons.visibility 
-                                                    : Icons.visibility_off,
-                                                color: isDarkMode 
-                                                    ? Colors.white60 
-                                                    : Colors.grey,
-                                                size: 22,
-                                              ),
-                                              onPressed: () => setState(() => 
-                                                  _obscurePassword = !_obscurePassword),
-                                              padding: EdgeInsets.zero,
-                                              constraints: const BoxConstraints(),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (!_isPasswordValid)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 16, top: 8),
-                                child: Text(
-                                  'Password must be at least 6 characters',
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            SizedBox(height: size.height * 0.008),
-                            
-                            // Remember me and forgot password
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4), // Added padding
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    children: [
-                                      SizedBox(
-                                        height: 24,
-                                        width: 24,
-                                        child: Transform.scale(
-                                          scale: 0.9,
-                                          child: Checkbox(
-                                            value: _rememberMe,
-                                            onChanged: (value) => 
-                                                setState(() => _rememberMe = value ?? false),
-                                            fillColor: MaterialStateProperty.resolveWith(
-                                              (states) => states.contains(MaterialState.selected)
-                                                  ? primaryColor
-                                                  : (isDarkMode 
-                                                      ? Colors.white38 
-                                                      : Colors.grey.shade300),
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(6),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Remember me',
-                                        style: TextStyle(
-                                          color: isDarkMode 
-                                              ? Colors.white 
-                                              : const Color.fromARGB(221, 0, 0, 0),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                  child: child,
+                                );
+                              },
+                              child: Hero(
+                                tag: 'app_logo',
+                                child: Container(
+                                  width: logoSize,
+                                  height: logoSize,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 20,
+                                        spreadRadius: 5,
                                       ),
                                     ],
                                   ),
-                                  TextButton(
-                                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text('Forgot password feature coming soon'),
-                                        behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16)),
-                                        margin: const EdgeInsets.all(16),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 20, vertical: 12),
-                                        duration: const Duration(seconds: 3),
-                                        elevation: 6,
-                                      ),
-                                    ),
-                                    style: TextButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: const Size(0, 0),
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: Text(
-                                      'Forgot password?',
-                                      style: TextStyle(
-                                        color: primaryColor,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
+                                  child: Image.asset(
+                                    'assets/images/white.png',
+                                    width: logoSize,
+                                    height: logoSize,
                                   ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: size.height * 0.01),
-                            
-                            // Login button with gradient and animation
-                            Container(
-                              height: buttonHeight,
-                              margin: const EdgeInsets.symmetric(vertical: 8), // Added margin
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: primaryColor.withOpacity(0.4),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 8),
-                                    spreadRadius: -4,
-                                  ),
-                                ],
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: _isLoading
-                                      ? [
-                                          primaryColor.withOpacity(0.7),
-                                          secondaryColor.withOpacity(0.7),
-                                        ]
-                                      : [primaryColor, secondaryColor],
-                                ),
-                              ),
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleLogin,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  foregroundColor: Colors.white,
-                                  shadowColor: Colors.transparent,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  elevation: 0,
-                                ),
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 300),
-                                  child: _isLoading
-                                      ? SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              'Login',
-                                              style: TextStyle(
-                                                fontSize: size.width < 360 ? 16 : 18,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                                letterSpacing: 1.2,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Icon(
-                                              Icons.arrow_forward_rounded,
-                                              color: Colors.white,
-                                              size: size.width < 360 ? 18 : 20,
-                                            ),
-                                          ],
-                                        ),
                                 ),
                               ),
                             ),
-                            SizedBox(height: size.height * 0.008),
-                            
-                            // Register link
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'New user?',
-                                    style: TextStyle(
-                                      color: isDarkMode ? Colors.white70 : Colors.black87,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pushNamed(context, '/account-type'),
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                                      minimumSize: const Size(0, 0),
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: Text(
-                                      'Register',
-                                      style: TextStyle(
-                                        color: primaryColor,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: size.height * 0.01),
-                            
-                            // Make the bottom section with social login take up remaining space
-                            Spacer(flex: 1),
-                            
-                            // Divider with animation
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4), // Reduced from 8
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      height: 1.5,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            isDarkMode ? Colors.transparent : Colors.white,
-                                            isDarkMode ? Colors.white38 : Colors.grey[400]!,
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: isDarkMode 
-                                            ? Colors.white.withOpacity(0.05) 
-                                            : Colors.grey[100],
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: isDarkMode 
-                                              ? Colors.white.withOpacity(0.1) 
-                                              : Colors.grey[300]!,
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'OR',
-                                        style: TextStyle(
-                                          color: isDarkMode ? Colors.white70 : Colors.black54,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          letterSpacing: 1,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Container(
-                                      height: 1.5,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            isDarkMode ? Colors.white38 : Colors.grey[400]!,
-                                            isDarkMode ? Colors.transparent : Colors.white,
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: size.height * 0.01),
-                            
-                            // Social login text
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Text(
-                                'Sign in with another account',
-                                style: TextStyle(
-                                  color: isDarkMode ? Colors.white70 : Colors.black87,
-                                  fontSize: 16, // Increased from 15
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            
-                            // Social login buttons with animation
-                            Padding(
-                              padding: EdgeInsets.only(
-                                top: 4,
-                                bottom: math.max(12.0, padding.bottom),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  _socialButton(
-                                    'assets/images/facebook.png',
-                                    () => _handleSocialLogin('Facebook'),
-                                    isDarkMode,
-                                    primaryColor,
-                                    0,
-                                    size,
-                                    42.0, // Smaller button size
-                                  ),
-                                  SizedBox(width: size.width * 0.06),
-                                  _socialButton(
-                                    'assets/images/google.png',
-                                    () => _handleSocialLogin('Google'),
-                                    isDarkMode,
-                                    primaryColor,
-                                    1,
-                                    size,
-                                    42.0, // Smaller button size
-                                  ),
-                                  SizedBox(width: size.width * 0.06),
-                                  _socialButton(
-                                    'assets/images/twitter.png',
-                                    () => _handleSocialLogin('Twitter'),
-                                    isDarkMode,
-                                    primaryColor,
-                                    2,
-                                    size,
-                                    42.0, // Smaller button size
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    
+                    // Content section
+                    Padding(
+                      padding: contentPadding,
+                      child: AnimatedBuilder(
+                        animation: _slideAnimation,
+                        builder: (context, child) {
+                          return Transform.translate(
+                            offset: Offset(0, _slideAnimation.value),
+                            child: Opacity(
+                              opacity: _fadeAnimation.value,
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Welcome text with gradient
+                              ShaderMask(
+                                shaderCallback: (bounds) => LinearGradient(
+                                  colors: [
+                                    primaryColor,
+                                    secondaryColor,
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ).createShader(bounds),
+                                child: Text(
+                                  'WELCOME!',
+                                  style: TextStyle(
+                                    fontSize: titleFontSize,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 1.2,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              SizedBox(height: size.height * 0.01),
+                              Text(
+                                'Sign in to continue',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: isDarkMode ? Colors.white70 : Colors.black54,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: size.height * 0.015),
+                              
+                              // Email field with glass effect
+                              Container(
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isDarkMode 
+                                      ? Colors.white.withOpacity(0.05) 
+                                      : Colors.black.withOpacity(0.03),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: !_isEmailValid
+                                        ? Colors.red
+                                        : (isDarkMode 
+                                            ? Colors.white.withOpacity(0.1) 
+                                            : Colors.black.withOpacity(0.05)),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                                    child: TextField(
+                                      controller: _emailController,
+                                      keyboardType: TextInputType.emailAddress,
+                                      enableSuggestions: false,
+                                      autocorrect: false,
+                                      onChanged: (value) {
+                                        if (!_isEmailValid) {
+                                          setState(() {
+                                            _isEmailValid = true;
+                                          });
+                                        }
+                                      },
+                                      style: TextStyle(
+                                        color: isDarkMode ? Colors.white : Colors.black,
+                                        fontSize: 16,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText: 'Email',
+                                        hintStyle: TextStyle(
+                                          color: isDarkMode 
+                                              ? Colors.white60 
+                                              : Colors.black54,
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 16, 
+                                          vertical: size.width < 360 ? 14 : 16,
+                                        ),
+                                        border: InputBorder.none,
+                                        prefixIcon: Container(
+                                          margin: const EdgeInsets.only(
+                                            left: 16, 
+                                            right: 8,
+                                          ),
+                                          child: Icon(
+                                            Icons.email_outlined,
+                                            color: isDarkMode 
+                                                ? primaryColor.withOpacity(0.9) 
+                                                : primaryColor,
+                                            size: 22,
+                                          ),
+                                        ),
+                                        suffixIcon: !_isEmailValid
+                                            ? Container(
+                                                margin: const EdgeInsets.only(right: 16),
+                                                child: Icon(
+                                                  Icons.error_outline,
+                                                  color: Colors.red,
+                                                  size: 22,
+                                                ),
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (!_isEmailValid)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 16, top: 8),
+                                  child: Text(
+                                    'Please enter a valid email',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              SizedBox(height: size.height * 0.008),
+                              
+                              // Password field with glass effect
+                              Container(
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isDarkMode 
+                                      ? Colors.white.withOpacity(0.05) 
+                                      : Colors.black.withOpacity(0.03),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: !_isPasswordValid
+                                        ? Colors.red
+                                        : (isDarkMode 
+                                            ? Colors.white.withOpacity(0.1) 
+                                            : Colors.black.withOpacity(0.05)),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                                    child: TextField(
+                                      controller: _passwordController,
+                                      obscureText: _obscurePassword,
+                                      enableSuggestions: false,
+                                      autocorrect: false,
+                                      onChanged: (value) {
+                                        if (!_isPasswordValid) {
+                                          setState(() {
+                                            _isPasswordValid = true;
+                                          });
+                                        }
+                                      },
+                                      style: TextStyle(
+                                        color: isDarkMode ? Colors.white : Colors.black,
+                                        fontSize: 16,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText: 'Password',
+                                        hintStyle: TextStyle(
+                                          color: isDarkMode 
+                                              ? Colors.white60 
+                                              : Colors.black54,
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 16, 
+                                          vertical: size.width < 360 ? 14 : 16,
+                                        ),
+                                        border: InputBorder.none,
+                                        prefixIcon: Container(
+                                          margin: const EdgeInsets.only(
+                                            left: 16, 
+                                            right: 8,
+                                          ),
+                                          child: Icon(
+                                            Icons.lock_outline,
+                                            color: isDarkMode 
+                                                ? primaryColor.withOpacity(0.9) 
+                                                : primaryColor,
+                                            size: 22,
+                                          ),
+                                        ),
+                                        suffixIcon: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (!_isPasswordValid)
+                                              Container(
+                                                margin: const EdgeInsets.only(right: 8),
+                                                child: Icon(
+                                                  Icons.error_outline,
+                                                  color: Colors.red,
+                                                  size: 22,
+                                                ),
+                                              ),
+                                            Container(
+                                              margin: const EdgeInsets.only(right: 16),
+                                              child: IconButton(
+                                                icon: Icon(
+                                                  _obscurePassword 
+                                                      ? Icons.visibility 
+                                                      : Icons.visibility_off,
+                                                  color: isDarkMode 
+                                                      ? Colors.white60 
+                                                      : Colors.grey,
+                                                  size: 22,
+                                                ),
+                                                onPressed: () => setState(() => 
+                                                    _obscurePassword = !_obscurePassword),
+                                                padding: EdgeInsets.zero,
+                                                constraints: const BoxConstraints(),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (!_isPasswordValid)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 16, top: 8),
+                                  child: Text(
+                                    'Password must be at least 6 characters',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              SizedBox(height: size.height * 0.008),
+                              
+                              // Remember me and forgot password
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: Transform.scale(
+                                            scale: 0.9,
+                                            child: Checkbox(
+                                              value: _rememberMe,
+                                              onChanged: (value) => 
+                                                  setState(() => _rememberMe = value ?? false),
+                                              fillColor: MaterialStateProperty.resolveWith(
+                                                (states) => states.contains(MaterialState.selected)
+                                                    ? primaryColor
+                                                    : (isDarkMode 
+                                                        ? Colors.white38 
+                                                        : Colors.grey.shade300),
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Remember me',
+                                          style: TextStyle(
+                                            color: isDarkMode 
+                                                ? Colors.white 
+                                                : const Color.fromARGB(221, 0, 0, 0),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    TextButton(
+                                      onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: const Text('Forgot password feature coming soon'),
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(16)),
+                                          margin: const EdgeInsets.all(16),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20, vertical: 12),
+                                          duration: const Duration(seconds: 3),
+                                          elevation: 6,
+                                        ),
+                                      ),
+                                      style: TextButton.styleFrom(
+                                        padding: EdgeInsets.zero,
+                                        minimumSize: const Size(0, 0),
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: Text(
+                                        'Forgot password?',
+                                        style: TextStyle(
+                                          color: primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: size.height * 0.01),
+                              
+                              // Login button with gradient and animation
+                              Container(
+                                height: buttonHeight,
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: primaryColor.withOpacity(0.4),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 8),
+                                      spreadRadius: -4,
+                                    ),
+                                  ],
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: _isLoading
+                                        ? [
+                                            primaryColor.withOpacity(0.7),
+                                            secondaryColor.withOpacity(0.7),
+                                          ]
+                                        : [primaryColor, secondaryColor],
+                                  ),
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _handleLogin,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    foregroundColor: Colors.white,
+                                    shadowColor: Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                    elevation: 0,
+                                  ),
+                                  child: AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 300),
+                                    child: _isLoading
+                                        ? SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                'Login',
+                                                style: TextStyle(
+                                                  fontSize: size.width < 360 ? 16 : 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                  letterSpacing: 1.2,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Icon(
+                                                Icons.arrow_forward_rounded,
+                                                color: Colors.white,
+                                                size: size.width < 360 ? 18 : 20,
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: size.height * 0.008),
+                              
+                              // Register link
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'New user?',
+                                      style: TextStyle(
+                                        color: isDarkMode ? Colors.white70 : Colors.black87,
+                                        fontSize: 15,
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pushNamed(context, '/account-type'),
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                                        minimumSize: const Size(0, 0),
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: Text(
+                                        'Register',
+                                        style: TextStyle(
+                                          color: primaryColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              // Divider with animation
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                        height: 1.5,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              isDarkMode ? Colors.transparent : Colors.white,
+                                              isDarkMode ? Colors.white38 : Colors.grey[400]!,
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: isDarkMode 
+                                              ? Colors.white.withOpacity(0.05) 
+                                              : Colors.grey[100],
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: isDarkMode 
+                                                ? Colors.white.withOpacity(0.1) 
+                                                : Colors.grey[300]!,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'OR',
+                                          style: TextStyle(
+                                            color: isDarkMode ? Colors.white70 : Colors.black54,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 1,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Container(
+                                        height: 1.5,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              isDarkMode ? Colors.white38 : Colors.grey[400]!,
+                                              isDarkMode ? Colors.transparent : Colors.white,
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: size.height * 0.01),
+                              
+                              // Social login text
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Text(
+                                  'Sign in with another account',
+                                  style: TextStyle(
+                                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              
+                              // Social login buttons with animation
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  top: 4,
+                                  bottom: math.max(12.0, padding.bottom),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _socialButton(
+                                      'assets/images/facebook.png',
+                                      () => _handleSocialLogin('Facebook'),
+                                      isDarkMode,
+                                      primaryColor,
+                                      0,
+                                      size,
+                                      42.0,
+                                    ),
+                                    SizedBox(width: size.width * 0.06),
+                                    _socialButton(
+                                      'assets/images/google.png',
+                                      () => _handleSocialLogin('Google'),
+                                      isDarkMode,
+                                      primaryColor,
+                                      1,
+                                      size,
+                                      42.0,
+                                    ),
+                                    SizedBox(width: size.width * 0.06),
+                                    _socialButton(
+                                      'assets/images/twitter.png',
+                                      () => _handleSocialLogin('Twitter'),
+                                      isDarkMode,
+                                      primaryColor,
+                                      2,
+                                      size,
+                                      42.0,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
           
@@ -1100,3 +1101,4 @@ class WaveClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
+
