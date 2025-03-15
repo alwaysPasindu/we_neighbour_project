@@ -1,6 +1,6 @@
 {
-    "name": "newapp",
-    "short_name": "newapp",
+    "name": "we_neighbour",
+    "short_name": "we_neighbour",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

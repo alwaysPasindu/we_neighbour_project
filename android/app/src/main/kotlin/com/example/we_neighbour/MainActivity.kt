@@ -1,4 +1,4 @@
-package com.example.newapp
+package com.example.we_neighbour
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -32,6 +32,24 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "cloud_firestore",
+      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/cloud_firestore-5.6.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "cloud_firestore_platform_interface",
+      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/cloud_firestore_platform_interface-6.6.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "cloud_firestore_web",
+      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/cloud_firestore_web-4.4.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "collection",
       "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/collection-1.19.1",
       "packageUri": "lib/",
@@ -48,6 +66,24 @@
       "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/fake_async-1.3.2",
       "packageUri": "lib/",
       "languageVersion": "3.3"
+    },
+    {
+      "name": "firebase_auth",
+      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/firebase_auth-5.5.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_auth_platform_interface",
+      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/firebase_auth_platform_interface-7.6.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_auth_web",
+      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/firebase_auth_web-5.14.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
     },
     {
       "name": "firebase_core",
@@ -68,20 +104,20 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "firebase_database",
-      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/firebase_database-11.3.4",
+      "name": "firebase_messaging",
+      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/firebase_messaging-15.2.4",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
     {
-      "name": "firebase_database_platform_interface",
-      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/firebase_database_platform_interface-0.2.6+4",
+      "name": "firebase_messaging_platform_interface",
+      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/firebase_messaging_platform_interface-4.6.4",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
     {
-      "name": "firebase_database_web",
-      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/firebase_database_web-0.2.6+10",
+      "name": "firebase_messaging_web",
+      "rootUri": "file:///C:/Users/always.pasindu/AppData/Local/Pub/Cache/hosted/pub.dev/firebase_messaging_web-3.10.4",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -254,13 +290,13 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "WE_NEIGHBOUR_PROJECT",
+      "name": "we_neighbour",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     }
   ],
-  "generated": "2025-03-07T20:40:40.556750Z",
+  "generated": "2025-03-15T16:16:02.121789Z",
   "generator": "pub",
   "generatorVersion": "3.7.0",
   "flutterRoot": "file:///C:/flutter",
