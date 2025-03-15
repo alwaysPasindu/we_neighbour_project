@@ -449,13 +449,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                   height: logoSize,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.2),
-                                        blurRadius: 20,
-                                        spreadRadius: 5,
-                                      ),
-                                    ],
+                                    // Shadow removed
                                   ),
                                   child: Image.asset(
                                     'assets/images/white.png',

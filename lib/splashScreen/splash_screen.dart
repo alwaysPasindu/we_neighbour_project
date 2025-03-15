@@ -16,11 +16,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late Animation<double> _scaleAnimation;
   late Animation<double> _rotationAnimation;
   late Animation<double> _slideAnimation;
-  
+
   // For animated particles
   final List<Map<String, dynamic>> _particles = [];
   final int _particleCount = 20;
-  
+
   @override
   void initState() {
     super.initState();
@@ -71,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       Navigator.pushReplacementNamed(context, '/login');
     });
   }
-  
+
   void _generateParticles() {
     final random = math.Random();
     for (int i = 0; i < _particleCount; i++) {
@@ -253,19 +253,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   },
                   child: Column(
                     children: [
-                      // Logo
+                      // Logo - Shadow removed
                       Container(
                         width: 180,
                         height: 180,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 20,
-                              spreadRadius: 5,
-                            ),
-                          ],
+                          // Shadow removed
                         ),
                         child: ClipOval(
                           child: Image.asset(
@@ -443,9 +437,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 class WavePainter extends CustomPainter {
   final double animationValue;
   final bool isDarkMode;
-  
+
   WavePainter({required this.animationValue, required this.isDarkMode});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -490,7 +484,8 @@ class WavePainter extends CustomPainter {
     
     canvas.drawPath(path2, paint2);
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
+
