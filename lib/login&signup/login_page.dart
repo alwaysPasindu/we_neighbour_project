@@ -248,67 +248,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     }
   }
 
-  Widget _socialButton(
-    String iconPath, 
-    VoidCallback onPressed, 
-    bool isDarkMode, 
-    Color primaryColor, 
-    int index,
-    Size size,
-    [double? customSize]
-  ) {
-    final buttonSize = customSize ?? (size.width < 360 ? 48.0 : 56.0);
-    final iconSize = buttonSize * 0.5;
-    
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        final delay = 0.2 + (index * 0.1);
-        final opacity = _animationController.value > delay 
-            ? ((_animationController.value - delay) / (1 - delay)).clamp(0.0, 1.0) 
-            : 0.0;
-        
-        return Opacity(
-          opacity: opacity,
-          child: Transform.translate(
-            offset: Offset(0, 20 * (1 - opacity)),
-            child: child,
-          ),
-        );
-      },
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(buttonSize / 2),
-        child: Container(
-          width: buttonSize,
-          height: buttonSize,
-          padding: EdgeInsets.all(buttonSize * 0.25),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDarkMode ? Colors.white.withOpacity(0.05) : Colors.white,
-            border: Border.all(
-              color: isDarkMode ? Colors.white24 : Colors.grey[300]!,
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-                spreadRadius: -5,
-              ),
-            ],
-          ),
-          child: Image.asset(
-            iconPath, 
-            height: iconSize,
-            width: iconSize,
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -401,7 +340,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Header section
+                    // Header section with wave clipper
                     AnimatedBuilder(
                       animation: _scaleAnimation,
                       builder: (context, child) {
@@ -504,7 +443,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                              SizedBox(height: size.height * 0.01),
+                              SizedBox(height: size.height * 0.00),
                               Text(
                                 'Sign in to continue',
                                 style: TextStyle(
@@ -980,9 +919,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               
                               // Social login text
                               Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.only(bottom: 5),
                                 child: Text(
-                                  'Sign in with another account',
+                                  'Sign in with Google',
                                   style: TextStyle(
                                     color: isDarkMode ? Colors.white70 : Colors.black87,
                                     fontSize: 16,
@@ -992,45 +931,45 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 ),
                               ),
                               
-                              // Social login buttons with animation
+                              // Google login button in a box
                               Padding(
                                 padding: EdgeInsets.only(
                                   top: 4,
                                   bottom: math.max(12.0, padding.bottom),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    _socialButton(
-                                      'assets/images/facebook.png',
-                                      () => _handleSocialLogin('Facebook'),
-                                      isDarkMode,
-                                      primaryColor,
-                                      0,
-                                      size,
-                                      42.0,
+                                child: Center(
+                                  child: Container(
+                                    width: 350.0,
+                                    height: 45.0,
+                                    decoration: BoxDecoration(
+                                      color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.white,
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      border: Border.all(
+                                        color: isDarkMode ? Colors.white24 : Colors.grey[300]!,
+                                        width: 1.5,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 3),
+                                          spreadRadius: -2,
+                                        ),
+                                      ],
                                     ),
-                                    SizedBox(width: size.width * 0.06),
-                                    _socialButton(
-                                      'assets/images/google.png',
-                                      () => _handleSocialLogin('Google'),
-                                      isDarkMode,
-                                      primaryColor,
-                                      1,
-                                      size,
-                                      42.0,
+                                    child: InkWell(
+                                      onTap: () => _handleSocialLogin('Google'),
+                                      borderRadius: BorderRadius.circular(12.0),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: Image.asset(
+                                          'assets/images/google.png',
+                                          width: 30.0,
+                                          height: 30.0,
+                                        ),
+                                      ),
                                     ),
-                                    SizedBox(width: size.width * 0.06),
-                                    _socialButton(
-                                      'assets/images/twitter.png',
-                                      () => _handleSocialLogin('Twitter'),
-                                      isDarkMode,
-                                      primaryColor,
-                                      2,
-                                      size,
-                                      42.0,
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ],
@@ -1061,38 +1000,94 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       extendBodyBehindAppBar: true,
     );
   }
+
+  Widget _socialButton(
+    String iconPath, 
+    VoidCallback onPressed, 
+    bool isDarkMode, 
+    Color primaryColor, 
+    int index,
+    Size size,
+    [double? customSize]
+  ) {
+    final buttonSize = customSize ?? (size.width < 360 ? 48.0 : 56.0);
+    final iconSize = buttonSize * 0.5;
+    
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        final delay = 0.2 + (index * 0.1);
+        final opacity = _animationController.value > delay 
+            ? ((_animationController.value - delay) / (1 - delay)).clamp(0.0, 1.0) 
+            : 0.0;
+        
+        return Opacity(
+          opacity: opacity,
+          child: Transform.translate(
+            offset: Offset(0, 20 * (1 - opacity)),
+            child: child,
+          ),
+        );
+      },
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(buttonSize / 2),
+        child: Container(
+          width: buttonSize,
+          height: buttonSize,
+          padding: EdgeInsets.all(buttonSize * 0.25),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isDarkMode ? Colors.white.withOpacity(0.05) : Colors.white,
+            border: Border.all(
+              color: isDarkMode ? Colors.white24 : Colors.grey[300]!,
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+                spreadRadius: -5,
+              ),
+            ],
+          ),
+          child: Image.asset(
+            iconPath, 
+            height: iconSize,
+            width: iconSize,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class WaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();
-    path.lineTo(0, size.height * 0.75);
-    
-    var firstControlPoint = Offset(size.width * 0.25, size.height);
-    var firstEndPoint = Offset(size.width * 0.5, size.height * 0.85);
+    path.lineTo(0, size.height * 0.8);
+
+    var firstStart = Offset(size.width / 4, size.height);
+    var firstEnd = Offset(size.width / 2.25, size.height * 0.9);
     path.quadraticBezierTo(
-      firstControlPoint.dx,
-      firstControlPoint.dy,
-      firstEndPoint.dx,
-      firstEndPoint.dy,
-    );
-    
-    var secondControlPoint = Offset(size.width * 0.75, size.height * 0.7);
-    var secondEndPoint = Offset(size.width, size.height * 0.85);
+        firstStart.dx, firstStart.dy, firstEnd.dx, firstEnd.dy);
+
+    var secondStart = Offset(size.width / 1.5, size.height * 0.8);
+    var secondEnd = Offset(size.width, size.height * 0.9);
     path.quadraticBezierTo(
-      secondControlPoint.dx,
-      secondControlPoint.dy,
-      secondEndPoint.dx,
-      secondEndPoint.dy,
-    );
-    
+        secondStart.dx, secondStart.dy, secondEnd.dx, secondEnd.dy);
+
     path.lineTo(size.width, 0);
     path.close();
+
     return path;
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(CustomClipper<Path> oldClipper) {
+    return false;
+  }
 }
 
