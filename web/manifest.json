@@ -1,6 +1,6 @@
 {
-    "name": "event_calender_new",
-    "short_name": "event_calender_new",
+    "name": "we_neighbour",
+    "short_name": "we_neighbour",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
