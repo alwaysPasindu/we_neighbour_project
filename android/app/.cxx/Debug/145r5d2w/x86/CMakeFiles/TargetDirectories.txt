@@ -1,0 +1,2 @@
+C:/Users/always.pasindu/Desktop/we_neighbour_project-e1c3a605e1cea762bbd60ad215f557303739e431/android/app/.cxx/Debug/145r5d2w/x86/CMakeFiles/edit_cache.dir
+C:/Users/always.pasindu/Desktop/we_neighbour_project-e1c3a605e1cea762bbd60ad215f557303739e431/android/app/.cxx/Debug/145r5d2w/x86/CMakeFiles/rebuild_cache.dir
