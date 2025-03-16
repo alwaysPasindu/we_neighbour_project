@@ -32,7 +32,7 @@ import 'dart:convert';
 
 enum UserType { resident, manager, serviceProvider }
 
-const String baseUrl = 'http://172.20.10.3:3000';
+const String baseUrl = 'https://we-neighbour-backend.vercel.app'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

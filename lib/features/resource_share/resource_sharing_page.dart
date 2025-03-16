@@ -3,14 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
 import 'package:we_neighbour/main.dart';
 import 'package:we_neighbour/models/resource.dart' as model;
-import 'package:we_neighbour/providers/chat_provider.dart';
+// import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/widgets/share_dialog.dart';
 import '../../providers/theme_provider.dart';
 import '../../constants/colors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:we_neighbour/widgets/resource_card.dart'; // Updated to use your ResourceCard
+import 'package:we_neighbour/widgets/resource_card.dart'; // Updated to use ResourceCard
 
 class ResourceSharingPage extends StatefulWidget {
   const ResourceSharingPage({super.key});
@@ -98,7 +98,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     try {
       final headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
+        'x-auth-token': token,
       };
       final body = jsonEncode({
         'resourceName': title,
@@ -291,7 +291,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
-    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    // final chatProvider = Provider.of<ChatProvider>(context, listen: false);
 
     return Scaffold(
     backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
@@ -329,8 +329,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                   );
                   if (message != null && message.isNotEmpty) {
                     try {
-                      final chatId = await chatProvider.getOrCreateChat(resource.userId);
-                      await chatProvider.sendMessage(chatId, message, replyTo: resource.id);
+                      // final chatId = await chatProvider.getOrCreateChat(resource.userId);
+                      // await chatProvider.sendMessage(chatId, message, replyTo: resource.id);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Message sent to ${resource.userName}'),
