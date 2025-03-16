@@ -18,22 +18,12 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# VS Code settings (uncomment if you want to exclude them)
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
 #.vscode/
 
-# Node.js related (if using Firebase, backend, or API integration)
-node_modules/
-npm-debug.log
-yarn-error.log
-package-lock.json
-yarn.lock
-
-# Environment files (Sensitive API keys, Firebase keys, etc.)
-.env
-.env.local
-.env.*.local
-
-# Flutter / Dart / Pub related
+# Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
@@ -42,71 +32,14 @@ yarn.lock
 .pub-cache/
 .pub/
 /build/
-.packages
-.metadata
 
-# Symbolication related (debugging)
+# Symbolication related
 app.*.symbols
 
 # Obfuscation related
 app.*.map.json
 
-# Android Studio & Gradle
-**/android/app/debug
-**/android/app/profile
-**/android/app/release
-**/.dart_tool
-**/.dart_tool
-**/android
-.gradle/
-gradle-app.setting
-local.properties
-/android/key.jks
-/android/app/key.properties
-
-# iOS related
-ios/Pods/
-ios/.symlinks/
-ios/Flutter/App.framework
-ios/Flutter/Flutter.framework
-ios/Flutter/Generated.xcconfig
-ios/Flutter/flutter_assets/
-ios/Flutter/*.lock
-
-# Firebase & Google Services
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
-firebase.json
-
-# Web related
-web/.dart_tool/
-
-# Linux related
-linux/.dart_tool/
-linux/flutter/
-
-# Windows related
-windows/.dart_tool/
-windows/flutter/
-windows/CMakeCache.txt
-
-# macOS related
-macos/.dart_tool/
-macos/Flutter/
-macos/Pods/
-
-# JetBrains IDEs
-*.idea/
-*.iml
-
-# Log files
-*.log
-*.pid
-
-# SQLite database files
-*.sqlite
-*.sqlite3
-*.db
-*.sql
-*.bak
-*.dump
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release

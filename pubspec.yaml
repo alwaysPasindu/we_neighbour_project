@@ -1,98 +1,22 @@
 name: we_neighbour
-description: A Flutter app for the We Neighbour community.
+description: "A new Flutter project."
 publish_to: 'none'
-
-version: 1.0.0+1
+version: 0.1.0
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ^3.7.0
 
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.1.2 # Added provider package
-  google_fonts: ^6.2.1
-  flutter_svg: ^2.0.9
-  flutter_carousel_slider: ^1.0.8
-  cupertino_icons: ^1.0.8
-  badges: ^3.1.2
-  image_picker: ^1.0.4
-  shared_preferences: ^2.3.2
-  path_provider: ^2.1.1
-  path: ^1.8.3
-  qr_flutter: ^4.1.0
-  flutter_rating_bar: ^4.0.1
-  url_launcher: ^6.2.2
-  share_plus: ^7.2.1
-  intl: ^0.18.1
-  mongo_dart: ^0.10.3
-  connectivity_plus: ^5.0.2
-  google_maps_flutter: ^2.5.0
-  geocoding: ^2.1.0
-  geolocator: ^10.1.0
-  latlong2: ^0.9.1
-  flutter_typeahead: ^5.0.1
-  permission_handler: ^11.4.0
-  http: ^1.2.2
-
-  table_calendar: ^3.0.9
+  cloud_firestore: ^5.6.5
   firebase_auth: ^5.5.1
   firebase_core: ^3.12.1
-  # firebase_database: ^11.3.4
-  cloud_firestore: ^5.6.5
-  flutter_keyboard_visibility: 6.0.0
-  # async: ^2.13.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  http: ^1.3.0 # Check for the latest version
-  flutter_lints: ^3.0.0
-  flutter_launcher_icons: ^0.13.1
-
-# flutter_icons:
-#   ios: true
-#   image_path: "assets/images/logo.png"
-#   remove_alpha_ios: true  # Optional: removes alpha channel from iOS icons
-
-flutter_launcher_icons:  # Note: Changed from flutter_icons to flutter_launcher_icons
-  android: true         # Generate Android icons
-  ios: true            # Generate iOS icons
-  image_path: "assets/images/logo.jpeg"  # Path to your icon file
-  min_sdk_android: 21  # Android min sdk min:16, default 21
-  remove_alpha_ios: true
-  adaptive_icon_background: "#ffffff" # only for Android 8.0 devices and above
-  adaptive_icon_foreground: "assets/images/logo.jpeg"
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
-
-  assets:
-    - assets/images/white.png
-    - assets/images/facebook.png
-    - assets/images/google.png
-    - assets/images/twitter.png
-    - assets/images/logo.png
-    - assets/icons/amenities.png
-    - assets/icons/visitor.png
-    - assets/icons/calendar.png
-    - assets/icons/maintenance.png
-    - assets/icons/bills.png
-    - assets/icons/chat.png
-    - assets/images/painting.jpg
-    - assets/images/plumbing.jpg
-    - assets/images/carpentry.jpg
-    - assets/images/calendar_icon.png
-    - assets/images/amenities_icon.png
-    - assets/images/health_icon.png
-    - assets/images/we_neighbour_logo.png
-    - assets/images/logo_dark.png
-
-  # Uncomment and update this section if you want to use custom fonts
-  # fonts:
-  #   - family: Roboto
-  #     fonts:
-  #       - asset: assets/fonts/Roboto-Regular.ttf
-  #       - asset: assets/fonts/Roboto-Bold.ttf
-  #         weight: 700
-
