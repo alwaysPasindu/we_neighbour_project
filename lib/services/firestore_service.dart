@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 // Use relative imports
 import '../models/message.dart';
@@ -22,6 +23,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
+      debugPrint('Error getting user profile: $e');
       rethrow;
     }
   }
@@ -42,18 +44,35 @@ class FirestoreService {
         'updated_at': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
+      debugPrint('Error updating user profile: $e');
       rethrow;
     }
   }
 
-  // Get all users except current user
+  // Get all users (including MongoDB users)
   Stream<List<Profile>> getAllUsers() {
+    debugPrint('Getting all users from Firestore');
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     return _usersCollection
         .where('id', isNotEqualTo: currentUserId)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => Profile.fromFirestore(doc)).toList();
+      final users = snapshot.docs.map((doc) => Profile.fromFirestore(doc)).toList();
+      debugPrint('Found ${users.length} users in Firestore');
+      return users;
+    });
+  }
+
+  // Get MongoDB users specifically
+  Stream<List<Profile>> getMongoDBUsers() {
+    debugPrint('Getting MongoDB users from Firestore');
+    return _usersCollection
+        .where('source', isEqualTo: 'mongodb')
+        .snapshots()
+        .map((snapshot) {
+      final users = snapshot.docs.map((doc) => Profile.fromFirestore(doc)).toList();
+      debugPrint('Found ${users.length} MongoDB users in Firestore');
+      return users;
     });
   }
 
@@ -67,6 +86,7 @@ class FirestoreService {
       });
     } catch (e) {
       // Silently handle presence update errors
+      debugPrint('Error updating presence: $e');
     }
   }
 
@@ -108,6 +128,7 @@ class FirestoreService {
         'created_at': FieldValue.serverTimestamp(),
       });
     } catch (e) {
+      debugPrint('Error sending message: $e');
       rethrow;
     }
   }
