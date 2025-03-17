@@ -27,11 +27,46 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late final String _currentUserId;
+  List<Message> _messages = [];
+  bool _isLoading = true;
+  bool _hasError = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
     super.initState();
     _currentUserId = FirebaseAuth.instance.currentUser!.uid;
+    _loadMessages();
+  }
+
+  Future<void> _loadMessages() async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
+    try {
+      final firestoreService = Provider.of<FirestoreService>(context, listen: false);
+      final messages = await firestoreService.getMessagesOnce(_currentUserId, widget.receiverProfile.id);
+      
+      if (mounted) {
+        setState(() {
+          _messages = messages;
+          _isLoading = false;
+        });
+        
+        // Scroll to bottom after messages load
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+          _errorMessage = 'Error loading messages: $e';
+        });
+      }
+    }
   }
 
   Future<void> _sendMessage() async {
@@ -47,6 +82,9 @@ class _ChatPageState extends State<ChatPage> {
         receiverId: widget.receiverProfile.id,
         content: message,
       );
+      
+      // Reload messages after sending
+      _loadMessages();
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -125,42 +163,42 @@ class _ChatPageState extends State<ChatPage> {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<List<Message>>(
-              stream: firestoreService.getMessages(_currentUserId, widget.receiverProfile.id),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-                
-                final messages = snapshot.data ?? [];
-                
-                if (messages.isEmpty) {
-                  return const Center(child: Text('No messages yet'));
-                }
-                
-                // Scroll to bottom when new messages arrive
-                WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-                
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(8),
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isMe = message.senderId == _currentUserId;
-                    
-                    return MessageBubble(
-                      message: message,
-                      isMe: isMe,
-                    );
-                  },
-                );
-              },
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _hasError
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _errorMessage,
+                              style: const TextStyle(color: Colors.red),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _loadMessages,
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _messages.isEmpty
+                        ? const Center(child: Text('No messages yet'))
+                        : ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.all(8),
+                            itemCount: _messages.length,
+                            itemBuilder: (context, index) {
+                              final message = _messages[index];
+                              final isMe = message.senderId == _currentUserId;
+                              
+                              return MessageBubble(
+                                message: message,
+                                isMe: isMe,
+                              );
+                            },
+                          ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

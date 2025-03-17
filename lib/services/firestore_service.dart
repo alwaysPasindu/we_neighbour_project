@@ -146,20 +146,47 @@ class FirestoreService {
     }
   }
 
-  // Get messages for a chat room
+  // Get messages for a chat room - Fixed to avoid index error
   Stream<List<Message>> getMessages(String userId1, String userId2) {
     // Create a unique chat room ID by sorting the user IDs
     final List<String> userIds = [userId1, userId2];
     userIds.sort(); // Sort to ensure the same room ID regardless of who initiates
     final chatRoomId = userIds.join('_');
 
+    // Use only one where clause to avoid the need for a composite index
     return _messagesCollection
         .where('chat_room_id', isEqualTo: chatRoomId)
-        .orderBy('created_at')
+        .orderBy('created_at', descending: false) // Add descending parameter
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) => Message.fromFirestore(doc)).toList();
     });
+  }
+  
+  // Alternative method that doesn't require an index
+  Future<List<Message>> getMessagesOnce(String userId1, String userId2) async {
+    // Create a unique chat room ID by sorting the user IDs
+    final List<String> userIds = [userId1, userId2];
+    userIds.sort(); // Sort to ensure the same room ID regardless of who initiates
+    final chatRoomId = userIds.join('_');
+
+    try {
+      final snapshot = await _messagesCollection
+          .where('chat_room_id', isEqualTo: chatRoomId)
+          .get();
+      
+      final messages = snapshot.docs
+          .map((doc) => Message.fromFirestore(doc))
+          .toList();
+      
+      // Sort manually
+      messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      
+      return messages;
+    } catch (e) {
+      debugPrint('Error getting messages: $e');
+      return [];
+    }
   }
 }
 
