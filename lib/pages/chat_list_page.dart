@@ -244,6 +244,22 @@ class _ChatListPageState extends State<ChatListPage> {
                                       ),
                                     ),
                                   ),
+                                if (profile.apartmentId != null)
+                                  Container(
+                                    margin: const EdgeInsets.only(left: 8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      profile.apartmentId!,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
                             subtitle: Column(
@@ -268,10 +284,18 @@ class _ChatListPageState extends State<ChatListPage> {
                                       color: Colors.grey[600],
                                     ),
                                   ),
+                                if (profile.collectionPath != null &&
+                                    profile.collectionPath!.isNotEmpty)
+                                  Text(
+                                    'Path: ${profile.collectionPath}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
                               ],
                             ),
-                            isThreeLine: profile.apartmentComplexName != null && 
-                                         profile.apartmentComplexName!.isNotEmpty,
+                            isThreeLine: true,
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(

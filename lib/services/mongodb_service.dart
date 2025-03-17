@@ -107,6 +107,8 @@ class MongoDBService {
   Future<List<Map<String, dynamic>>> _fetchUsersDirectlyFromFirestore() async {
     debugPrint('🔍 Attempting to fetch users directly from Firestore');
     try {
+      final List<Map<String, dynamic>> allUsers = [];
+      
       // Try different collection paths
       final collectionPaths = [
         'apartments/ApartmentC/users',
@@ -137,30 +139,65 @@ class MongoDBService {
           debugPrint('✅ Found ${snapshot.docs.length} users in Firestore path: $path');
           
           if (snapshot.docs.isNotEmpty) {
-            final List<Map<String, dynamic>> users = [];
-            
             for (var doc in snapshot.docs) {
               final userData = doc.data() as Map<String, dynamic>;
               userData['_id'] = doc.id; // Add document ID as _id
-              users.add(userData);
+              allUsers.add(userData);
               
               // Sync to the main users collection if not already there
               await _syncUserToFirestore({
                 '_id': {'\$oid': doc.id},
                 ...userData,
-                'source': 'mongodb' // Mark as MongoDB source
+                'source': 'mongodb', // Mark as MongoDB source
+                'collection_path': path, // Add the collection path for reference
               });
             }
-            
-            return users;
           }
         } catch (e) {
           debugPrint('❌ Error with collection path $path: $e');
         }
       }
       
-      debugPrint('❌ No users found in any Firestore collection');
-      return [];
+      // Also try to fetch all apartments
+      try {
+        final apartmentsSnapshot = await _firestore.collection('apartments').get();
+        debugPrint('Found ${apartmentsSnapshot.docs.length} apartments');
+        
+        for (final apartmentDoc in apartmentsSnapshot.docs) {
+          try {
+            final usersSnapshot = await _firestore
+                .collection('apartments')
+                .doc(apartmentDoc.id)
+                .collection('users')
+                .get();
+            
+            debugPrint('Found ${usersSnapshot.docs.length} users in apartment ${apartmentDoc.id}');
+            
+            for (var doc in usersSnapshot.docs) {
+              final userData = doc.data() as Map<String, dynamic>;
+              userData['_id'] = doc.id;
+              userData['apartmentId'] = apartmentDoc.id;
+              allUsers.add(userData);
+              
+              // Sync to the main users collection
+              await _syncUserToFirestore({
+                '_id': {'\$oid': doc.id},
+                ...userData,
+                'source': 'mongodb',
+                'apartmentId': apartmentDoc.id,
+                'collection_path': 'apartments/${apartmentDoc.id}/users',
+              });
+            }
+          } catch (e) {
+            debugPrint('Error fetching users for apartment ${apartmentDoc.id}: $e');
+          }
+        }
+      } catch (e) {
+        debugPrint('Error fetching apartments: $e');
+      }
+      
+      debugPrint('Total users found across all collections: ${allUsers.length}');
+      return allUsers;
     } catch (e) {
       debugPrint('❌ Error fetching users from Firestore: $e');
       return [];
@@ -188,15 +225,17 @@ class MongoDBService {
       // Map MongoDB user to Firestore user format based on your specific structure
       final firestoreUser = {
         'id': userId,
-        'username': mongoUser['name'] ?? 'User $userId',
+        'username': mongoUser['name'] ?? mongoUser['username'] ?? 'User $userId',
         'email': mongoUser['email'] ?? '',
         'phone': mongoUser['phone'] ?? '',
         'address': mongoUser['address'] ?? '',
-        'avatar_url': mongoUser['avatar_url'] ?? '',
+        'avatar_url': mongoUser['avatar_url'] ?? mongoUser['avatarUrl'] ?? '',
         'role': mongoUser['role'] ?? '',
         'status': mongoUser['status'] ?? '',
-        'apartmentComplexName': mongoUser['apartmentComplexName'] ?? '',
-        'apartmentCode': mongoUser['apartmentCode'] ?? '',
+        'apartmentComplexName': mongoUser['apartmentComplexName'] ?? mongoUser['apartment_complex_name'] ?? '',
+        'apartmentCode': mongoUser['apartmentCode'] ?? mongoUser['apartment_code'] ?? '',
+        'apartmentId': mongoUser['apartmentId'] ?? '',
+        'collection_path': mongoUser['collection_path'] ?? '',
         'source': 'mongodb', // Mark as MongoDB source
         'updated_at': FieldValue.serverTimestamp(),
       };

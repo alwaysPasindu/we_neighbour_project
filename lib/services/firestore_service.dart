@@ -76,6 +76,19 @@ class FirestoreService {
     });
   }
 
+  // Add a method to get users by apartment
+  Stream<List<Profile>> getUsersByApartment(String apartmentId) {
+    debugPrint('Getting users for apartment: $apartmentId');
+    return _usersCollection
+        .where('apartmentId', isEqualTo: apartmentId)
+        .snapshots()
+        .map((snapshot) {
+      final users = snapshot.docs.map((doc) => Profile.fromFirestore(doc)).toList();
+      debugPrint('Found ${users.length} users for apartment $apartmentId');
+      return users;
+    });
+  }
+
   // Update user presence
   Future<void> updateUserPresence(String userId, bool isOnline) async {
     try {

@@ -6,7 +6,8 @@ import '../services/auth_service.dart';
 import '../services/mongodb_service.dart';
 import 'login_page.dart';
 import 'chat_list_page.dart';
-import 'debug_page.dart'; // Add debug page
+import 'debug_page.dart';
+import 'auth_debug_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -34,6 +35,20 @@ class _SplashPageState extends State<SplashPage> {
     });
 
     try {
+      // Check for JWT token
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final token = await authService.getToken();
+      
+      if (token != null) {
+        setState(() {
+          _syncStatus = 'Found authentication token';
+        });
+      } else {
+        setState(() {
+          _syncStatus = 'No authentication token found';
+        });
+      }
+      
       // Sync MongoDB users to Firestore
       setState(() {
         _syncStatus = 'Syncing MongoDB users...';
@@ -59,7 +74,7 @@ class _SplashPageState extends State<SplashPage> {
       // Short delay to show the status
       await Future.delayed(const Duration(seconds: 2));
       
-      if (!_showDebug) {
+      if (!_showDebug && mounted) {
         _redirect();
       }
     }
@@ -117,13 +132,31 @@ class _SplashPageState extends State<SplashPage> {
             if (_isSyncing) 
               const CircularProgressIndicator()
             else if (_showDebug)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const DebugPage()),
-                  );
-                },
-                child: const Text('Open Debug Page'),
+              Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const DebugPage()),
+                      );
+                    },
+                    child: const Text('MongoDB Debug'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const AuthDebugPage()),
+                      );
+                    },
+                    child: const Text('Auth Debug'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _redirect,
+                    child: const Text('Continue to App'),
+                  ),
+                ],
               )
             else
               ElevatedButton(

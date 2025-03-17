@@ -219,6 +219,48 @@ class _DebugPageState extends State<DebugPage> {
     }
   }
 
+  // Add a method to check all apartments
+  Future<void> _checkAllApartments() async {
+    setState(() {
+      _debugOutput += 'Checking all apartments...\n';
+    });
+
+    try {
+      // Get all apartments
+      final apartmentsSnapshot = await _firestore.collection('apartments').get();
+      setState(() {
+        _debugOutput += 'Found ${apartmentsSnapshot.docs.length} apartments\n';
+      });
+
+      // Check each apartment for users
+      for (final apartmentDoc in apartmentsSnapshot.docs) {
+        try {
+          final usersSnapshot = await _firestore
+              .collection('apartments')
+              .doc(apartmentDoc.id)
+              .collection('users')
+              .get();
+          
+          setState(() {
+            _debugOutput += 'Found ${usersSnapshot.docs.length} users in apartment ${apartmentDoc.id}\n';
+            
+            if (usersSnapshot.docs.isNotEmpty) {
+              _debugOutput += 'Sample user from ${apartmentDoc.id}: ${usersSnapshot.docs.first.data()}\n';
+            }
+          });
+        } catch (e) {
+          setState(() {
+            _debugOutput += 'Error checking users for apartment ${apartmentDoc.id}: $e\n';
+          });
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _debugOutput += 'Error checking apartments: $e\n';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -251,6 +293,11 @@ class _DebugPageState extends State<DebugPage> {
                 ElevatedButton(
                   onPressed: _isLoading ? null : _checkFirestoreUsers,
                   child: const Text('Check Firestore'),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _checkAllApartments,
+                  child: const Text('Check All Apartments'),
                 ),
               ],
             ),

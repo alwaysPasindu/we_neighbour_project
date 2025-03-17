@@ -14,6 +14,8 @@ class Profile {
   final String? status;
   final String? apartmentComplexName;
   final String? apartmentCode;
+  final String? apartmentId;
+  final String? collectionPath;
   final DateTime? mongoCreatedAt;
   final DateTime? mongoUpdatedAt;
 
@@ -31,6 +33,8 @@ class Profile {
     this.status,
     this.apartmentComplexName,
     this.apartmentCode,
+    this.apartmentId,
+    this.collectionPath,
     this.mongoCreatedAt,
     this.mongoUpdatedAt,
   });
@@ -53,6 +57,8 @@ class Profile {
       status: data['status'],
       apartmentComplexName: data['apartmentComplexName'],
       apartmentCode: data['apartmentCode'],
+      apartmentId: data['apartmentId'],
+      collectionPath: data['collection_path'],
       mongoCreatedAt: data['mongo_created_at'] != null
           ? (data['mongo_created_at'] as Timestamp).toDate()
           : null,
@@ -77,6 +83,8 @@ class Profile {
       'status': status,
       'apartmentComplexName': apartmentComplexName,
       'apartmentCode': apartmentCode,
+      'apartmentId': apartmentId,
+      'collection_path': collectionPath,
       'mongo_created_at': mongoCreatedAt,
       'mongo_updated_at': mongoUpdatedAt,
     };

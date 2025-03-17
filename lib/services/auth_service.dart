@@ -60,7 +60,7 @@ class AuthService {
       );
       
       // Also authenticate with your backend to get JWT token
-      await _authenticateWithBackend(email, password);
+      await authenticateWithBackendOnly(email, password);
       
       return userCredential;
     } catch (e) {
@@ -71,16 +71,6 @@ class AuthService {
 
   // Direct backend authentication (for testing)
   Future<bool> authenticateWithBackendOnly(String email, String password) async {
-    try {
-      return await _authenticateWithBackend(email, password);
-    } catch (e) {
-      debugPrint('Error in direct backend auth: $e');
-      return false;
-    }
-  }
-
-  // Authenticate with backend to get JWT token
-  Future<bool> _authenticateWithBackend(String email, String password) async {
     try {
       // Try multiple possible endpoints
       final endpoints = [
@@ -143,6 +133,63 @@ class AuthService {
     } catch (e) {
       debugPrint('❌ Error authenticating with backend: $e');
       return false;
+    }
+  }
+
+  // Test API call for debugging
+  Future<Map<String, dynamic>> testApiCall(String endpoint, {bool useToken = true}) async {
+    try {
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+      };
+      
+      if (useToken) {
+        final token = await getToken();
+        if (token != null) {
+          headers['x-auth-token'] = token;
+          // Try alternative header names too
+          headers['Authorization'] = 'Bearer $token';
+        }
+      }
+      
+      final url = endpoint.startsWith('http') 
+          ? endpoint 
+          : '$apiUrl${endpoint.startsWith('/') ? endpoint : '/$endpoint'}';
+      
+      debugPrint('🔍 Testing API call to: $url');
+      debugPrint('🔍 Headers: $headers');
+      
+      final response = await http.get(
+        Uri.parse(url),
+        headers: headers,
+      );
+      
+      debugPrint('🔍 Response status: ${response.statusCode}');
+      
+      try {
+        final data = json.decode(response.body);
+        debugPrint('🔍 Response data: $data');
+        return {
+          'status': response.statusCode,
+          'data': data,
+          'success': response.statusCode >= 200 && response.statusCode < 300,
+        };
+      } catch (e) {
+        return {
+          'status': response.statusCode,
+          'data': response.body,
+          'success': response.statusCode >= 200 && response.statusCode < 300,
+          'error': 'Failed to parse JSON: $e',
+        };
+      }
+    } catch (e) {
+      debugPrint('❌ Error in test API call: $e');
+      return {
+        'status': 0,
+        'data': null,
+        'success': false,
+        'error': e.toString(),
+      };
     }
   }
 
