@@ -12,14 +12,16 @@ import 'services/mongodb_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  
+
+  final authService = AuthService();
+
   runApp(
     MultiProvider(
       providers: [
-        Provider<AuthService>(create: (_) => AuthService()),
+        Provider<AuthService>(create: (_) => authService),
         Provider<FirestoreService>(create: (_) => FirestoreService()),
         Provider<StorageService>(create: (_) => StorageService()),
-        Provider<MongoDBService>(create: (_) => MongoDBService()),
+        Provider<MongoDBService>(create: (_) => MongoDBService(authService)),
       ],
       child: const MyApp(),
     ),

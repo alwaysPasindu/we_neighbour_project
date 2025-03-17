@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 import '../services/mongodb_service.dart';
 import 'chat_list_page.dart';
 
@@ -16,11 +18,55 @@ class _DebugPageState extends State<DebugPage> {
   String _debugOutput = '';
   List<Map<String, dynamic>> _users = [];
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final TextEditingController _apiUrlController = TextEditingController(
+    text: 'https://we-neighbour-backend.vercel.app/chat-residents'
+  );
+  String _apiResponse = '';
+  bool _testingApi = false;
 
   @override
   void initState() {
     super.initState();
     _checkFirestoreUsers();
+  }
+  
+  @override
+  void dispose() {
+    _apiUrlController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _testApi() async {
+    setState(() {
+      _testingApi = true;
+      _apiResponse = 'Testing API...';
+    });
+    
+    try {
+      final response = await http.get(
+        Uri.parse(_apiUrlController.text),
+        headers: {'Content-Type': 'application/json'},
+      );
+      
+      setState(() {
+        _apiResponse = 'Status: ${response.statusCode}\n\n';
+        
+        try {
+          final jsonData = json.decode(response.body);
+          _apiResponse += const JsonEncoder.withIndent('  ').convert(jsonData);
+        } catch (e) {
+          _apiResponse += 'Raw response: ${response.body}';
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _apiResponse = 'Error: $e';
+      });
+    } finally {
+      setState(() {
+        _testingApi = false;
+      });
+    }
   }
 
   Future<void> _syncMongoDBUsers() async {
@@ -139,6 +185,47 @@ class _DebugPageState extends State<DebugPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            const Text(
+              'Test API Endpoint:',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _apiUrlController,
+                    decoration: const InputDecoration(
+                      hintText: 'API URL',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _testingApi ? null : _testApi,
+                  child: const Text('Test'),
+                ),
+              ],
+            ),
+            if (_apiResponse.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                height: 150,
+                child: SingleChildScrollView(
+                  child: SelectableText(_apiResponse),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             if (_isLoading)
               const Center(child: CircularProgressIndicator())

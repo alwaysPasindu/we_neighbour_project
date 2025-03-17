@@ -2,45 +2,81 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'auth_service.dart';
 
 class MongoDBService {
-  // Replace with your MongoDB API endpoint
-  final String apiUrl = 'YOUR_MONGODB_API_ENDPOINT';
+  // Your Vercel backend URL
+  final String apiUrl = 'https://we-neighbour-backend.vercel.app';
   
   // Firestore reference
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  // Auth service for getting JWT token
+  final AuthService _authService;
+  
+  MongoDBService(this._authService);
 
-  // Fetch users from MongoDB and sync to Firestore with debug logging
+  // Fetch users from MongoDB API
   Future<List<Map<String, dynamic>>> fetchAndSyncUsers() async {
     debugPrint('🔄 Starting MongoDB user fetch...');
     try {
-      // Make HTTP request to your MongoDB API
-      debugPrint('📡 Requesting data from: $apiUrl/users');
+      // Get JWT token for authentication
+      final token = await _authService.getToken();
       
-      // For debugging, let's add a direct connection to your Firestore collection
-      // This is a temporary solution to see if we can access the data directly
-      if (apiUrl == 'YOUR_MONGODB_API_ENDPOINT') {
-        debugPrint('⚠️ Using direct Firestore access instead of MongoDB API');
+      if (token == null) {
+        debugPrint('❌ No authentication token available');
         return _fetchUsersDirectlyFromFirestore();
       }
       
+      // Based on the residentRoutes.js file, we should use /chat-residents
+      debugPrint('📡 Requesting data from: $apiUrl/chat-residents');
+      
       final response = await http.get(
-        Uri.parse('$apiUrl/users'),
+        Uri.parse('$apiUrl/chat-residents'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer YOUR_API_KEY', // If needed
+          'x-auth-token': token, // Use the correct header name from your middleware
         },
       );
-
+      
       debugPrint('📊 Response status: ${response.statusCode}');
       
       if (response.statusCode == 200) {
         // Parse the response
-        final List<dynamic> data = json.decode(response.body);
-        debugPrint('✅ Fetched ${data.length} users from MongoDB');
+        final data = json.decode(response.body);
+        debugPrint('✅ Fetched data from /chat-residents');
         
+        // Handle different response formats
+        List<dynamic> usersList;
+        
+        if (data is List) {
+          usersList = data;
+        } else if (data is Map<String, dynamic>) {
+          if (data.containsKey('residents')) {
+            usersList = data['residents'] as List;
+          } else if (data.containsKey('users')) {
+            usersList = data['users'] as List;
+          } else if (data.containsKey('data')) {
+            usersList = data['data'] as List;
+          } else {
+            debugPrint('⚠️ Unexpected response format. Falling back to Firestore.');
+            return _fetchUsersDirectlyFromFirestore();
+          }
+        } else {
+          debugPrint('⚠️ Unexpected response type. Falling back to Firestore.');
+          return _fetchUsersDirectlyFromFirestore();
+        }
+        
+        debugPrint('✅ Extracted ${usersList.length} users from response');
+        
+        // Convert to List<Map<String, dynamic>>
         final List<Map<String, dynamic>> users = 
-            data.map((user) => user as Map<String, dynamic>).toList();
+            usersList.map((user) => user as Map<String, dynamic>).toList();
+        
+        // Debug the first user to see its structure
+        if (users.isNotEmpty) {
+          debugPrint('📄 Sample user data: ${json.encode(users.first)}');
+        }
         
         // Sync each user to Firestore
         for (var user in users) {
@@ -48,43 +84,78 @@ class MongoDBService {
         }
         
         return users;
+      } else if (response.statusCode == 401) {
+        debugPrint('❌ Authentication failed: ${response.body}');
+        return _fetchUsersDirectlyFromFirestore();
       } else {
         debugPrint('❌ Failed to load users: ${response.statusCode}');
         debugPrint('Response body: ${response.body}');
-        throw Exception('Failed to load users: ${response.statusCode}');
+        return _fetchUsersDirectlyFromFirestore();
       }
     } catch (e) {
       debugPrint('❌ Error fetching users: $e');
-      throw Exception('Error fetching users: $e');
+      return _fetchUsersDirectlyFromFirestore();
     }
   }
 
-  // Temporary method to fetch users directly from Firestore
-  // This is for debugging when MongoDB API is not yet set up
+  // Fetch users directly from Firestore as a fallback
   Future<List<Map<String, dynamic>>> _fetchUsersDirectlyFromFirestore() async {
-    debugPrint('🔍 Attempting to fetch users directly from Firestore collection "apartments/ApartmentC/users"');
+    debugPrint('🔍 Attempting to fetch users directly from Firestore');
     try {
-      // Try to fetch from the collection path shown in your screenshot
-      final snapshot = await _firestore.collection('apartments').doc('ApartmentC').collection('users').get();
+      // Try different collection paths
+      final collectionPaths = [
+        'apartments/ApartmentC/users',
+        'users',
+        'residents',
+      ];
       
-      debugPrint('✅ Found ${snapshot.docs.length} users in Firestore');
-      
-      final List<Map<String, dynamic>> users = [];
-      
-      for (var doc in snapshot.docs) {
-        final userData = doc.data();
-        userData['_id'] = doc.id; // Add document ID as _id
-        users.add(userData);
-        
-        // Sync to the main users collection
-        await _syncUserToFirestore({
-          '_id': {'\$oid': doc.id},
-          ...userData,
-          'source': 'mongodb' // Mark as MongoDB source
-        });
+      for (final path in collectionPaths) {
+        try {
+          debugPrint('🔍 Trying collection path: $path');
+          final pathParts = path.split('/');
+          
+          QuerySnapshot snapshot;
+          if (pathParts.length == 1) {
+            // Simple collection
+            snapshot = await _firestore.collection(pathParts[0]).get();
+          } else if (pathParts.length == 3) {
+            // Collection group pattern
+            snapshot = await _firestore
+                .collection(pathParts[0])
+                .doc(pathParts[1])
+                .collection(pathParts[2])
+                .get();
+          } else {
+            continue;
+          }
+          
+          debugPrint('✅ Found ${snapshot.docs.length} users in Firestore path: $path');
+          
+          if (snapshot.docs.isNotEmpty) {
+            final List<Map<String, dynamic>> users = [];
+            
+            for (var doc in snapshot.docs) {
+              final userData = doc.data() as Map<String, dynamic>;
+              userData['_id'] = doc.id; // Add document ID as _id
+              users.add(userData);
+              
+              // Sync to the main users collection if not already there
+              await _syncUserToFirestore({
+                '_id': {'\$oid': doc.id},
+                ...userData,
+                'source': 'mongodb' // Mark as MongoDB source
+              });
+            }
+            
+            return users;
+          }
+        } catch (e) {
+          debugPrint('❌ Error with collection path $path: $e');
+        }
       }
       
-      return users;
+      debugPrint('❌ No users found in any Firestore collection');
+      return [];
     } catch (e) {
       debugPrint('❌ Error fetching users from Firestore: $e');
       return [];
@@ -106,9 +177,6 @@ class MongoDBService {
       
       debugPrint('🔄 Syncing user: $userId');
       
-      // Debug the MongoDB user data
-      debugPrint('📄 MongoDB user data: ${json.encode(mongoUser)}');
-      
       // Check if user already exists in Firestore
       final docSnapshot = await _firestore.collection('users').doc(userId).get();
       
@@ -126,8 +194,6 @@ class MongoDBService {
         'apartmentCode': mongoUser['apartmentCode'] ?? '',
         'source': 'mongodb', // Mark as MongoDB source
         'updated_at': FieldValue.serverTimestamp(),
-        'mongo_created_at': _extractMongoDate(mongoUser, 'createdAt'),
-        'mongo_updated_at': _extractMongoDate(mongoUser, 'updatedAt'),
       };
       
       if (!docSnapshot.exists) {
@@ -141,66 +207,26 @@ class MongoDBService {
       }
     } catch (e) {
       debugPrint('❌ Error syncing user to Firestore: $e');
-      throw Exception('Error syncing user to Firestore: $e');
-    }
-  }
-  
-  // Helper method to extract MongoDB date
-  DateTime? _extractMongoDate(Map<String, dynamic> mongoUser, String field) {
-    try {
-      if (mongoUser[field] != null) {
-        if (mongoUser[field] is Map && 
-            mongoUser[field]['\$date'] is Map && 
-            mongoUser[field]['\$date']['\$numberLong'] != null) {
-          // Handle the nested structure: {"$date":{"$numberLong":"1741206040578"}}
-          final timestamp = int.parse(mongoUser[field]['\$date']['\$numberLong']);
-          return DateTime.fromMillisecondsSinceEpoch(timestamp);
-        } else if (mongoUser[field] is String) {
-          // Handle string date format
-          return DateTime.parse(mongoUser[field]);
-        }
-      }
-      return null;
-    } catch (e) {
-      debugPrint('⚠️ Error parsing date field $field: $e');
-      return null;
+      // Don't throw, just log the error
+      debugPrint('Error details: $e');
     }
   }
   
   // Get a specific user from MongoDB by ID
   Future<Map<String, dynamic>?> getUserById(String userId) async {
     debugPrint('🔍 Getting user by ID: $userId');
-    try {
-      // For debugging, check Firestore first
-      final docSnapshot = await _firestore.collection('users').doc(userId).get();
-      if (docSnapshot.exists) {
-        debugPrint('✅ Found user in Firestore');
-        return docSnapshot.data();
-      }
-      
-      // If not in Firestore, try the API
-      final response = await http.get(
-        Uri.parse('$apiUrl/users/$userId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer YOUR_API_KEY', // If needed
-        },
-      );
-
-      if (response.statusCode == 200) {
-        debugPrint('✅ Found user via API');
-        return json.decode(response.body);
-      } else if (response.statusCode == 404) {
-        debugPrint('⚠️ User not found via API');
-        return null;
-      } else {
-        debugPrint('❌ Failed to get user: ${response.statusCode}');
-        throw Exception('Failed to get user: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('❌ Error getting user: $e');
-      throw Exception('Error getting user: $e');
+    
+    // Try Firestore first (faster)
+    final docSnapshot = await _firestore.collection('users').doc(userId).get();
+    if (docSnapshot.exists) {
+      debugPrint('✅ Found user in Firestore');
+      return docSnapshot.data();
     }
+    
+    // No specific endpoint for getting a single resident by ID in your routes
+    // We would need to fetch all and filter, but that's inefficient
+    // For now, we'll just return null if not found in Firestore
+    return null;
   }
 }
 
