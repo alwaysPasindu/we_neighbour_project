@@ -13,7 +13,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
+  // Initialize auth service
   final authService = AuthService();
+  await authService.init();
 
   runApp(
     MultiProvider(
@@ -21,7 +23,7 @@ Future<void> main() async {
         Provider<AuthService>(create: (_) => authService),
         Provider<FirestoreService>(create: (_) => FirestoreService()),
         Provider<StorageService>(create: (_) => StorageService()),
-        Provider<MongoDBService>(create: (_) => MongoDBService(authService)),
+        Provider<MongoDBService>(create: (_) => MongoDBService()),
       ],
       child: const MyApp(),
     ),

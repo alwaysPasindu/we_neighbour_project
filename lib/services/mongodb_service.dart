@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'auth_service.dart';
 
 class MongoDBService {
   // Your Vercel backend URL
@@ -10,88 +9,94 @@ class MongoDBService {
   
   // Firestore reference
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
-  // Auth service for getting JWT token
-  final AuthService _authService;
-  
-  MongoDBService(this._authService);
 
   // Fetch users from MongoDB API
-  Future<List<Map<String, dynamic>>> fetchAndSyncUsers() async {
+  Future<List<Map<String, dynamic>>> fetchAndSyncUsers({String? authToken}) async {
     debugPrint('🔄 Starting MongoDB user fetch...');
     try {
-      // Get JWT token for authentication
-      final token = await _authService.getToken();
-      
-      if (token == null) {
-        debugPrint('❌ No authentication token available');
+      if (authToken == null) {
+        debugPrint('❌ No authentication token provided');
         return _fetchUsersDirectlyFromFirestore();
       }
       
-      // Based on the residentRoutes.js file, we should use /chat-residents
-      debugPrint('📡 Requesting data from: $apiUrl/chat-residents');
+      // Try multiple endpoints
+      final endpoints = [
+        '/chat-residents',
+        '/api/chat-residents',
+        '/api/residents',
+        '/residents',
+      ];
       
-      final response = await http.get(
-        Uri.parse('$apiUrl/chat-residents'),
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token, // Use the correct header name from your middleware
-        },
-      );
-      
-      debugPrint('📊 Response status: ${response.statusCode}');
-      
-      if (response.statusCode == 200) {
-        // Parse the response
-        final data = json.decode(response.body);
-        debugPrint('✅ Fetched data from /chat-residents');
-        
-        // Handle different response formats
-        List<dynamic> usersList;
-        
-        if (data is List) {
-          usersList = data;
-        } else if (data is Map<String, dynamic>) {
-          if (data.containsKey('residents')) {
-            usersList = data['residents'] as List;
-          } else if (data.containsKey('users')) {
-            usersList = data['users'] as List;
-          } else if (data.containsKey('data')) {
-            usersList = data['data'] as List;
+      for (final endpoint in endpoints) {
+        try {
+          debugPrint('📡 Trying endpoint: $apiUrl$endpoint');
+          
+          final response = await http.get(
+            Uri.parse('$apiUrl$endpoint'),
+            headers: {
+              'Content-Type': 'application/json',
+              'x-auth-token': authToken,
+            },
+          );
+          
+          debugPrint('📊 Response status: ${response.statusCode}');
+          
+          if (response.statusCode == 200) {
+            // Parse the response
+            final data = json.decode(response.body);
+            debugPrint('✅ Fetched data from $endpoint');
+            
+            // Handle different response formats
+            List<dynamic> usersList;
+            
+            if (data is List) {
+              usersList = data;
+            } else if (data is Map<String, dynamic>) {
+              if (data.containsKey('residents')) {
+                usersList = data['residents'] as List;
+              } else if (data.containsKey('users')) {
+                usersList = data['users'] as List;
+              } else if (data.containsKey('data')) {
+                usersList = data['data'] as List;
+              } else {
+                debugPrint('⚠️ Unexpected response format from $endpoint. Trying next endpoint.');
+                continue;
+              }
+            } else {
+              debugPrint('⚠️ Unexpected response type from $endpoint. Trying next endpoint.');
+              continue;
+            }
+            
+            debugPrint('✅ Extracted ${usersList.length} users from response');
+            
+            // Convert to List<Map<String, dynamic>>
+            final List<Map<String, dynamic>> users = 
+                usersList.map((user) => user as Map<String, dynamic>).toList();
+            
+            // Debug the first user to see its structure
+            if (users.isNotEmpty) {
+              debugPrint('📄 Sample user data: ${json.encode(users.first)}');
+            }
+            
+            // Sync each user to Firestore
+            for (var user in users) {
+              await _syncUserToFirestore(user);
+            }
+            
+            return users;
+          } else if (response.statusCode == 401) {
+            debugPrint('❌ Authentication failed for $endpoint: ${response.body}');
           } else {
-            debugPrint('⚠️ Unexpected response format. Falling back to Firestore.');
-            return _fetchUsersDirectlyFromFirestore();
+            debugPrint('❌ Failed to load users from $endpoint: ${response.statusCode}');
+            debugPrint('Response body: ${response.body}');
           }
-        } else {
-          debugPrint('⚠️ Unexpected response type. Falling back to Firestore.');
-          return _fetchUsersDirectlyFromFirestore();
+        } catch (e) {
+          debugPrint('❌ Error with endpoint $endpoint: $e');
         }
-        
-        debugPrint('✅ Extracted ${usersList.length} users from response');
-        
-        // Convert to List<Map<String, dynamic>>
-        final List<Map<String, dynamic>> users = 
-            usersList.map((user) => user as Map<String, dynamic>).toList();
-        
-        // Debug the first user to see its structure
-        if (users.isNotEmpty) {
-          debugPrint('📄 Sample user data: ${json.encode(users.first)}');
-        }
-        
-        // Sync each user to Firestore
-        for (var user in users) {
-          await _syncUserToFirestore(user);
-        }
-        
-        return users;
-      } else if (response.statusCode == 401) {
-        debugPrint('❌ Authentication failed: ${response.body}');
-        return _fetchUsersDirectlyFromFirestore();
-      } else {
-        debugPrint('❌ Failed to load users: ${response.statusCode}');
-        debugPrint('Response body: ${response.body}');
-        return _fetchUsersDirectlyFromFirestore();
       }
+      
+      debugPrint('❌ All endpoints failed. Falling back to Firestore.');
+      return _fetchUsersDirectlyFromFirestore();
     } catch (e) {
       debugPrint('❌ Error fetching users: $e');
       return _fetchUsersDirectlyFromFirestore();

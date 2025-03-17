@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../services/mongodb_service.dart';
+import '../services/auth_service.dart';
 import 'chat_list_page.dart';
 
 class DebugPage extends StatefulWidget {
@@ -21,20 +22,79 @@ class _DebugPageState extends State<DebugPage> {
   final TextEditingController _apiUrlController = TextEditingController(
     text: 'https://we-neighbour-backend.vercel.app/chat-residents'
   );
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   String _apiResponse = '';
   bool _testingApi = false;
+  String? _authToken;
 
   @override
   void initState() {
     super.initState();
     _checkFirestoreUsers();
+    _loadAuthToken();
+  }
+  
+  Future<void> _loadAuthToken() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final token = await authService.getToken();
+    setState(() {
+      _authToken = token;
+      _debugOutput += 'Auth token: ${_authToken != null ? "Available" : "Not available"}\n';
+    });
   }
   
   @override
   void dispose() {
     _apiUrlController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
+
+  Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      setState(() {
+        _debugOutput += 'Please enter email and password\n';
+      });
+      return;
+    }
+    
+    setState(() {
+      _isLoading = true;
+      _debugOutput += 'Logging in...\n';
+    });
+    
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      
+      // Try direct backend authentication
+      final success = await authService.authenticateWithBackendOnly(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      
+      final token = await authService.getToken();
+      
+      setState(() {
+        _authToken = token;
+        _debugOutput += 'Login ${success ? "successful" : "failed"}\n';
+        if (_authToken != null) {
+          _debugOutput += 'Token: ${_authToken!.substring(0, min(_authToken!.length, 20))}...\n';
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _debugOutput += 'Login error: $e\n';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  
+  int min(int a, int b) => a < b ? a : b;
 
   Future<void> _testApi() async {
     setState(() {
@@ -43,9 +103,18 @@ class _DebugPageState extends State<DebugPage> {
     });
     
     try {
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+      };
+      
+      // Add auth token if available
+      if (_authToken != null) {
+        headers['x-auth-token'] = _authToken!;
+      }
+      
       final response = await http.get(
         Uri.parse(_apiUrlController.text),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       );
       
       setState(() {
@@ -77,7 +146,7 @@ class _DebugPageState extends State<DebugPage> {
 
     try {
       final mongoDBService = Provider.of<MongoDBService>(context, listen: false);
-      final users = await mongoDBService.fetchAndSyncUsers();
+      final users = await mongoDBService.fetchAndSyncUsers(authToken: _authToken);
       
       setState(() {
         _debugOutput += 'Successfully synced ${users.length} users\n';
@@ -184,6 +253,36 @@ class _DebugPageState extends State<DebugPage> {
                   child: const Text('Check Firestore'),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Backend Authentication:',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _passwordController,
+              decoration: const InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(),
+              ),
+              obscureText: true,
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _isLoading ? null : _login,
+              child: const Text('Login to Backend'),
             ),
             const SizedBox(height: 16),
             const Text(

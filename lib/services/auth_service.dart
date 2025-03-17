@@ -10,12 +10,45 @@ class AuthService {
   
   // JWT token storage key
   static const String _tokenKey = 'jwt_token';
+  String? _cachedToken;
   
   // Get current user
   User? get currentUser => _auth.currentUser;
 
   // Get auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  // Initialize and load token
+  Future<void> init() async {
+    await loadToken();
+  }
+
+  // Load token from storage
+  Future<void> loadToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _cachedToken = prefs.getString(_tokenKey);
+      debugPrint('Token loaded: ${_cachedToken != null ? 'Yes' : 'No'}');
+    } catch (e) {
+      debugPrint('Error loading token: $e');
+    }
+  }
+
+  // Get JWT token (from cache or storage)
+  Future<String?> getToken() async {
+    if (_cachedToken != null) {
+      return _cachedToken;
+    }
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _cachedToken = prefs.getString(_tokenKey);
+      return _cachedToken;
+    } catch (e) {
+      debugPrint('Error getting token: $e');
+      return null;
+    }
+  }
 
   // Sign in with email and password
   Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
@@ -36,49 +69,93 @@ class AuthService {
     }
   }
 
-  // Authenticate with backend to get JWT token
-  Future<void> _authenticateWithBackend(String email, String password) async {
+  // Direct backend authentication (for testing)
+  Future<bool> authenticateWithBackendOnly(String email, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('$apiUrl/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'email': email,
-          'password': password,
-        }),
-      );
+      return await _authenticateWithBackend(email, password);
+    } catch (e) {
+      debugPrint('Error in direct backend auth: $e');
+      return false;
+    }
+  }
+
+  // Authenticate with backend to get JWT token
+  Future<bool> _authenticateWithBackend(String email, String password) async {
+    try {
+      // Try multiple possible endpoints
+      final endpoints = [
+        '/login',
+        '/api/login',
+        '/api/auth/login',
+        '/auth/login',
+      ];
       
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final token = data['token'];
-        
-        if (token != null) {
-          // Save token to shared preferences
-          await _saveToken(token);
-          debugPrint('✅ Backend authentication successful');
-        } else {
-          debugPrint('❌ No token received from backend');
+      for (final endpoint in endpoints) {
+        try {
+          debugPrint('Trying to authenticate at: $apiUrl$endpoint');
+          
+          final response = await http.post(
+            Uri.parse('$apiUrl$endpoint'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'email': email,
+              'password': password,
+            }),
+          );
+          
+          debugPrint('Response status: ${response.statusCode}');
+          
+          if (response.statusCode == 200) {
+            final data = json.decode(response.body);
+            String? token;
+            
+            // Try different token field names
+            if (data['token'] != null) {
+              token = data['token'];
+            } else if (data['accessToken'] != null) {
+              token = data['accessToken'];
+            } else if (data['jwt'] != null) {
+              token = data['jwt'];
+            } else if (data['access_token'] != null) {
+              token = data['access_token'];
+            }
+            
+            if (token != null) {
+              // Save token to shared preferences
+              await _saveToken(token);
+              debugPrint('✅ Backend authentication successful at $endpoint');
+              return true;
+            } else {
+              debugPrint('❌ No token received from backend at $endpoint');
+              debugPrint('Response: ${response.body}');
+            }
+          } else {
+            debugPrint('❌ Backend authentication failed at $endpoint: ${response.statusCode}');
+            debugPrint('Response: ${response.body}');
+          }
+        } catch (e) {
+          debugPrint('❌ Error trying endpoint $endpoint: $e');
         }
-      } else {
-        debugPrint('❌ Backend authentication failed: ${response.statusCode}');
-        debugPrint('Response: ${response.body}');
       }
+      
+      debugPrint('❌ All authentication endpoints failed');
+      return false;
     } catch (e) {
       debugPrint('❌ Error authenticating with backend: $e');
-      // Continue even if backend auth fails - we'll still have Firebase auth
+      return false;
     }
   }
 
   // Save JWT token to shared preferences
   Future<void> _saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
-  }
-
-  // Get JWT token from shared preferences
-  Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_tokenKey, token);
+      _cachedToken = token;
+      debugPrint('Token saved successfully');
+    } catch (e) {
+      debugPrint('Error saving token: $e');
+    }
   }
 
   // Register with email and password
@@ -95,12 +172,17 @@ class AuthService {
 
   // Sign out
   Future<void> signOut() async {
-    // Clear JWT token
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    
-    // Sign out from Firebase
-    await _auth.signOut();
+    try {
+      // Clear JWT token
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_tokenKey);
+      _cachedToken = null;
+      
+      // Sign out from Firebase
+      await _auth.signOut();
+    } catch (e) {
+      rethrow;
+    }
   }
 }
 
