@@ -1,22 +1,28 @@
-name: we_neighbour
-description: "A new Flutter project."
+name: flutter_firebase_chat
+description: A real-time chat application using Flutter and Firebase.
 publish_to: 'none'
-version: 0.1.0
+version: 1.0.0+1
 
 environment:
-  sdk: ^3.7.0
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^5.6.5
-  firebase_auth: ^5.5.1
-  firebase_core: ^3.12.1
+  firebase_core: ^2.15.1
+  firebase_auth: ^4.9.0
+  cloud_firestore: ^4.9.1
+  firebase_storage: ^11.2.6
+  provider: ^6.0.5
+  image_picker: ^1.0.4
+  timeago: ^3.6.0
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^2.0.0
 
 flutter:
   uses-material-design: true
+
