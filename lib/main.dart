@@ -7,6 +7,9 @@ import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'package:we_neighbour/features/resource_share/resource_sharing_page.dart';
 import 'package:we_neighbour/features/services/service_page.dart';
+import 'package:we_neighbour/features/visitor_management/entrance_verification_screen.dart';
+import 'package:we_neighbour/features/visitor_management/visitor_log_screen.dart';
+import 'package:we_neighbour/features/visitor_management/visitor_management_screen.dart';
 import 'package:we_neighbour/home/home_screen.dart';
 import 'package:we_neighbour/home/provider_home_page.dart';
 import 'package:we_neighbour/login&signup/account_type_page.dart';
@@ -206,6 +209,9 @@ class _MyAppState extends State<MyApp> {
             '/reports': (context) => const ReportsScreen(),
             '/login': (context) => const LoginPage(),
             '/settings': (context) => const SettingsScreen(),
+            '/visitor-management': (context) => const VisitorManagementScreen(),
+            '/entrance-verification': (context) => const EntranceVerificationScreen(),
+            '/visitor-log': (context) => const VisitorLogScreen(),
             '/maintenance': (context) => _token != null
                 ? MaintenanceScreen(authToken: _token!, isManager: _userType == UserType.manager)
                 : const LoginPage(),

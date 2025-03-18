@@ -34,6 +34,7 @@ dependencies:
   flutter_typeahead: ^5.0.1
   permission_handler: ^11.4.0
   http: ^1.2.2
+  barcode_scan2: ^4.2.0
 
   table_calendar: ^3.0.9
   firebase_auth: ^5.5.1

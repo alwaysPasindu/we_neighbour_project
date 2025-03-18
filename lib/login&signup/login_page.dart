@@ -123,7 +123,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           'email': _emailController.text,
           'password': _passwordController.text,
         }),
-      ).timeout(const Duration(seconds: 30), onTimeout: () {
+      ).timeout(const Duration(seconds: 50), onTimeout: () {
         throw TimeoutException('Request timed out after 30 seconds');
       });
 
