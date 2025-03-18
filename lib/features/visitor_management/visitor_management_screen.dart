@@ -20,72 +20,77 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
   String? qrData;
   bool isLoading = false;
   final _numOfVisitorsController = TextEditingController();
-  final _visitorNamesController = TextEditingController();
-  static const String baseUrl = 'https://we-neighbour-backend.vercel.app'; // Your backend IP
-  final GlobalKey _qrKey = GlobalKey(); // Key for capturing QR image
+  static const String baseUrl = 'https://we-neighbour-backend.vercel.app';
+  final GlobalKey _qrKey = GlobalKey();
 
   Future<String?> getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     print('Retrieved token: $token');
-    if (token == null) {
-      const mockToken = 'mock-token-123'; // Temporary mock token
-      await prefs.setString('token', mockToken);
-      print('Set mock token: $mockToken');
-      return mockToken;
+    if (token == null || token.isEmpty) {
+      print('No valid token found, redirecting to login');
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+      return null;
     }
     return token;
   }
 
   Future<void> generateQRCode() async {
-    final result = await showDialog<Map<String, dynamic>>(
+    final result = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Visitor Details'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _numOfVisitorsController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Number of Visitors',
-                border: OutlineInputBorder(),
-              ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Visitor Details',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+        ),
+        content: TextField(
+          controller: _numOfVisitorsController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'Number of Visitors',
+            labelStyle: const TextStyle(color: Colors.grey),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            prefixIcon: const Icon(Icons.group, color: Colors.blueAccent),
+            filled: true,
+            fillColor: Colors.grey[100],
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _visitorNamesController,
-              decoration: const InputDecoration(
-                labelText: 'Visitor Names (comma-separated)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
+          ),
+          style: const TextStyle(color: Colors.black87),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
             onPressed: () {
-              if (_numOfVisitorsController.text.isEmpty || _visitorNamesController.text.isEmpty) {
+              if (_numOfVisitorsController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please fill in all fields')),
+                  const SnackBar(content: Text('Please enter the number of visitors')),
                 );
                 return;
               }
               try {
                 final numOfVisitors = int.parse(_numOfVisitorsController.text);
-                Navigator.pop(context, {
-                  'numOfVisitors': numOfVisitors,
-                  'visitorNames': _visitorNamesController.text.split(',').map((name) => name.trim()).toList(),
-                });
+                Navigator.pop(context, numOfVisitors);
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Number of Visitors must be a valid number')),
+                  const SnackBar(content: Text('Please enter a valid number')),
                 );
               }
             },
-            child: const Text('Generate'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Generate', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -97,33 +102,32 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
 
     try {
       final token = await getAuthToken();
-      if (token == null) throw Exception('No authentication token found');
+      if (token == null) {
+        throw Exception('Authentication required. Please log in.');
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      final residentId = prefs.getString('userId') ?? 'resident123';
 
       final response = await http.post(
         Uri.parse('$baseUrl/api/visitor/generate-qr'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
+          'x-auth-token': token,
         },
         body: json.encode({
-          'residentId': 'resident123', // Replace with actual resident ID if available
-          'numOfVisitors': result['numOfVisitors'],
-          'visitorNames': result['visitorNames'],
+          'residentId': residentId,
+          'numOfVisitors': result,
         }),
       ).timeout(const Duration(seconds: 10));
 
+      print('Request: ${response.request}');
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final qrJson = {
-          'visitorId': data['visitorId'].toString(),
-          'residentId': 'resident123',
-          'numOfVisitors': result['numOfVisitors'],
-          'visitorNames': result['visitorNames'],
-        };
-        setState(() => qrData = json.encode(qrJson));
+        final data = jsonDecode(response.body);
+        setState(() => qrData = '$baseUrl/visitor/verify/${data['visitorId']}');
         print('Generated QR data: $qrData');
       } else {
         throw Exception('Failed to generate QR code: ${response.statusCode} - ${response.body}');
@@ -137,7 +141,6 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
     } finally {
       setState(() => isLoading = false);
       _numOfVisitorsController.clear();
-      _visitorNamesController.clear();
     }
   }
 
@@ -150,9 +153,8 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
     }
 
     try {
-      // Capture the QR code as an image
-      RenderRepaintBoundary boundary = _qrKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final boundary = _qrKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 3.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final bytes = byteData!.buffer.asUint8List();
 
@@ -162,8 +164,8 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
       final file = File(filePath);
       await file.writeAsBytes(bytes);
 
-      await Share.shareFiles(
-        [filePath],
+      await Share.shareXFiles(
+        [XFile(filePath)],
         text: 'Here is your visitor QR code for apartment access.',
         subject: 'Visitor QR Code',
       );
@@ -179,62 +181,123 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Visitor QR Code'),
+        title: const Text(
+          'Generate Visitor QR',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white),
+        ),
         backgroundColor: Colors.blueAccent,
         elevation: 0,
+        centerTitle: true,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (qrData == null && !isLoading) ...[
-                  const Text(
-                    'Generate a Visitor QR Code',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueAccent),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 30),
-                  ElevatedButton.icon(
-                    onPressed: generateQRCode,
-                    icon: const Icon(Icons.qr_code),
-                    label: const Text('Generate QR Code'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                      textStyle: const TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                ],
-                if (isLoading) const CircularProgressIndicator(color: Colors.blueAccent),
-                if (qrData != null) ...[
-                  RepaintBoundary(
-                    key: _qrKey,
-                    child: QrImageView(
-                      data: qrData!,
-                      version: QrVersions.auto,
-                      size: 250.0,
-                      backgroundColor: Colors.white,
-                      padding: const EdgeInsets.all(10),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  ElevatedButton.icon(
-                    onPressed: downloadQRCode,
-                    icon: const Icon(Icons.share),
-                    label: const Text('Download QR Code'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                      textStyle: const TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blueAccent.withOpacity(0.1), Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (qrData == null && !isLoading) ...[
+                      const Icon(Icons.qr_code_2, size: 80, color: Colors.blueAccent),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Generate Visitor QR Code',
+                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Create a QR code for your visitors.',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 40),
+                      ElevatedButton.icon(
+                        onPressed: generateQRCode,
+                        icon: const Icon(Icons.qr_code_scanner, size: 24, color: Colors.white),
+                        label: const Text(
+                          'Generate QR',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          elevation: 5,
+                          shadowColor: Colors.blueAccent.withOpacity(0.5),
+                        ),
+                      ),
+                    ],
+                    if (isLoading) ...[
+                      const CircularProgressIndicator(color: Colors.blueAccent),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Generating your QR code...',
+                        style: TextStyle(fontSize: 16, color: Colors.black54),
+                      ),
+                    ],
+                    if (qrData != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blueAccent.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              'Your Visitor QR Code',
+                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                            ),
+                            const SizedBox(height: 20),
+                            RepaintBoundary(
+                              key: _qrKey,
+                              child: QrImageView(
+                                data: qrData!,
+                                version: QrVersions.auto,
+                                size: 250.0,
+                                backgroundColor: Colors.white,
+                                padding: const EdgeInsets.all(10),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      ElevatedButton.icon(
+                        onPressed: downloadQRCode,
+                        icon: const Icon(Icons.share, size: 24, color: Colors.white),
+                        label: const Text(
+                          'Share QR',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          elevation: 5,
+                          shadowColor: Colors.blue.withOpacity(0.5),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),

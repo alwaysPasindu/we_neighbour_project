@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/colors.dart';
-// import 'package:we_neighbour/features/chat/chat_list_screen.dart';
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'package:we_neighbour/features/resource_share/resource_sharing_page.dart';
 import 'package:we_neighbour/features/services/service_page.dart';
-import 'package:we_neighbour/features/visitor_management/entrance_verification_screen.dart';
 import 'package:we_neighbour/features/visitor_management/visitor_log_screen.dart';
 import 'package:we_neighbour/features/visitor_management/visitor_management_screen.dart';
 import 'package:we_neighbour/home/home_screen.dart';
@@ -20,7 +18,6 @@ import 'package:we_neighbour/login&signup/resident_signup_page.dart';
 import 'package:we_neighbour/profiles/manager_profile_screen.dart';
 import 'package:we_neighbour/profiles/provider_profile_screen.dart';
 import 'package:we_neighbour/profiles/resident_profile_screen.dart';
-import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
 import 'package:we_neighbour/screens/manager_maintenance_screen.dart';
 import 'package:we_neighbour/screens/pending_approval_page.dart';
@@ -35,7 +32,7 @@ import 'dart:convert';
 
 enum UserType { resident, manager, serviceProvider }
 
-const String baseUrl = 'https://we-neighbour-backend.vercel.app'; 
+const String baseUrl = 'https://we-neighbour-backend.vercel.app';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,7 +44,6 @@ void main() async {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider(isDarkMode: isDarkMode)),
-          // ChangeNotifierProvider(create: (_) => ChatProvider()),
         ],
         child: const MyApp(),
       ),
@@ -58,7 +54,6 @@ void main() async {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider(isDarkMode: false)),
-          // ChangeNotifierProvider(create: (_) => ChatProvider()),
         ],
         child: const MyApp(),
       ),
@@ -108,7 +103,6 @@ class _MyAppState extends State<MyApp> {
             userType = UserType.resident;
         }
 
-        // Sync Firebase with JWT
         await _syncFirebaseWithJwt(token);
 
         setState(() {
@@ -201,7 +195,6 @@ class _MyAppState extends State<MyApp> {
             '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
             '/provider-home': (context) => const ProviderHomePage(),
             '/provider-profile': (context) => const CompanyProfileScreen(),
-            // '/chat': (context) => ChatListScreen(),
             '/pending-approval': (context) => const PendingApprovalPage(),
             '/resource': (context) => const ResourceSharingPage(),
             '/resident-req': (context) => const ResidentsRequestsScreen(),
@@ -209,8 +202,7 @@ class _MyAppState extends State<MyApp> {
             '/reports': (context) => const ReportsScreen(),
             '/login': (context) => const LoginPage(),
             '/settings': (context) => const SettingsScreen(),
-            '/visitor-management': (context) => const VisitorManagementScreen(),
-            '/entrance-verification': (context) => const EntranceVerificationScreen(),
+            '/visitor': (context) => const VisitorManagementScreen(),
             '/visitor-log': (context) => const VisitorLogScreen(),
             '/maintenance': (context) => _token != null
                 ? MaintenanceScreen(authToken: _token!, isManager: _userType == UserType.manager)
@@ -218,33 +210,8 @@ class _MyAppState extends State<MyApp> {
             '/manager-maintenance': (context) => _token != null
                 ? ManagerMaintenanceScreen(authToken: _token!)
                 : const LoginPage(),
-            '/home': (context) {
-              final args = ModalRoute.of(context)?.settings.arguments;
-              final userType = args is UserType ? args : _userType;
-              return userType == UserType.serviceProvider
-                  ? ServicesPage(userType: userType)
-                  : HomeScreen(userType: userType);
-            },
-            '/service': (context) {
-              final args = ModalRoute.of(context)?.settings.arguments;
-              final userType = args is UserType ? args : _userType;
-              return ServicesPage(userType: userType);
-            },
-          },
-          onGenerateRoute: (settings) {
-            if (settings.name == '/profile') {
-              final args = settings.arguments;
-              final userType = args is UserType ? args : _userType;
-              switch (userType) {
-                case UserType.resident:
-                  return MaterialPageRoute(builder: (_) => const ResidentProfileScreen());
-                case UserType.manager:
-                  return MaterialPageRoute(builder: (_) => const ManagerProfileScreen());
-                case UserType.serviceProvider:
-                  return MaterialPageRoute(builder: (_) => const CompanyProfileScreen());
-              }
-            }
-            return null;
+            '/home': (context) => HomeScreen(userType: _userType),
+            '/service': (context) => ServicesPage(userType: _userType),
           },
         );
       },

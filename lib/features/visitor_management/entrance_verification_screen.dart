@@ -1,195 +1,160 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:barcode_scan2/barcode_scan2.dart';
+// import 'package:flutter/material.dart';
+// import 'package:http/http.dart' as http;
+// import 'dart:convert';
+// import 'package:qr_code_scanner/qr_code_scanner.dart';
 
-class EntranceVerificationScreen extends StatefulWidget {
-  const EntranceVerificationScreen({super.key});
+// class EntranceVerificationScreen extends StatefulWidget {
+//   const EntranceVerificationScreen({super.key});
 
-  @override
-  State<EntranceVerificationScreen> createState() => _EntranceVerificationScreenState();
-}
+//   @override
+//   State<EntranceVerificationScreen> createState() => _EntranceVerificationScreenState();
+// }
 
-class _EntranceVerificationScreenState extends State<EntranceVerificationScreen> {
-  bool isVerifying = false;
-  String? errorMessage;
-  static const String baseUrl = 'https://we-neighbour-backend.vercel.app'; // Match VisitorManagementScreen
+// class _EntranceVerificationScreenState extends State<EntranceVerificationScreen> {
+//   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+//   Barcode? result;
+//   QRViewController? controller;
+//   Map<String, dynamic>? visitorData;
+//   bool isLoading = false;
+//   static const String baseUrl = 'https://we-neighbour-backend.vercel.app';
 
-  Future<String?> getAuthToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    if (token == null) {
-      const mockToken = 'mock-token-123'; // Same mock token as above
-      await prefs.setString('token', mockToken);
-      print('Set mock token: $mockToken');
-      return mockToken;
-    }
-    print('Retrieved token: $token');
-    return token;
-  }
+//   void _onQRViewCreated(QRViewController controller) {
+//     this.controller = controller;
+//     controller.scannedDataStream.listen((scanData) async {
+//       if (result != null) return; // Prevent multiple scans
+//       setState(() {
+//         result = scanData;
+//         visitorData = jsonDecode(scanData.code!);
+//       });
+//       controller.pauseCamera();
+//     });
+//   }
 
-  Future<void> scanAndVerifyQRCode() async {
-    setState(() {
-      errorMessage = null;
-      isVerifying = false;
-    });
+//   Future<void> updateVisitorStatus(String action) async {
+//     setState(() => isLoading = true);
+//     try {
+//       final response = await http.post(
+//         Uri.parse('$baseUrl/api/visitor/update-status'),
+//         headers: {'Content-Type': 'application/json'},
+//         body: json.encode({
+//           'visitorId': visitorData!['visitorId'],
+//           'action': action,
+//         }),
+//       ).timeout(const Duration(seconds: 10));
 
-    try {
-      final result = await BarcodeScanner.scan();
-      print('Raw QR content: ${result.rawContent}');
+//       print('Update status response: ${response.statusCode} - ${response.body}');
+//       if (response.statusCode == 200) {
+//         final data = jsonDecode(response.body);
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text(data['message'])),
+//         );
+//         setState(() {
+//           visitorData = null;
+//           result = null;
+//         });
+//         controller?.resumeCamera();
+//       } else {
+//         throw Exception('Failed to update status: ${response.body}');
+//       }
+//     } catch (e) {
+//       print('Error updating status: $e');
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('Error: $e')),
+//       );
+//     } finally {
+//       setState(() => isLoading = false);
+//     }
+//   }
 
-      final qrData = json.decode(result.rawContent) as Map<String, dynamic>;
-      print('Parsed QR data: $qrData');
+//   @override
+//   void dispose() {
+//     controller?.dispose();
+//     super.dispose();
+//   }
 
-      final visitorId = qrData['visitorId']?.toString();
-      final visitorNames = qrData['visitorNames'] is List
-          ? (qrData['visitorNames'] as List).join(', ')
-          : 'Unknown';
-      final numOfVisitors = qrData['numOfVisitors']?.toString() ?? 'Unknown';
-
-      if (visitorId == null) {
-        throw Exception('Invalid QR code: visitorId missing');
-      }
-
-      final action = await showDialog<String>(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text(
-            'Visitor Verification',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.blueAccent),
-            textAlign: TextAlign.center,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(Icons.person, size: 50, color: Colors.blueAccent),
-              const SizedBox(height: 10),
-              Text('Visitor: $visitorNames', style: const TextStyle(fontSize: 18)),
-              Text('Count: $numOfVisitors', style: const TextStyle(fontSize: 16, color: Colors.grey)),
-            ],
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, 'accept'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: const Text('Approve', style: TextStyle(fontSize: 16, color: Colors.white)),
-            ),
-            const SizedBox(width: 20),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, 'reject'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: const Text('Decline', style: TextStyle(fontSize: 16, color: Colors.white)),
-            ),
-          ],
-        ),
-      );
-
-      if (action != null) {
-        setState(() => isVerifying = true);
-
-        final token = await getAuthToken();
-        if (token == null) throw Exception('No authentication token found');
-
-        final response = await http.post(
-          Uri.parse('$baseUrl/api/visitor/update-status'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-          body: json.encode({'visitorId': visitorId, 'action': action}),
-        ).timeout(const Duration(seconds: 10));
-
-        print('Update status response: ${response.statusCode} - ${response.body}');
-
-        if (response.statusCode == 200) {
-          final message = action == 'accept' ? 'Entry Approved' : 'Entry Declined';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: action == 'accept' ? Colors.green : Colors.red,
-            ),
-          );
-        } else {
-          throw Exception('Failed to update status: ${response.statusCode} - ${response.body}');
-        }
-      }
-    } catch (e) {
-      print('Error during QR scan/verification: $e');
-      setState(() => errorMessage = 'Error: $e');
-    } finally {
-      setState(() => isVerifying = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Entrance Verification'),
-        backgroundColor: Colors.blueAccent,
-        elevation: 0,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blueAccent.shade100, Colors.white],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Scan Visitor QR Code',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blueAccent),
-                ),
-                const SizedBox(height: 20),
-                const Icon(Icons.qr_code_scanner, size: 100, color: Colors.blueAccent),
-                const SizedBox(height: 30),
-                if (errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Text(
-                      errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ElevatedButton.icon(
-                  onPressed: isVerifying ? null : scanAndVerifyQRCode,
-                  icon: isVerifying
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Icon(Icons.qr_code_scanner),
-                  label: const Text('Scan QR Code'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    textStyle: const TextStyle(fontSize: 18, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text(
+//           'Scan Visitor QR',
+//           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+//         ),
+//         backgroundColor: Colors.blueAccent,
+//         centerTitle: true,
+//       ),
+//       body: Stack(
+//         children: [
+//           QRView(
+//             key: qrKey,
+//             onQRViewCreated: _onQRViewCreated,
+//             overlay: QrScannerOverlayShape(
+//               borderColor: Colors.blueAccent,
+//               borderRadius: 10,
+//               borderLength: 30,
+//               borderWidth: 10,
+//               cutOutSize: 300,
+//             ),
+//           ),
+//           if (visitorData != null && !isLoading)
+//             Center(
+//               child: Container(
+//                 padding: const EdgeInsets.all(20),
+//                 decoration: BoxDecoration(
+//                   color: Colors.white,
+//                   borderRadius: BorderRadius.circular(20),
+//                   boxShadow: [
+//                     BoxShadow(
+//                       color: Colors.black.withOpacity(0.2),
+//                       blurRadius: 10,
+//                       offset: const Offset(0, 5),
+//                     ),
+//                   ],
+//                 ),
+//                 child: Column(
+//                   mainAxisSize: MainAxisSize.min,
+//                   children: [
+//                     const Text(
+//                       'Visitor Details',
+//                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+//                     ),
+//                     const SizedBox(height: 10),
+//                     Text(
+//                       'Number of Visitors: ${visitorData!['numOfVisitors']}',
+//                       style: const TextStyle(fontSize: 16, color: Colors.black54),
+//                     ),
+//                     const SizedBox(height: 20),
+//                     Row(
+//                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                       children: [
+//                         ElevatedButton(
+//                           onPressed: () => updateVisitorStatus('accept'),
+//                           style: ElevatedButton.styleFrom(
+//                             backgroundColor: Colors.blueAccent,
+//                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                           ),
+//                           child: const Text('Approve', style: TextStyle(color: Colors.white)),
+//                         ),
+//                         ElevatedButton(
+//                           onPressed: () => updateVisitorStatus('reject'),
+//                           style: ElevatedButton.styleFrom(
+//                             backgroundColor: Colors.red,
+//                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+//                           ),
+//                           child: const Text('Decline', style: TextStyle(color: Colors.white)),
+//                         ),
+//                       ],
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           if (isLoading)
+//             const Center(
+//               child: CircularProgressIndicator(color: Colors.blueAccent),
+//             ),
+//         ],
+//       ),
+//     );
+//   }
+// }
