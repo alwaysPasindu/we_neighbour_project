@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const {connectDB,centralDB} = require('../config/database');
 const ManagerSchema = require('../models/Manager'); 
 const ApartmentSchema = require('../models/Apartment');
+const { syncUserToFirebase } = require('../utils/firebaseSync');
 
 // Central Manager model (for storing all managers' info)
 const CentralManager = centralDB.model('CentralManager', ManagerSchema);
@@ -131,6 +132,8 @@ exports.approveManager = async (req, res) => {
                 status: 'approved', // Set status to approved
             });
             await newManager.save();
+
+            await syncUserToFirebase(newManager, manager.apartmentName);
         }
 
         console.log(`Manager ${managerId} status updated to: ${status}`);

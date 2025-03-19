@@ -67,9 +67,8 @@ exports.login = async (req, res) => {
           return res.status(403).json({ message: 'Your registration request is pending or rejected' });
       }
 
-      // Compare passwords
       
-
+      
       // Generate JWT token
       const payload = {
           id: user._id,
