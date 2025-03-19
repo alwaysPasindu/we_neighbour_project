@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.initState();
     
     // Generate random particles
-    _generateParticles();
+    // _generateParticles();
     
     // Initialize animation controller
     _animationController = AnimationController(
@@ -72,18 +72,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     });
   }
 
-  void _generateParticles() {
-    final random = math.Random();
-    for (int i = 0; i < _particleCount; i++) {
-      _particles.add({
-        'x': random.nextDouble(),
-        'y': random.nextDouble(),
-        'size': random.nextDouble() * 10 + 2,
-        'speed': random.nextDouble() * 0.8 + 0.2,
-        'opacity': random.nextDouble() * 0.6 + 0.2,
-      });
-    }
-  }
+  // void _generateParticles() {
+  //   final random = math.Random();
+  //   for (int i = 0; i < _particleCount; i++) {
+  //     _particles.add({
+  //       'x': random.nextDouble(),
+  //       'y': random.nextDouble(),
+  //       'size': random.nextDouble() * 10 + 2,
+  //       'speed': random.nextDouble() * 0.8 + 0.2,
+  //       'opacity': random.nextDouble() * 0.6 + 0.2,
+  //     });
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -272,22 +272,22 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       ),
                       
                       // Reflection effect
-                      Container(
-                        height: 20,
-                        width: 140,
-                        margin: const EdgeInsets.only(top: 10),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.white.withOpacity(0.3),
-                              Colors.white.withOpacity(0.0),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                      ),
+                      // Container(
+                      //   height: 20,
+                      //   width: 140,
+                      //   margin: const EdgeInsets.only(top: 10),
+                        // decoration: BoxDecoration(
+                          // gradient: LinearGradient(
+                          //   begin: Alignment.topCenter,
+                          //   end: Alignment.bottomCenter,
+                            // colors: [
+                            //   const Color.fromARGB(255, 255, 255, 255).withOpacity(0.3),
+                            //   Colors.white.withOpacity(0.0),
+                            // ],
+                          // ),
+                        //   borderRadius: BorderRadius.circular(100),
+                        // ),
+                      // ),
                     ],
                   ),
                 ),
@@ -343,35 +343,35 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   child: Column(
                     children: [
                       // App name with glass effect
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 30,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
-                                width: 1.5,
-                              ),
-                            ),
-                            child: const Text(
-                              "We Neighbour",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      // ClipRRect(
+                      //   borderRadius: BorderRadius.circular(20),
+                      //   child: BackdropFilter(
+                      //     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      //     child: Container(
+                      //       padding: const EdgeInsets.symmetric(
+                      //         horizontal: 30,
+                      //         vertical: 12,
+                      //       ),
+                      //       decoration: BoxDecoration(
+                      //         color: Colors.white.withOpacity(0.15),
+                      //         borderRadius: BorderRadius.circular(20),
+                      //         border: Border.all(
+                      //           color: Colors.white.withOpacity(0.2),
+                      //           width: 1.5,
+                      //         ),
+                      //       ),
+                      //       child: const Text(
+                      //         "We Neighbour",
+                      //         style: TextStyle(
+                      //           color: Colors.white,
+                      //           fontSize: 32,
+                      //           fontWeight: FontWeight.bold,
+                      //           letterSpacing: 1.2,
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                       
                       const SizedBox(height: 15),
                       

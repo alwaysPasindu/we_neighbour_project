@@ -39,7 +39,7 @@ class AuthUtils {
     final profileData = {
       'name': prefs.getString('userName') ?? '',
       'email': prefs.getString('userEmail') ?? '',
-      'phone': prefs.getString('userPhone') ?? '', // Re-added
+      'phone': prefs.getString('userPhone') ?? '',
       'apartmentComplexName': prefs.getString('userApartment') ?? '',
     };
     switch (userType) {
@@ -60,7 +60,7 @@ class AuthUtils {
   static Future<void> saveUserProfileData({
     required String name,
     required String email,
-    required String phone, // Re-added
+    required String phone,
     String? apartmentComplexName,
     String? address,
     String? serviceType,
@@ -69,8 +69,11 @@ class AuthUtils {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userName', name);
     await prefs.setString('userEmail', email);
-    await prefs.setString('userPhone', phone); // Re-added
-    if (apartmentComplexName != null) await prefs.setString('userApartment', apartmentComplexName);
+    await prefs.setString('userPhone', phone);
+    if (apartmentComplexName != null) {
+      await prefs.setString('userApartment', apartmentComplexName);
+      print('Saved userApartment: $apartmentComplexName');
+    }
     if (address != null) await prefs.setString('userAddress', address);
     if (serviceType != null) await prefs.setString('serviceType', serviceType);
     if (designation != null) await prefs.setString('designation', designation);
@@ -106,14 +109,16 @@ class AuthUtils {
     await prefs.setString('userName', userData['user']['name'] ?? '');
     await prefs.setString('userEmail', userData['user']['email'] ?? '');
     await prefs.setString('userRole', userData['user']['role'].toLowerCase() ?? 'resident');
-    await prefs.setString('userPhone', userData['user']['phone'] ?? ''); // Re-added
+    await prefs.setString('userPhone', userData['user']['phone'] ?? '');
 
     final role = userData['user']['role'].toLowerCase();
     if (role == 'resident' || role == 'manager') {
-      await prefs.setString('userApartment', userData['user']['apartmentComplexName'] ?? '');
+      final apartmentName = userData['user']['apartmentComplexName'] ?? '';
+      await prefs.setString('userApartment', apartmentName);
+      print('Saved userApartment in updateUserDataOnLogin: $apartmentName');
     }
     if (role == 'serviceprovider') {
-      await prefs.setString('userAddress', userData['user']['address'] ?? ''); // Optional
+      await prefs.setString('userAddress', userData['user']['address'] ?? '');
     }
   }
 

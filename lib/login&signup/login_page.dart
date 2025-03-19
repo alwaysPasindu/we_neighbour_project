@@ -10,7 +10,12 @@ import 'dart:ui';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:http/io_client.dart';
+import 'package:provider/provider.dart';
+import 'package:we_neighbour/providers/chat_provider.dart';
 
+String getBaseUrl() {
+  return baseUrl;
+}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -105,7 +110,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   Future<void> _handleLogin() async {
-    final String effectiveBaseUrl = baseUrl;
+    final String effectiveBaseUrl = getBaseUrl();
     setState(() => _isLoading = true);
     try {
       print('Running on platform: ${Platform.operatingSystem}');
@@ -135,6 +140,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         throw Exception('Empty response body');
       }
 
+      if (response.statusCode == 504) {
+        _showErrorDialog('Server Error', 'The server is temporarily unavailable. Please try again later or contact support.');
+        return; // Exit early to avoid parsing the body
+      }
+
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 403) {
@@ -155,6 +165,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           await prefs.remove('savedEmail');
           await prefs.setBool('rememberMe', false);
         }
+
+        // Update ChatProvider
+        final userId = data['user']['id'];
+        final apartmentName = data['user']['apartmentComplexName'] ?? 'Negombo-Dreams';
+        final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+        chatProvider.setUser(userId, apartmentName);
+        print('Updated ChatProvider after login: userId=$userId, apartmentName=$apartmentName');
 
         final role = data['user']['role'].toLowerCase();
         final status = data['user']['status'];
