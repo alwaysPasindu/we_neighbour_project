@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/chat.dart'; // Contains Chat
-import '../models/message.dart' as message_model; // Prefix for Message from message.dart
+import '../models/message.dart' as message_model; // Prefix for Message
 
 class ChatProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -25,7 +25,12 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  String? get currentUserId => _currentUserId; // Add getter for currentUserId
+  // Add this method to refresh user data after login
+  Future<void> refreshUserData() async {
+    await _loadUserData();
+  }
+
+  String? get currentUserId => _currentUserId;
 
   Stream<List<Chat>> getChats() {
     if (_currentUserId == null) return const Stream.empty();
@@ -66,7 +71,6 @@ class ChatProvider with ChangeNotifier {
       ).toFirestore(),
     );
 
-    // Update last message in chat
     await _firestore.collection('chats').doc(chatId).update({
       'lastMessage': content,
       'timestamp': FieldValue.serverTimestamp(),
@@ -77,7 +81,7 @@ class ChatProvider with ChangeNotifier {
     if (_currentUserId == null) throw Exception('User not authenticated');
     final groupRef = await _firestore.collection('groups').add({
       'name': name,
-      'members': [_currentUserId, ...members], // Include current user
+      'members': [_currentUserId, ...members],
       'timestamp': FieldValue.serverTimestamp(),
       'isGroup': true,
     });
