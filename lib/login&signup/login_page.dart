@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:http/io_client.dart';
 import 'package:provider/provider.dart';
 import 'package:we_neighbour/providers/chat_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Add Firebase Auth
 
 String getBaseUrl() {
   return baseUrl;
@@ -27,6 +28,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance; // Firebase Auth instance
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isLoading = false;
@@ -112,11 +114,20 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   Future<void> _handleLogin() async {
     final String effectiveBaseUrl = getBaseUrl();
     setState(() => _isLoading = true);
-    try {
-      print('Running on platform: ${Platform.operatingSystem}');
-      print('Attempting login with effective baseUrl: $effectiveBaseUrl');
-      print('Login request sent to: $effectiveBaseUrl/api/auth/login');
 
+    try {
+      // Validate inputs
+      if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+        _showErrorDialog('Input Error', 'Please enter both email and password');
+        return;
+      }
+
+    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+  email: _emailController.text.trim(),
+  password: _passwordController.text.trim(),
+);
+
+      // Make API call to your backend (if needed)
       HttpClient httpClient = HttpClient()
         ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
       final client = IOClient(httpClient);
@@ -128,21 +139,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           'email': _emailController.text,
           'password': _passwordController.text,
         }),
-      ).timeout(const Duration(seconds: 50), onTimeout: () {
-        throw TimeoutException('Request timed out after 30 seconds');
-      });
-
-      print('Response status: ${response.statusCode}');
-      print('Response headers: ${response.headers}');
-      print('Raw response body: ${response.body}');
-
-      if (response.body.isEmpty) {
-        throw Exception('Empty response body');
-      }
+      ).timeout(const Duration(seconds: 50));
 
       if (response.statusCode == 504) {
-        _showErrorDialog('Server Error', 'The server is temporarily unavailable. Please try again later or contact support.');
-        return; // Exit early to avoid parsing the body
+        _showErrorDialog('Server Error', 'The server is temporarily unavailable.');
+        return;
       }
 
       final data = jsonDecode(response.body);
@@ -151,7 +152,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         final prefs = await SharedPreferences.getInstance();
         await prefs.clear();
         await prefs.setString('token', data['token']);
-        await prefs.setString('userId', data['user']['id']);
+        await prefs.setString('userId', userCredential.user!.uid); // Use Firebase UID
         await prefs.setString('userRole', data['user']['role'].toLowerCase());
         await prefs.setString('userName', data['user']['name'] ?? 'User');
         await prefs.setString('userEmail', data['user']['email'] ?? 'N/A');
@@ -166,12 +167,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           await prefs.setBool('rememberMe', false);
         }
 
-        // Update ChatProvider
-        final userId = data['user']['id'];
-        final apartmentName = data['user']['apartmentComplexName'] ?? 'Negombo-Dreams';
+        // Refresh ChatProvider with new user data
         final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-        chatProvider.setUser(userId, apartmentName);
-        print('Updated ChatProvider after login: userId=$userId, apartmentName=$apartmentName');
+        await chatProvider.refreshUserData();
+        print('Refreshed ChatProvider with userId: ${chatProvider.currentUserId}');
 
         final role = data['user']['role'].toLowerCase();
         final status = data['user']['status'];
@@ -188,23 +187,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           Navigator.pushReplacementNamed(context, '/pending-approval');
         }
       } else {
-        _showErrorDialog('Login failed', data['message'] ?? 'Invalid credentials');
+        _showErrorDialog('Login Failed', data['message'] ?? 'Invalid credentials');
       }
     } catch (e, stackTrace) {
       print('Login error: $e');
       print('Stack trace: $stackTrace');
-      if (e is HandshakeException) {
-        print('Handshake details: ${e.message}');
-        print('Possible SSL issue with $effectiveBaseUrl (bypassed for development)');
-      } else if (e is SocketException) {
-        print('Socket details: ${e.message}');
-        print('Ensure $effectiveBaseUrl is reachable and CORS is configured');
-      } else if (e is FormatException) {
-        print('JSON parsing error: ${e.message}');
-      } else if (e is TimeoutException) {
-        print('Timeout error: ${e.message}');
-      }
-      _showErrorDialog('Connection Error', 'Unable to connect to the server: $e');
+      _showErrorDialog('Connection Error', 'Unable to connect: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -242,27 +230,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Colors.red.shade700,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        duration: const Duration(seconds: 3),
-        elevation: 6,
       ),
     );
   }
@@ -913,7 +880,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                           ),
                           SizedBox(height: size.height * 0.01),
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 5),
+                            padding: const EdgeInsets.only(top: 5),
                             child: Text(
                               'Sign in with Google',
                               style: TextStyle(
@@ -984,67 +951,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _socialButton(
-    String iconPath,
-    VoidCallback onPressed,
-    bool isDarkMode,
-    Color primaryColor,
-    int index,
-    Size size, [
-    double? customSize,
-  ]) {
-    final buttonSize = customSize ?? (size.width < 360 ? 48.0 : 56.0);
-    final iconSize = buttonSize * 0.5;
-
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        final delay = 0.2 + (index * 0.1);
-        final opacity = _animationController.value > delay
-            ? ((_animationController.value - delay) / (1 - delay)).clamp(0.0, 1.0)
-            : 0.0;
-
-        return Opacity(
-          opacity: opacity,
-          child: Transform.translate(
-            offset: Offset(0, 20 * (1 - opacity)),
-            child: child,
-          ),
-        );
-      },
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(buttonSize / 2),
-        child: Container(
-          width: buttonSize,
-          height: buttonSize,
-          padding: EdgeInsets.all(buttonSize * 0.25),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDarkMode ? Colors.white.withOpacity(0.05) : Colors.white,
-            border: Border.all(
-              color: isDarkMode ? Colors.white24 : Colors.grey[300]!,
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-                spreadRadius: -5,
-              ),
-            ],
-          ),
-          child: Image.asset(
-            iconPath,
-            height: iconSize,
-            width: iconSize,
-          ),
-        ),
       ),
     );
   }
