@@ -246,8 +246,13 @@ class _BookAmenitiesScreenState extends State<BookAmenitiesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Book Amenities'),
+        title: const Text(
+          'Book Amenities',
+          style: TextStyle(color: Colors.white), // Add this style
+        ),
         backgroundColor: const Color(0xFF0A1A3B),
+        iconTheme: const IconThemeData(
+            color: Colors.white), // This changes the back button color
       ),
       body: Container(
         color: const Color(0xFF0A1A3B),
