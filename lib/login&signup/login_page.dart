@@ -169,8 +169,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
         // Refresh ChatProvider with new user data
         final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-        await chatProvider.refreshUserData();
-        print('Refreshed ChatProvider with userId: ${chatProvider.currentUserId}');
+        // await chatProvider.refreshUserData();
+        // print('Refreshed ChatProvider with userId: ${chatProvider.currentUserId}');
 
         final role = data['user']['role'].toLowerCase();
         final status = data['user']['status'];
