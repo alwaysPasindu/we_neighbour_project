@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     switch (index) {
       case 1:
-        Navigator.pushNamed(context, '/chat', arguments: widget.userType);
+        Navigator.pushNamed(context, '/chat-list', arguments: widget.userType);
         break;
       case 2:
         Navigator.pushNamed(context, '/resource');
