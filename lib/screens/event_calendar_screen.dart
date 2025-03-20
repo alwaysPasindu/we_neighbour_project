@@ -473,7 +473,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                     const Spacer(),
                     Image.asset(
                       'assets/we_neighbour_logo.png',
-                      height: 40,
+                      height: 100,
                       fit: BoxFit.contain,
                     ),
                     const Spacer(),
