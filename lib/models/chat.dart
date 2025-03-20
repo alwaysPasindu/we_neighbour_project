@@ -1,33 +1,37 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Represents a chat (one-on-one or group) in the application.
 class Chat {
   final String id;
-  final List<String> participants;
-  final String? lastMessage;
-  final DateTime? lastMessageTime;
+  final List<String> participants; // For one-to-one chats
+  final List<String> members; // For group chats
   final bool isGroup;
-  final String? name; // Added for group chat names
+  final String? groupName;
+  final String? lastMessage;
+  final Timestamp? timestamp;
+  final String? resourceId;
 
   Chat({
     required this.id,
     required this.participants,
+    required this.members,
+    required this.isGroup,
+    this.groupName,
     this.lastMessage,
-    this.lastMessageTime,
-    this.isGroup = false,
-    this.name, // Optional for groups
+    this.timestamp,
+    this.resourceId,
   });
 
-  factory Chat.fromFirestore(Map<String, dynamic> data, String id) {
+  factory Chat.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return Chat(
-      id: id,
+      id: doc.id,
       participants: List<String>.from(data['participants'] ?? []),
-      lastMessage: data['lastMessage'],
-      lastMessageTime: data['timestamp'] != null
-          ? (data['timestamp'] as Timestamp).toDate()
-          : null,
+      members: List<String>.from(data['members'] ?? []),
       isGroup: data['isGroup'] ?? false,
-      name: data['name'], // Fetch name for groups
+      groupName: data['groupName'],
+      lastMessage: data['lastMessage'],
+      timestamp: data['timestamp'] as Timestamp?,
+      resourceId: data['resourceId'],
     );
   }
 }
