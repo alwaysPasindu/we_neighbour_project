@@ -710,14 +710,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               onPressed: () => _addEvent(context),
               backgroundColor: const Color(0xFF0A1A3B),
             ),
-            const SizedBox(height: 16),
-            CustomButton(
-              text: 'Manage RSVPs',
-              onPressed: () {
-                // Handle Manage RSVPs
-              },
-              backgroundColor: const Color(0xFF0A1A3B),
-            ),
 
             // Show upcoming events in list view
             const SizedBox(height: 30),
