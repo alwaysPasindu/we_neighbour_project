@@ -124,7 +124,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           'password': _passwordController.text,
         }),
       ).timeout(const Duration(seconds: 50), onTimeout: () {
-        throw TimeoutException('Request timed out after 30 seconds');
+        throw TimeoutException('Request timed out after 50 seconds');
       });
 
       print('Response status: ${response.statusCode}');
