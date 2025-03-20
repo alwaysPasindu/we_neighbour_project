@@ -1,17 +1,45 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:we_neighbour/constants/colors.dart';
-import 'package:we_neighbour/constants/text_styles.dart';
-import 'package:we_neighbour/models/message.dart' as message_model;
+import 'package:we_neighbour/models/chat.dart' as chat_model;
 import 'package:we_neighbour/providers/chat_provider.dart';
-import 'package:we_neighbour/providers/theme_provider.dart';
-import 'package:we_neighbour/models/chat.dart' as message_model;
+
+// Assuming a Message model
+class Message {
+  final String id;
+  final String senderId;
+  final String content;
+  final Timestamp timestamp;
+
+  Message({
+    required this.id,
+    required this.senderId,
+    required this.content,
+    required this.timestamp,
+  });
+
+  factory Message.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Message(
+      id: doc.id,
+      senderId: data['senderId'] ?? '',
+      content: data['content'] ?? '',
+      timestamp: data['timestamp'] as Timestamp? ?? Timestamp.now(),
+    );
+  }
+}
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
   final bool isGroup;
+  final String? resourceId;
 
-  const ChatScreen({super.key, required this.chatId, required this.isGroup});
+  const ChatScreen({
+    super.key,
+    required this.chatId,
+    this.isGroup = false,
+    this.resourceId,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -19,245 +47,120 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
-  String? _replyTo; // Tracks the resource or message being replied to
-  final ScrollController _scrollController = ScrollController();
+  late Stream<List<Message>> _messagesStream;
 
   @override
   void initState() {
     super.initState();
-    // Scroll to the bottom when the chat loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToBottom();
-    });
+    _messagesStream = FirebaseFirestore.instance
+        .collection('chats')
+        .doc(widget.chatId)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Message.fromDocument(doc)).toList());
   }
 
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
+  Future<void> _sendMessage() async {
+    if (_messageController.text.trim().isEmpty) return;
+    try {
+      await Provider.of<ChatProvider>(context, listen: false)
+          .sendMessage(widget.chatId, _messageController.text.trim());
+      _messageController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error sending message: $e')),
+      );
+    }
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+  Future<void> _deleteMessage(String messageId) async {
+    try {
+      await Provider.of<ChatProvider>(context, listen: false)
+          .deleteMessage(widget.chatId, messageId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Message deleted')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting message: $e')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode; // Correctly typed as bool
     final chatProvider = Provider.of<ChatProvider>(context);
+    final currentUserId = chatProvider.currentUserId;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.isGroup ? 'Group Chat' : 'Chat',
-          style: AppTextStyles.getGreetingStyle(isDarkMode).copyWith(color: Colors.white),
-        ),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
+        title: Text(widget.isGroup ? 'Group Chat' : 'One-on-One Chat'),
+        actions: widget.resourceId != null
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.info),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Resource ID: ${widget.resourceId}')),
+                    );
+                  },
+                ),
+              ]
+            : [],
       ),
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<List<message_model.Message>>(
-              stream: chatProvider.getMessages(widget.chatId),
+            child: StreamBuilder<List<Message>>(
+              stream: _messagesStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Colors.white));
+                  return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: AppTextStyles.getBodyTextStyle(isDarkMode),
-                    ),
-                  );
+                  return Center(child: Text('Error: ${snapshot.error}'));
                 }
                 final messages = snapshot.data ?? [];
                 return ListView.builder(
-                  controller: _scrollController,
-                  reverse: true, // Newest messages at the bottom
+                  reverse: true,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    return _buildMessage(message, chatProvider.currentUserId!, isDarkMode);
+                    final isMe = message.senderId == currentUserId;
+                    return ListTile(
+                      title: Text(message.content),
+                      subtitle: Text(message.senderId),
+                      trailing: isMe
+                          ? IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _deleteMessage(message.id),
+                            )
+                          : null,
+                    );
                   },
                 );
               },
             ),
           ),
-          _buildMessageInput(isDarkMode, chatProvider),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessage(message_model.Message message, String currentUserId, bool isDarkMode) {
-    final isMe = message.senderId == currentUserId;
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: isMe ? AppColors.primary : (isDarkMode ? Colors.grey[700] : Colors.grey[300]),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (message.isReply && message.replyTo != null)
-              GestureDetector(
-                onTap: () {
-                  // Optionally navigate to the resource or show details
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Replying to Resource ID: ${message.replyTo}',
-                        style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(color: isDarkMode ? Colors.white70 : Colors.grey[600]),
-                      ),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(
-                    'Replying to Resource: ${message.replyTo}',
-                    style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
-                      fontSize: 12,
-                      color: isDarkMode ? Colors.white70 : Colors.grey[600],
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    decoration: const InputDecoration(
+                      hintText: 'Type a message...',
+                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-              ),
-            Text(
-              message.content,
-              style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
-                color: isMe ? Colors.white : (isDarkMode ? Colors.white : Colors.black87),
-              ),
-            ),
-            Text(
-              message.timestamp.toString().split('.')[0], // Format timestamp
-              style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
-                fontSize: 10,
-                color: isMe ? Colors.white70 : (isDarkMode ? Colors.grey[400] : Colors.grey[600]),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMessageInput(bool isDarkMode, ChatProvider chatProvider) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              decoration: InputDecoration(
-                hintText: 'Type a message...',
-                hintStyle: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  // Updated to ensure non-nullable Color
-                  borderSide: BorderSide(color: isDarkMode ? (Colors.grey[700]! as Color) : (Colors.grey[300]! as Color)),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: _sendMessage,
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  // Updated to ensure non-nullable Color
-                  borderSide: BorderSide(color: isDarkMode ? (Colors.grey[700]! as Color) : (Colors.grey[300]! as Color)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  // Updated to ensure non-nullable Color (assuming AppColors.primary is Color, not Color?)
-                  borderSide: BorderSide(color: AppColors.primary as Color),
-                ),
-              ),
-              style: AppTextStyles.getBodyTextStyle(isDarkMode),
-            ),
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.send,
-              color: AppColors.primary,
-            ),
-            onPressed: () async {
-              if (_messageController.text.isNotEmpty) {
-                await chatProvider.sendMessage(
-                  widget.chatId,
-                  _messageController.text,
-                  replyTo: _replyTo,
-                );
-                _messageController.clear();
-                _replyTo = null; // Clear reply after sending
-                _scrollToBottom(); // Scroll to the newest message
-              }
-            },
-          ),
-          if (_replyTo != null)
-            IconButton(
-              icon: Icon(
-                Icons.cancel,
-                color: Colors.red,
-              ),
-              onPressed: () {
-                setState(() {
-                  _replyTo = null; // Cancel reply
-                });
-              },
-            ),
-        ],
-      ),
-    );
-  }
-
-  void _showReplyDialog(String resourceId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Provider.of<ThemeProvider>(context).isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text(
-          'Reply to Resource',
-          style: AppTextStyles.getGreetingStyle(Provider.of<ThemeProvider>(context).isDarkMode),
-        ),
-        content: Text(
-          'Send a message replying to Resource ID: $resourceId',
-          style: AppTextStyles.getBodyTextStyle(Provider.of<ThemeProvider>(context).isDarkMode),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: AppTextStyles.getBodyTextStyle(Provider.of<ThemeProvider>(context).isDarkMode),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _replyTo = resourceId;
-              });
-              Navigator.pop(context);
-              _scrollToBottom(); // Ensure the input is visible
-            },
-            child: Text(
-              'Reply',
-              style: AppTextStyles.getButtonTextStyle(Provider.of<ThemeProvider>(context).isDarkMode).copyWith(color: AppColors.primary),
+              ],
             ),
           ),
         ],
