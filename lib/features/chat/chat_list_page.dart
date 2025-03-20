@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
-import 'package:we_neighbour/models/chat.dart';
+import 'package:we_neighbour/models/chat.dart' as chat_model;
 import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
 import 'chat_screen.dart';
@@ -17,10 +18,41 @@ class ChatListPage extends StatefulWidget {
 
 class _ChatListPageState extends State<ChatListPage> {
   @override
+  void initState() {
+    super.initState();
+    _syncUserData();
+  }
+
+  Future<void> _syncUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('firebaseUid') ?? prefs.getString('userId') ?? '';
+    final apartmentName = prefs.getString('userApartment') ?? 'Negombo-Dreams';
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    if (userId.isNotEmpty && chatProvider.currentUserId != userId) {
+      chatProvider.setUser(userId, apartmentName);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode; // Correctly typed as bool
+    final isDarkMode = themeProvider.isDarkMode;
     final chatProvider = Provider.of<ChatProvider>(context);
+
+    if (chatProvider.currentUserId == null || chatProvider.currentUserId!.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Chats',
+            style: AppTextStyles.getGreetingStyle(isDarkMode).copyWith(color: Colors.white),
+          ),
+          backgroundColor: AppColors.primary,
+        ),
+        body: const Center(
+          child: Text('Please log in to view chats.'),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -29,6 +61,12 @@ class _ChatListPageState extends State<ChatListPage> {
           style: AppTextStyles.getGreetingStyle(isDarkMode).copyWith(color: Colors.white),
         ),
         backgroundColor: AppColors.primary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () => Navigator.pushNamed(context, '/resource'),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -36,7 +74,7 @@ class _ChatListPageState extends State<ChatListPage> {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               'One-on-One Chats',
-              style: AppTextStyles.getSubtitleStyle .copyWith(
+              style: AppTextStyles.getSubtitleStyle.copyWith(
                 color: isDarkMode ? Colors.white : Colors.black87,
               ),
             ),
@@ -61,17 +99,19 @@ class _ChatListPageState extends State<ChatListPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showCreateGroupDialog(context, isDarkMode, chatProvider),
         backgroundColor: AppColors.primary,
-        child: Icon(Icons.group_add, color: Colors.white),
+        child: const Icon(Icons.group_add, color: Colors.white),
       ),
     );
   }
 
   Widget _buildChatList(BuildContext context, bool isGroup, bool isDarkMode, ChatProvider chatProvider) {
-    return StreamBuilder<List<Chat>>(
-      stream: isGroup ? chatProvider.getGroups() : chatProvider.getChats(),
+    return StreamBuilder<List<chat_model.Chat>>(
+      stream: isGroup
+          ? Stream.fromFuture(Future.value(chatProvider.getGroups()))
+          : Stream.fromFuture(Future.value(chatProvider.getChats())),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: Colors.white as Color)); // Explicit cast to Color
+          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
         }
         if (snapshot.hasError) {
           return Center(
@@ -82,6 +122,14 @@ class _ChatListPageState extends State<ChatListPage> {
           );
         }
         final chats = snapshot.data ?? [];
+        if (chats.isEmpty) {
+          return Center(
+            child: Text(
+              'No ${isGroup ? "groups" : "chats"} available.',
+              style: AppTextStyles.getBodyTextStyle(isDarkMode),
+            ),
+          );
+        }
         return ListView.builder(
           itemCount: chats.length,
           itemBuilder: (context, index) {
@@ -91,7 +139,8 @@ class _ChatListPageState extends State<ChatListPage> {
               builder: (context, titleSnapshot) {
                 if (titleSnapshot.connectionState == ConnectionState.waiting) {
                   return ListTile(
-                    title: Text('Loading...', 
+                    title: Text(
+                      'Loading...',
                       style: AppTextStyles.getSubtitleStyle.copyWith(
                         color: isDarkMode ? Colors.white : Colors.black87,
                       ),
@@ -110,11 +159,18 @@ class _ChatListPageState extends State<ChatListPage> {
                   ),
                   subtitle: Text(
                     chat.lastMessage ?? 'No messages yet',
-                    style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                    style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    ),
                   ),
-                  onTap: () => Navigator.push(
+                  onTap: () => Navigator.pushNamed(
                     context,
-                    MaterialPageRoute(builder: (context) => ChatScreen(chatId: chat.id, isGroup: chat.isGroup)),
+                    '/chat-screen',
+                    arguments: {
+                      'chatId': chat.id,
+                      'isGroup': chat.isGroup,
+                      'resourceId': chat.resourceId,
+                    },
                   ),
                   tileColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -127,25 +183,31 @@ class _ChatListPageState extends State<ChatListPage> {
     );
   }
 
-  Future<String?> _getChatTitle(Chat chat, ChatProvider chatProvider, bool isGroup) async {
-    if (isGroup && chat.name != null) {
-      return chat.name; // Use group name for groups
+  Future<String?> _getChatTitle(chat_model.Chat chat, ChatProvider chatProvider, bool isGroup) async {
+    if (isGroup && chat.groupName != null) {
+      return chat.groupName;
     } else if (!isGroup && chat.participants.length == 2) {
-      // For one-on-one chats, get the other participant's name, ensuring same apartment
       final currentUserId = chatProvider.currentUserId;
-      if (currentUserId == null) return 'Unknown User';
-      
-      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
-      final currentApartmentCode = currentUserDoc.data()?['apartmentCode'] as String?;
+      if (currentUserId == null || chatProvider.currentApartmentName == null) return 'Unknown User';
 
       final otherUserId = chat.participants.firstWhere((id) => id != currentUserId);
-      final otherUserDoc = await FirebaseFirestore.instance.collection('users').doc(otherUserId).get();
-      final otherApartmentCode = otherUserDoc.data()?['apartmentCode'] as String?;
-
-      if (currentApartmentCode != null && otherApartmentCode != null && currentApartmentCode == otherApartmentCode) {
-        return otherUserDoc.data()?['name'] ?? 'Unknown User';
+      print('Fetching user name for user ID: $otherUserId in apartment: ${chatProvider.currentApartmentName}');
+      try {
+        final otherUserDoc = await FirebaseFirestore.instance
+            .collection('home')
+            .doc('apartment')
+            .collection('apartments')
+            .doc(chatProvider.currentApartmentName)
+            .collection('users')
+            .doc(otherUserId)
+            .get();
+        final userName = otherUserDoc.data()?['name'] ?? 'Unknown User';
+        print('Fetched user name: $userName');
+        return userName;
+      } catch (e) {
+        print('Error fetching user name: $e');
+        return 'Unknown User';
       }
-      return null; // Return null if not from the same apartment
     }
     return 'Unknown Chat';
   }
@@ -153,53 +215,42 @@ class _ChatListPageState extends State<ChatListPage> {
   void _showCreateGroupDialog(BuildContext context, bool isDarkMode, ChatProvider chatProvider) async {
     final TextEditingController nameController = TextEditingController();
     final List<String> selectedMembers = [];
-    String? currentApartmentCode;
 
-    // Fetch current user's apartment code with enhanced error handling
     final currentUserId = chatProvider.currentUserId;
-    if (currentUserId == null) {
+    final currentApartmentName = chatProvider.currentApartmentName;
+    if (currentUserId == null || currentApartmentName == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User not authenticated. Please log in again.')),
+        const SnackBar(content: Text('User or apartment not authenticated')),
       );
-      print('Error: currentUserId is null in _showCreateGroupDialog');
       return;
     }
 
     try {
-      final currentUserDoc = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
-      if (!currentUserDoc.exists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('User data not found in Firestore. Please contact support.')),
-        );
-        print('Error: User document does not exist for userId: $currentUserId');
-        return;
-      }
-
-      currentApartmentCode = currentUserDoc.data()?['apartmentCode'] as String?;
-      if (currentApartmentCode == null || currentApartmentCode.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Unable to determine your apartment. Please ensure your profile has an apartment code.')),
-        );
-        print('Error: apartmentCode is null or empty for userId: $currentUserId. Data: ${currentUserDoc.data()}');
-        return;
-      }
-
-      print('Successfully fetched apartmentCode: $currentApartmentCode for userId: $currentUserId');
-
-      // Fetch users from the same apartment
+      print('Fetching users for group creation in apartment: $currentApartmentName');
       final usersSnapshot = await FirebaseFirestore.instance
+          .collection('home')
+          .doc('apartment')
+          .collection('apartments')
+          .doc(currentApartmentName)
           .collection('users')
-          .where('apartmentCode', isEqualTo: currentApartmentCode)
-          .where('id', isNotEqualTo: currentUserId) // Exclude current user
+          .where('userId', isNotEqualTo: currentUserId)
           .get();
 
       final List<Map<String, dynamic>> apartmentUsers = usersSnapshot.docs
           .map((doc) => {
                 'id': doc.id,
                 'name': doc.data()['name'] as String?,
+                'userId': doc.data()['userId'] as String?,
               })
-          .where((user) => user['name'] != null) // Filter out users without names
+          .where((user) => user['name'] != null && user['userId'] != null)
           .toList();
+
+      if (apartmentUsers.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No other users found in your apartment')),
+        );
+        return;
+      }
 
       showDialog(
         context: context,
@@ -208,57 +259,64 @@ class _ChatListPageState extends State<ChatListPage> {
             backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             title: Text(
-              'Create Group',
+              'Create New Group',
               style: AppTextStyles.getGreetingStyle(isDarkMode),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Group Name',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    labelStyle: AppTextStyles.getBodyTextStyle(isDarkMode),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Group Name',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      labelStyle: AppTextStyles.getBodyTextStyle(isDarkMode),
+                    ),
+                    style: AppTextStyles.getBodyTextStyle(isDarkMode),
                   ),
-                  style: AppTextStyles.getBodyTextStyle(isDarkMode),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Add Members from Your Apartment',
-                  style: AppTextStyles.getBodyTextStyle(isDarkMode),
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: apartmentUsers.length,
-                    itemBuilder: (context, index) {
-                      final user = apartmentUsers[index];
-                      final isSelected = selectedMembers.contains(user['id']);
-                      return CheckboxListTile(
-                        title: Text(
-                          user['name'] ?? 'Unknown User',
-                          style: AppTextStyles.getBodyTextStyle(isDarkMode),
-                        ),
-                        value: isSelected,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            if (value == true) {
-                              selectedMembers.add(user['id'] as String);
-                            } else {
-                              selectedMembers.remove(user['id'] as String);
-                            }
-                          });
-                        },
-                        tileColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
-                        activeColor: AppColors.primary,
-                        checkColor: Colors.white,
-                      );
-                    },
+                  const SizedBox(height: 16),
+                  Text(
+                    'Add Members',
+                    style: AppTextStyles.getBodyTextStyle(isDarkMode),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: apartmentUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = apartmentUsers[index];
+                        final isSelected = selectedMembers.contains(user['userId']);
+                        return CheckboxListTile(
+                          title: Text(
+                            user['name'] ?? 'Unknown User',
+                            style: AppTextStyles.getBodyTextStyle(isDarkMode),
+                          ),
+                          subtitle: Text(
+                            user['userId'] ?? '',
+                            style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(fontSize: 12),
+                          ),
+                          value: isSelected,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              if (value == true) {
+                                selectedMembers.add(user['userId'] as String);
+                              } else {
+                                selectedMembers.remove(user['userId'] as String);
+                              }
+                            });
+                          },
+                          activeColor: AppColors.primary,
+                          checkColor: Colors.white,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -271,11 +329,20 @@ class _ChatListPageState extends State<ChatListPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (nameController.text.isNotEmpty && selectedMembers.isNotEmpty) {
-                    await chatProvider.createGroup(nameController.text, selectedMembers);
-                    Navigator.pop(context);
+                    try {
+                      await chatProvider.createGroup(nameController.text, selectedMembers);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Group "${nameController.text}" created successfully')),
+                      );
+                      Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error creating group: $e')),
+                      );
+                    }
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Please enter a group name and select at least one member.')),
+                      const SnackBar(content: Text('Please enter a group name and select at least one member')),
                     );
                   }
                 },
@@ -284,7 +351,7 @@ class _ChatListPageState extends State<ChatListPage> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 child: Text(
-                  'Create',
+                  'Create Group',
                   style: AppTextStyles.getButtonTextStyle(isDarkMode).copyWith(color: Colors.white),
                 ),
               ),
@@ -293,10 +360,10 @@ class _ChatListPageState extends State<ChatListPage> {
         ),
       );
     } catch (e) {
+      print('Error fetching users for group creation: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred while fetching apartment data: $e')),
+        SnackBar(content: Text('Error fetching users: $e')),
       );
-      print('Error in _showCreateGroupDialog: $e');
     }
   }
 }
