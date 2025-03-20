@@ -246,8 +246,13 @@ class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Health & Wellness'),
+        title: const Text(
+          'Health & Wellness',
+          style: TextStyle(color: Colors.white), // Add this style
+        ),
         backgroundColor: const Color(0xFF0A1A3B),
+        iconTheme: const IconThemeData(
+            color: Colors.white), // This changes the back button color
       ),
       body: Container(
         color: const Color(0xFF0A1A3B),
