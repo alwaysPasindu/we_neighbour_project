@@ -9,6 +9,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui' as ui;
 
+import 'package:we_neighbour/main.dart';
+
 class VisitorManagementScreen extends StatefulWidget {
   const VisitorManagementScreen({super.key});
 
@@ -20,7 +22,6 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
   String? qrData;
   bool isLoading = false;
   final _numOfVisitorsController = TextEditingController();
-  static const String baseUrl = 'https://we-neighbour-backend.vercel.app';
   final GlobalKey _qrKey = GlobalKey();
 
   Future<String?> getAuthToken() async {
