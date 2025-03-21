@@ -88,7 +88,7 @@ class ResourceCard extends StatelessWidget {
                 // Show Delete button only for the creator
                 if (onDelete != null)
                   IconButton(
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.delete,
                       color: Colors.red,
                       size: 20,

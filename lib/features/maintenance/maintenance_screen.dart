@@ -294,7 +294,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
           else ...[
             if (card.averageRating != null)
               Text(
-                'Avg: ${card.averageRating} (${totalReviews} reviews)', // Show total reviews
+                'Avg: ${card.averageRating} ($totalReviews reviews)', // Show total reviews
                 style: const TextStyle(color: Colors.white),
               ),
             Row(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CookiesPolicyScreen extends StatelessWidget {
-  const CookiesPolicyScreen({Key? key}) : super(key: key);
+  const CookiesPolicyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

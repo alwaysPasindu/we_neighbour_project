@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:we_neighbour/models/chat.dart' as chat_model;
 import 'package:we_neighbour/providers/chat_provider.dart';
 
 // Assuming a Message model

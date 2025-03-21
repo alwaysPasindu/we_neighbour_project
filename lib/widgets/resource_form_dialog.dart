@@ -31,7 +31,7 @@ class _ResourceFormDialogState extends State<ResourceFormDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 'Request Resource',
                 style: TextStyle(
                   fontSize: 24,
@@ -78,7 +78,7 @@ class _ResourceFormDialogState extends State<ResourceFormDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(
+                    child: const Text(
                       'Cancel',
                       style: TextStyle(color: AppColors.textSecondary),
                     ),

@@ -172,7 +172,7 @@ class _LocationPickerState extends State<LocationPicker> {
                 Marker(
                   markerId: const MarkerId('selectedLocation'),
                   position: _currentPosition,
-                  infoWindow: InfoWindow(title: 'Selected Location'),
+                  infoWindow: const InfoWindow(title: 'Selected Location'),
                 ),
               },
             ),

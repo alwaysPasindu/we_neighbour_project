@@ -6,10 +6,10 @@ class CustomAppBar extends StatelessWidget {
   final bool isDarkMode;
 
   const CustomAppBar({
-    Key? key,
+    super.key,
     this.onBackPressed, 
     required this.isDarkMode,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
