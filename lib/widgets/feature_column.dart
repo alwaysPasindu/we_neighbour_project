@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 class FeatureColumn extends StatelessWidget {
   final String iconPath;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const FeatureColumn({
-    Key? key,
+    super.key,
     required this.iconPath,
     required this.label,
-    required this.onTap,
-  }) : super(key: key);
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,11 +18,18 @@ class FeatureColumn extends StatelessWidget {
       onTap: onTap,
       child: Column(
         children: [
-          Image.asset(
-            iconPath,
-            width: 60,
-            height: 60,
-            fit: BoxFit.contain,
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade100,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Image.asset(
+              iconPath,
+              width: 40,
+              height: 40,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -30,8 +37,7 @@ class FeatureColumn extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],

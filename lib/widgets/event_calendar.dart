@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import '../services/firebase_service.dart';
+import 'package:we_neighbour/features/event_calendar/firebase_service.dart';
 
 class EventCalendar extends StatefulWidget {
   final FirebaseService firebaseService;

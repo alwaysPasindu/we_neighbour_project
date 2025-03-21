@@ -1,6 +1,6 @@
 {
-    "name": "we_neighbour",
-    "short_name": "we_neighbour",
+    "name": "we_neighbour_project",
+    "short_name": "we_neighbour_project",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
