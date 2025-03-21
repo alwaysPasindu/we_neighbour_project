@@ -22,10 +22,10 @@ class FeatureItem {
 class FeatureGrid extends StatelessWidget {
   final bool isDarkMode;
 
-  FeatureGrid({
-    Key? key,
+  const FeatureGrid({
+    super.key,
     required this.isDarkMode,
-  }) : super(key: key);
+  });
 
   Future<Map<String, dynamic>> _getAuthData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -89,7 +89,7 @@ class FeatureGrid extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => EventCalendarScreen()),
+                MaterialPageRoute(builder: (context) => const EventCalendarScreen()),
               );
             },
           ),

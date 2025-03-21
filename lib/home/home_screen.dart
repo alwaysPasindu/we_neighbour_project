@@ -214,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 50,
                 height: 50,
                 child: CircularProgressIndicator(
@@ -387,15 +387,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                                     color: AppColors.primary,
                                                     borderRadius: BorderRadius.circular(12),
                                                   ),
-                                                  child: Row(
+                                                  child: const Row(
                                                     mainAxisSize: MainAxisSize.min,
                                                     children: [
-                                                      const Icon(
+                                                      Icon(
                                                         Icons.star,
                                                         color: Colors.white,
                                                         size: 16,
                                                       ),
-                                                      const SizedBox(width: 4),
+                                                      SizedBox(width: 4),
                                                       Text(
                                                         '4.8',
                                                         style: TextStyle(
@@ -436,11 +436,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                                         Container(
                                                           width: 20,
                                                           height: 20,
-                                                          decoration: BoxDecoration(
+                                                          decoration: const BoxDecoration(
                                                             color: Colors.white,
                                                             shape: BoxShape.circle,
                                                           ),
-                                                          child: Center(
+                                                          child: const Center(
                                                             child: Icon(
                                                               Icons.person,
                                                               size: 14,
@@ -455,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                                             color: Colors.white.withOpacity(0.9),
                                                             fontSize: 14,
                                                             fontWeight: FontWeight.w500,
-                                                            shadows: [
+                                                            shadows: const [
                                                               Shadow(
                                                                 offset: Offset(0, 1),
                                                                 blurRadius: 2,
@@ -610,7 +610,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           child: ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             scrollDirection: Axis.horizontal,
-                            itemCount: _featuredServices.length > 0 ? _featuredServices.length : 0,
+                            itemCount: _featuredServices.isNotEmpty ? _featuredServices.length : 0,
                             itemBuilder: (context, index) {
                               if (_featuredServices.isEmpty) return const SizedBox();
                               final service = _featuredServices[index];
@@ -687,7 +687,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                               const SizedBox(height: 8),
                                               Row(
                                                 children: [
-                                                  Icon(
+                                                  const Icon(
                                                     Icons.location_on,
                                                     size: 14,
                                                     color: AppColors.primary,

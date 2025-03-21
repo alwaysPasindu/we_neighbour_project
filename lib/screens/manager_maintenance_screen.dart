@@ -9,7 +9,7 @@ import 'package:we_neighbour/main.dart';
 class ManagerMaintenanceScreen extends StatefulWidget {
   final String authToken;
 
-  const ManagerMaintenanceScreen({Key? key, required this.authToken}) : super(key: key);
+  const ManagerMaintenanceScreen({super.key, required this.authToken});
 
   @override
   State<ManagerMaintenanceScreen> createState() => _ManagerMaintenanceScreenState();

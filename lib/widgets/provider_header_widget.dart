@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
 import 'package:we_neighbour/features/notifications&alets/provider_notification_page.dart';
-import '../main.dart';
 
 class HeaderWidget extends StatefulWidget {
   const HeaderWidget({super.key});

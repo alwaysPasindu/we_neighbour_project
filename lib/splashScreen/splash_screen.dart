@@ -95,8 +95,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color.fromARGB(255, 0, 18, 152);
-    final secondaryColor = const Color.fromARGB(255, 14, 105, 213);
+    const primaryColor = Color.fromARGB(255, 0, 18, 152);
+    const secondaryColor = Color.fromARGB(255, 14, 105, 213);
     
     return Scaffold(
       body: Stack(
@@ -257,7 +257,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       Container(
                         width: 180,
                         height: 180,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           // Shadow removed
                         ),
@@ -381,7 +381,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         child: AnimatedBuilder(
                           animation: _animationController,
                           builder: (context, _) {
-                            final String fullText = "Connecting Communities · Simplifying Life";
+                            const String fullText = "Connecting Communities · Simplifying Life";
                             final int textLength = (fullText.length * _animationController.value).round();
                             final String visibleText = fullText.substring(0, textLength.clamp(0, fullText.length));
                             

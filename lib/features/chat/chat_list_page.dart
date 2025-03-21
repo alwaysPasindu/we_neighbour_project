@@ -7,7 +7,6 @@ import 'package:we_neighbour/constants/text_styles.dart';
 import 'package:we_neighbour/models/chat.dart' as chat_model;
 import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
-import 'chat_screen.dart';
 
 class ChatListPage extends StatefulWidget {
   const ChatListPage({super.key});

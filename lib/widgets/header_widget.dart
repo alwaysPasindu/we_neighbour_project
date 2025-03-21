@@ -101,7 +101,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                             children: [
                               Text('Hello, \n$_userName !', style: AppTextStyles.greeting),
                               if (_userStatus == 'pending')
-                                Text(
+                                const Text(
                                   'Awaiting Approval',
                                   style: TextStyle(fontSize: 14, color: Colors.yellowAccent, fontWeight: FontWeight.w500),
                                 ),

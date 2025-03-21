@@ -31,7 +31,7 @@ import 'package:firebase_core/firebase_core.dart';
  
  enum UserType { resident, manager, serviceProvider }
  
- const String baseUrl = 'https://we-neighbour-backend.vercel.app';
+ const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
  
  void main() async {
    WidgetsFlutterBinding.ensureInitialized();

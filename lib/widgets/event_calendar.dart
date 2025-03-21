@@ -8,9 +8,9 @@ class EventCalendar extends StatefulWidget {
   final FirebaseService firebaseService;
 
   const EventCalendar({
-    Key? key,
+    super.key,
     required this.firebaseService,
-  }) : super(key: key);
+  });
 
   @override
   _EventCalendarState createState() => _EventCalendarState();
@@ -108,17 +108,17 @@ class _EventCalendarState extends State<EventCalendar> {
               onPageChanged: (focusedDay) {
                 _focusedDay = focusedDay;
               },
-              calendarStyle: CalendarStyle(
+              calendarStyle: const CalendarStyle(
                 markersMaxCount: 3,
-                markerDecoration: const BoxDecoration(
+                markerDecoration: BoxDecoration(
                   color: Colors.blue,
                   shape: BoxShape.circle,
                 ),
-                todayDecoration: const BoxDecoration(
+                todayDecoration: BoxDecoration(
                   color: Color(0xFF0A1A3B),
                   shape: BoxShape.circle,
                 ),
-                selectedDecoration: const BoxDecoration(
+                selectedDecoration: BoxDecoration(
                   color: Color(0xFF0A1A3B),
                   shape: BoxShape.circle,
                 ),

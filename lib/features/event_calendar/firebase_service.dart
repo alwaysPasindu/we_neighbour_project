@@ -115,7 +115,7 @@ class FirebaseService {
       final snapshot = await _firestore.collection('events').orderBy('date').get();
 
       return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
         data['id'] = doc.id;
         return data;
       }).toList();

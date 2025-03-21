@@ -349,7 +349,7 @@ void _addNewService() {
       double longitude = _userLongitude ?? 79.8612;
       String availableHours = '';
       List<XFile> imageFiles = [];
-      bool _isLoading = false;
+      bool isLoading = false;
 
       return StatefulBuilder(
         builder: (context, setDialogState) {
@@ -528,7 +528,7 @@ void _addNewService() {
                                 onPressed: () async {
                                   final picker = ImagePicker();
                                   final pickedFiles = await picker.pickMultiImage();
-                                  if (pickedFiles != null && mounted) {
+                                  if (mounted) {
                                     setDialogState(() {
                                       imageFiles.addAll(pickedFiles);
                                     });
@@ -551,7 +551,7 @@ void _addNewService() {
                                       onPressed: () async {
                                         final picker = ImagePicker();
                                         final pickedFiles = await picker.pickMultiImage();
-                                        if (pickedFiles != null && mounted) {
+                                        if (mounted) {
                                           setDialogState(() {
                                             imageFiles.addAll(pickedFiles);
                                           });
@@ -628,7 +628,7 @@ void _addNewService() {
                               return;
                             }
 
-                            setDialogState(() => _isLoading = true);
+                            setDialogState(() => isLoading = true);
 
                             try {
                               List<String> imagePaths = [];
@@ -694,11 +694,11 @@ void _addNewService() {
                               }
                             } finally {
                               if (mounted) {
-                                setDialogState(() => _isLoading = false);
+                                setDialogState(() => isLoading = false);
                               }
                             }
                           },
-                          child: _isLoading
+                          child: isLoading
                               ? const SizedBox(
                                   width: 20,
                                   height: 20,

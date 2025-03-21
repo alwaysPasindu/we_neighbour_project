@@ -31,7 +31,7 @@ class _ShareDialogState extends State<ShareDialog> {
           children: [
             Text(
               'Share with ${widget.resource.userName}',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -40,7 +40,7 @@ class _ShareDialogState extends State<ShareDialog> {
             const SizedBox(height: 16),
             Text(
               'Resource: ${widget.resource.title}',
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 16,
               ),
@@ -63,7 +63,7 @@ class _ShareDialogState extends State<ShareDialog> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(
+                  child: const Text(
                     'Cancel',
                     style: TextStyle(color: AppColors.textSecondary),
                   ),

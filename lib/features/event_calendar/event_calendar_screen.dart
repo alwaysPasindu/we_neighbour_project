@@ -12,7 +12,7 @@ import 'package:we_neighbour/widgets/calendar_feature_column.dart';
 
 
 class EventCalendarScreen extends StatefulWidget {
-  const EventCalendarScreen({Key? key}) : super(key: key);
+  const EventCalendarScreen({super.key});
 
   @override
   _EventCalendarScreenState createState() => _EventCalendarScreenState();
@@ -23,7 +23,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   String _activeView = 'calendar'; // 'calendar' or 'list'
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  final CalendarFormat _calendarFormat = CalendarFormat.month;
   Map<DateTime, List<dynamic>> _events = {};
   bool _isLoading = true;
   StreamSubscription<QuerySnapshot>? _eventsSubscription;

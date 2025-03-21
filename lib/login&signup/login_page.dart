@@ -105,7 +105,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   Future<void> _handleLogin() async {
-    final String effectiveBaseUrl = baseUrl;
+    const String effectiveBaseUrl = baseUrl;
     setState(() => _isLoading = true);
     try {
       print('Running on platform: ${Platform.operatingSystem}');
@@ -273,8 +273,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
     final padding = MediaQuery.of(context).padding;
-    final primaryColor = const Color.fromARGB(255, 0, 18, 152);
-    final secondaryColor = const Color.fromARGB(255, 14, 105, 213);
+    const primaryColor = Color.fromARGB(255, 0, 18, 152);
+    const secondaryColor = Color.fromARGB(255, 14, 105, 213);
 
     final headerHeight = size.height * 0.28;
     final contentPadding = EdgeInsets.symmetric(
@@ -535,8 +535,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                             ),
                           ),
                           if (!_isEmailValid)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 16, top: 8),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 16, top: 8),
                               child: Text(
                                 'Please enter a valid email',
                                 style: TextStyle(
@@ -646,8 +646,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                             ),
                           ),
                           if (!_isPasswordValid)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 16, top: 8),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 16, top: 8),
                               child: Text(
                                 'Password must be at least 6 characters',
                                 style: TextStyle(
@@ -673,8 +673,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                           value: _rememberMe,
                                           onChanged: (value) =>
                                               setState(() => _rememberMe = value ?? false),
-                                          fillColor: MaterialStateProperty.resolveWith(
-                                            (states) => states.contains(MaterialState.selected)
+                                          fillColor: WidgetStateProperty.resolveWith(
+                                            (states) => states.contains(WidgetState.selected)
                                                 ? primaryColor
                                                 : (isDarkMode
                                                     ? Colors.white38

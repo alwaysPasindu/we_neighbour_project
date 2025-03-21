@@ -3,7 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RateAppScreen extends StatefulWidget {
-  const RateAppScreen({Key? key}) : super(key: key);
+  const RateAppScreen({super.key});
 
   @override
   State<RateAppScreen> createState() => _RateAppScreenState();

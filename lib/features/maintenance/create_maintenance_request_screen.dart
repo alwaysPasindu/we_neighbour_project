@@ -9,9 +9,9 @@ class CreateMaintenanceRequestScreen extends StatefulWidget {
   final String authToken;
 
   const CreateMaintenanceRequestScreen({
-    Key? key,
+    super.key,
     required this.authToken,
-  }) : super(key: key);
+  });
 
   @override
   State<CreateMaintenanceRequestScreen> createState() =>

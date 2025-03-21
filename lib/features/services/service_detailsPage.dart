@@ -18,11 +18,11 @@ class ServiceDetailsPage extends StatefulWidget {
   final UserType userType;
 
   const ServiceDetailsPage({
-    Key? key,
+    super.key,
     required this.service,
     required this.isOwnService,
     required this.userType,
-  }) : super(key: key);
+  });
 
   @override
   State<ServiceDetailsPage> createState() => _ServiceDetailsPageState();

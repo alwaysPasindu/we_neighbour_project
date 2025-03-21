@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:we_neighbour/features/event_calendar/firebase_service.dart';
 
 class HealthWellnessScreen extends StatefulWidget {
-  const HealthWellnessScreen({Key? key}) : super(key: key);
+  const HealthWellnessScreen({super.key});
 
   @override
   _HealthWellnessScreenState createState() => _HealthWellnessScreenState();
