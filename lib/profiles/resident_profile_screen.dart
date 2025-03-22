@@ -220,11 +220,9 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
               _isEditing
                   ? _buildEditableField(_apartmentController, 'Apartment Complex', isDarkMode)
                   : _buildInfoField('Apartment Complex', _apartmentController.text, isDarkMode),
-              const SizedBox(height: 40),
-              _buildOption('Event Participation', Icons.event, isDarkMode),
-              const SizedBox(height: 16),
-              _buildOption('Maintenance Requests', Icons.build, isDarkMode),
-              const SizedBox(height: 16),
+              const SizedBox(height: 140),
+              // _buildOption('Event Participation', Icons.event, isDarkMode),
+              // const SizedBox(height: 16),
               _buildOption('Settings', Icons.settings, isDarkMode, onTap: () => Navigator.pushNamed(context, '/settings')),
               const SizedBox(height: 32),
             ],
