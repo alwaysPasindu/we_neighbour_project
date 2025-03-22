@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:we_neighbour/features/event_calendar/book_amenities_screen.dart';
 import 'package:we_neighbour/features/event_calendar/event_calendar_screen.dart';
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'package:we_neighbour/screens/manager_maintenance_screen.dart';
@@ -54,24 +55,32 @@ class FeatureGrid extends StatelessWidget {
         final features = [
           FeatureItem(
             title: 'Amenities Booking',
-            icon: Image.asset('assets/icons/amenities.png', height: 28, width: 28),
+            icon: Image.asset('assets/icons/amenities.png',
+                height: 28, width: 28),
             onTap: () {
-              // TODO: Implement amenities booking navigation
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const BookAmenitiesScreen()),
+              );
             },
           ),
           FeatureItem(
             title: 'Visitor Management',
-            icon: Image.asset('assets/icons/visitor.png', height: 28, width: 28),
+            icon:
+                Image.asset('assets/icons/visitor.png', height: 28, width: 28),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const VisitorManagementScreen()),
+                MaterialPageRoute(
+                    builder: (context) => const VisitorManagementScreen()),
               );
             },
           ),
           FeatureItem(
             title: isManager ? 'Pending Maintenance' : 'Apartment Maintenance',
-            icon: Image.asset('assets/icons/maintenance.png', height: 28, width: 28),
+            icon: Image.asset('assets/icons/maintenance.png',
+                height: 28, width: 28),
             onTap: () {
               Navigator.push(
                 context,
@@ -85,23 +94,27 @@ class FeatureGrid extends StatelessWidget {
           ),
           FeatureItem(
             title: 'Event Calendar',
-            icon: Image.asset('assets/icons/calendar.png', height: 28, width: 28),
+            icon:
+                Image.asset('assets/icons/calendar.png', height: 28, width: 28),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const EventCalendarScreen()),
+                MaterialPageRoute(
+                    builder: (context) => const EventCalendarScreen()),
               );
             },
           ),
           if (!isManager)
             FeatureItem(
               title: 'Maintenance Request',
-              icon: Image.asset('assets/icons/maintenance.png', height: 28, width: 28),
+              icon: Image.asset('assets/icons/maintenance.png',
+                  height: 28, width: 28),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MaintenanceScreen(authToken: token, isManager: false),
+                    builder: (context) =>
+                        MaintenanceScreen(authToken: token, isManager: false),
                   ),
                 );
               },
@@ -147,7 +160,9 @@ class FeatureGrid extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+              color: isDarkMode
+                  ? AppColors.darkCardBackground
+                  : AppColors.cardBackground,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
