@@ -1,193 +1,264 @@
 import 'package:flutter/material.dart';
-import '../components/app_bar.dart';
-import '../constants/colors.dart';
-import 'pending_tasks_screen.dart';
-import '../features/notifications&alets/notifications_screen.dart';
-// import 'visitor_log_screen.dart';
-import 'residents_requests_screen.dart';
-import 'reports_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ManagerDashboard extends StatelessWidget {
-  const ManagerDashboard({super.key});
+class ResidentsRequestScreen extends StatefulWidget {
+  const ResidentsRequestScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ResidentsRequestScreen> createState() => _ResidentsRequestScreenState();
+}
+
+class _ResidentsRequestScreenState extends State<ResidentsRequestScreen> {
+  static const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
+  bool _isLoading = true;
+  List<dynamic> _pendingResidents = [];
+  Map<String, bool> _processing = {}; // Tracks which resident is being processed
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPendingResidents();
+  }
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  Future<void> _fetchPendingResidents() async {
+    final token = await _getToken();
+
+    if (token == null) {
+      _showErrorDialog('Authentication error. Please login again.');
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      }
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/residents/pending'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      setState(() => _isLoading = false);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _pendingResidents = data['pendingRessidents'] as List<dynamic>;
+          _processing = {for (var resident in _pendingResidents) resident['_id']: false};
+        });
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        await _signOut();
+      } else {
+        _showErrorDialog('Failed to fetch pending residents: ${response.body}');
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showErrorDialog('Network error: $e');
+    }
+  }
+
+  Future<void> _handleRequest(String residentId, String status) async {
+    final token = await _getToken();
+    if (token == null) {
+      _showErrorDialog('Authentication error. Please login again.');
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      }
+      return;
+    }
+
+    setState(() => _processing[residentId] = true);
+
+    try {
+      final Map<String, dynamic> requestBody = {
+        'residentId': residentId,
+        'status': status,
+      };
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/residents/check'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: jsonEncode(requestBody),
+      ).timeout(const Duration(seconds: 10));
+
+      setState(() => _processing[residentId] = false);
+
+      if (response.statusCode == 200) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Resident request $status successfully')),
+          );
+          // Remove the resident from the list after approval/rejection
+          setState(() {
+            _pendingResidents.removeWhere((r) => r['_id'] == residentId);
+          });
+        }
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        await _signOut();
+      } else {
+        _showErrorDialog('Failed to $status resident: ${response.body}');
+      }
+    } catch (e) {
+      setState(() => _processing[residentId] = false);
+      _showErrorDialog('Network error: $e');
+    }
+  }
+
+  Future<void> _signOut() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('userRole');
+    await prefs.remove('userId');
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            CustomAppBar(isDarkMode: isDarkMode),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Pending Resident Requests'),
+        backgroundColor: Colors.blue[800],
+        foregroundColor: Colors.white,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _pendingResidents.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Manager Dashboard',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : Colors.black,
-                        ),
+                      const Text(
+                        'No pending resident requests',
+                        style: TextStyle(fontSize: 18),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Welcome back, Manager',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDarkMode 
-                            ? AppColors.darkTextSecondary 
-                            : AppColors.textSecondary,
-                        ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchPendingResidents,
+                        child: const Text('Refresh'),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: GridView.count(
-                primary: false,
-                padding: const EdgeInsets.all(16),
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                crossAxisCount: 2,
-                children: [
-                  _buildDashboardCard(
-                    context: context,
-                    title: 'Pending Tasks',
-                    icon: Icons.task_alt,
-                    color: Colors.orange,
-                    isDarkMode: isDarkMode,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const PendingTasksScreen()),
-                    ),
-                  ),
-                  _buildDashboardCard(
-                    context: context,
-                    title: 'Announcements',
-                    icon: Icons.campaign,
-                    color: Colors.blue,
-                    isDarkMode: isDarkMode,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-                    ),
-                  ),
-                  _buildDashboardCard(
-                    context: context,
-                    title: 'Visitor Log',
-                    icon: Icons.how_to_reg,
-                    color: Colors.green,
-                    isDarkMode: isDarkMode,
-                    onTap: () {
-                      // Uncomment when VisitorLogScreen is ready
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(builder: (context) => const VisitorLogScreen()),
-                      // );
-                    },
-                  ),
-                  _buildDashboardCard(
-                    context: context,
-                    title: 'Residents\' Requests',
-                    icon: Icons.people,
-                    color: Colors.purple,
-                    isDarkMode: isDarkMode,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ResidentsRequestsScreen()),
-                    ),
-                  ),
-                  _buildDashboardCard(
-                    context: context,
-                    title: 'Reports Section',
-                    icon: Icons.assessment,
-                    color: AppColors.primary,
-                    isDarkMode: isDarkMode,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ReportsScreen()),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _pendingResidents.length,
+                  itemBuilder: (context, index) {
+                    final resident = _pendingResidents[index];
+                    final residentId = resident['_id'];
+                    final isProcessing = _processing[residentId] ?? false;
 
-  Widget _buildDashboardCard({
-    required BuildContext context,
-    required String title,
-    required IconData icon,
-    required Color color,
-    required bool isDarkMode,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: isDarkMode 
-                ? Colors.black.withOpacity(0.4)
-                : Colors.grey.withOpacity(0.4),
-              offset: const Offset(0, 4),
-              blurRadius: 8,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                size: 32,
-                color: color,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-          ],
-        ),
-      ),
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              resident['name'] ?? 'Unknown',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text('Email: ${resident['email'] ?? 'No email'}'),
+                            Text('NIC: ${resident['nic'] ?? 'No NIC'}'),
+                            Text('Address: ${resident['address'] ?? 'No address'}'),
+                            Text('Phone: ${resident['phone'] ?? 'No phone'}'),
+                            Text('Apartment Code: ${resident['apartmentCode'] ?? 'No code'}'),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: isProcessing
+                                      ? null
+                                      : () => _handleRequest(residentId, 'approved'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF4A7C59),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  child: isProcessing
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text('Approve'),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton(
+                                  onPressed: isProcessing
+                                      ? null
+                                      : () => _handleRequest(residentId, 'rejected'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF8B2E2E),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  child: isProcessing
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text('Decline'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

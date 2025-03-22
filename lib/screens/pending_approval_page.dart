@@ -20,7 +20,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
   late Animation<double> _fadeInAnimation;
   late Animation<Offset> _slideAnimation;
   Timer? _statusCheckTimer;
-  static const String baseUrl = 'http://172.20.10.3:3000';
+  static const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
   bool _isLoadingToken = true;
 
   @override

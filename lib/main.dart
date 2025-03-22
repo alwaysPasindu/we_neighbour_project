@@ -202,7 +202,7 @@ import 'package:firebase_core/firebase_core.dart';
              // '/chat': (context) => ChatListScreen(),
              '/pending-approval': (context) => const PendingApprovalPage(),
              '/resource': (context) => const ResourceSharingPage(),
-             '/resident-req': (context) => const ResidentsRequestsScreen(),
+             '/resident-req': (context) => const ResidentsRequestScreen(),
              '/pending-task': (context) => const PendingTasksScreen(),
              '/reports': (context) => const ReportsScreen(),
              '/login': (context) => const LoginPage(),

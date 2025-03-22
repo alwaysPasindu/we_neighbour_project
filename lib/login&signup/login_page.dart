@@ -252,7 +252,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   void _handleSocialLogin(String platform) {
     if (platform == "Google") {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
