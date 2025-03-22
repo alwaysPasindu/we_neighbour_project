@@ -128,7 +128,19 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        setState(() => qrData = '$baseUrl/visitor/verify/${data['visitorId']}');
+        final visitorId = data['visitorId'];
+        // Assuming the apartment name might come from the API or is hardcoded
+        final apartmentName = data['apartment'] ?? 'Negombo-Dreams'; // Fallback to hardcoded value if not in response
+
+        // Construct the QR data with query parameters
+        setState(() {
+          qrData = Uri(
+            scheme: 'https',
+            host: 'we-neighbour-app-9modf.ondigitalocean.app',
+            path: '/api/visitor/verify/$visitorId',
+            queryParameters: {'apartment': apartmentName},
+          ).toString();
+        });
         print('Generated QR data: $qrData');
       } else {
         throw Exception('Failed to generate QR code: ${response.statusCode} - ${response.body}');
