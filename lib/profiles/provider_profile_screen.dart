@@ -277,7 +277,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 )
               : Text(_descriptionController.text, style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
           const SizedBox(height: 24),
-          _buildStatistics(),
+          // _buildStatistics(),
           const SizedBox(height: 24),
           _buildContactInfo(isDarkMode),
         ],
@@ -285,16 +285,16 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     );
   }
 
-  Widget _buildStatistics() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildStatItem('Services', '3'),
-        _buildStatItem('Reviews', '150'),
-        _buildStatItem('Rating', '4.8'),
-      ],
-    );
-  }
+  // Widget _buildStatistics() {
+    // return Row(
+    //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+    //   children: [
+    //     _buildStatItem('Services', '3'),
+    //     _buildStatItem('Reviews', '150'),
+    //     _buildStatItem('Rating', '4.8'),
+    //   ],
+    // );
+  // }
 
   Widget _buildStatItem(String label, String value) {
     return Column(
