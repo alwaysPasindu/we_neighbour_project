@@ -11,7 +11,6 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:http/io_client.dart';
 
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -250,24 +249,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     );
   }
 
-  void _handleSocialLogin(String platform) {
-    if (platform == "Google") {
-      Navigator.pushReplacementNamed(context, '/');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$platform login coming soon'),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          duration: const Duration(seconds: 3),
-          elevation: 6,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -276,17 +257,17 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     const primaryColor = Color.fromARGB(255, 0, 18, 152);
     const secondaryColor = Color.fromARGB(255, 14, 105, 213);
 
-    final headerHeight = size.height * 0.28;
+    final headerHeight = size.height * 0.35; // Changed from 0.28 to 0.35
     final contentPadding = EdgeInsets.symmetric(
-      horizontal: size.width < 360 ? 16.0 : 20.0,
-      vertical: 8.0,
+      horizontal: size.width < 360 ? 20.0 : 24.0,
+      vertical: 12.0,
     );
-    final logoSize = size.width < 360 ? 100.0 : 120.0;
-    final titleFontSize = size.width < 360 ? 28.0 : 32.0;
-    final buttonHeight = size.width < 360 ? 45.0 : 50.0;
+    final logoSize = size.width < 360 ? 110.0 : 130.0;
+    final titleFontSize = size.width < 360 ? 30.0 : 34.0;
+    final buttonHeight = size.width < 360 ? 48.0 : 52.0;
 
     return Scaffold(
-      backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.grey[100],
       extendBody: true,
       extendBodyBehindAppBar: true,
       body: Stack(
@@ -307,32 +288,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         colors: [
                           primaryColor.withOpacity(0.7),
                           primaryColor.withOpacity(0.0),
-                        ],
-                        stops: const [0.0, 1.0],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          Positioned(
-            bottom: -size.width * 0.6,
-            left: -size.width * 0.3,
-            child: AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return Transform.rotate(
-                  angle: -_animationController.value * 0.2,
-                  child: Container(
-                    width: size.width * 0.9,
-                    height: size.width * 0.9,
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        colors: [
-                          secondaryColor.withOpacity(0.7),
-                          secondaryColor.withOpacity(0.0),
                         ],
                         stops: const [0.0, 1.0],
                       ),
@@ -439,97 +394,87 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               'WELCOME!',
                               style: TextStyle(
                                 fontSize: titleFontSize,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
                                 color: Colors.white,
-                                letterSpacing: 1.2,
+                                letterSpacing: 1.5,
                               ),
                               textAlign: TextAlign.center,
                             ),
                           ),
-                          SizedBox(height: size.height * 0.00),
+                          SizedBox(height: size.height * 0.015),
                           Text(
                             'Sign in to continue',
                             style: TextStyle(
-                              fontSize: 18,
-                              color: isDarkMode ? Colors.white70 : Colors.black54,
+                              fontSize: 16,
+                              color: isDarkMode ? Colors.white70 : Colors.grey[600],
+                              fontWeight: FontWeight.w500,
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          SizedBox(height: size.height * 0.015),
+                          SizedBox(height: size.height * 0.025),
                           Container(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            margin: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
                               color: isDarkMode
-                                  ? Colors.white.withOpacity(0.05)
-                                  : Colors.black.withOpacity(0.03),
-                              borderRadius: BorderRadius.circular(16),
+                                  ? Colors.white.withOpacity(0.08)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: !_isEmailValid
-                                    ? Colors.red
-                                    : (isDarkMode
-                                        ? Colors.white.withOpacity(0.1)
-                                        : Colors.black.withOpacity(0.05)),
+                                    ? Colors.red.withOpacity(0.8)
+                                    : Colors.transparent,
                                 width: 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 5),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                                child: TextField(
-                                  controller: _emailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  enableSuggestions: false,
-                                  autocorrect: false,
-                                  onChanged: (value) {
-                                    if (!_isEmailValid) {
-                                      setState(() {
-                                        _isEmailValid = true;
-                                      });
-                                    }
-                                  },
-                                  style: TextStyle(
-                                    color: isDarkMode ? Colors.white : Colors.black,
-                                    fontSize: 16,
+                              borderRadius: BorderRadius.circular(12),
+                              child: TextField(
+                                controller: _emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                enableSuggestions: false,
+                                autocorrect: false,
+                                onChanged: (value) {
+                                  if (!_isEmailValid) {
+                                    setState(() {
+                                      _isEmailValid = true;
+                                    });
+                                  }
+                                },
+                                style: TextStyle(
+                                  color: isDarkMode ? Colors.white : Colors.black87,
+                                  fontSize: 16,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Email',
+                                  hintStyle: TextStyle(
+                                    color: isDarkMode ? Colors.white60 : Colors.grey[500],
                                   ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Email',
-                                    hintStyle: TextStyle(
-                                      color: isDarkMode ? Colors.white60 : Colors.black54,
-                                    ),
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: size.width < 360 ? 14 : 16,
-                                    ),
-                                    border: InputBorder.none,
-                                    prefixIcon: Container(
-                                      margin: const EdgeInsets.only(left: 16, right: 8),
-                                      child: Icon(
-                                        Icons.email_outlined,
-                                        color: isDarkMode
-                                            ? primaryColor.withOpacity(0.9)
-                                            : primaryColor,
-                                        size: 22,
-                                      ),
-                                    ),
-                                    suffixIcon: !_isEmailValid
-                                        ? Container(
-                                            margin: const EdgeInsets.only(right: 16),
-                                            child: const Icon(
-                                              Icons.error_outline,
-                                              color: Colors.red,
-                                              size: 22,
-                                            ),
-                                          )
-                                        : null,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: size.width < 360 ? 16 : 18,
                                   ),
+                                  border: InputBorder.none,
+                                  prefixIcon: Icon(
+                                    Icons.email_outlined,
+                                    color: isDarkMode
+                                        ? primaryColor.withOpacity(0.9)
+                                        : primaryColor,
+                                    size: 22,
+                                  ),
+                                  suffixIcon: !_isEmailValid
+                                      ? const Icon(
+                                          Icons.error_outline,
+                                          color: Colors.red,
+                                          size: 22,
+                                        )
+                                      : null,
                                 ),
                               ),
                             ),
@@ -546,100 +491,86 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 ),
                               ),
                             ),
-                          SizedBox(height: size.height * 0.008),
+                          SizedBox(height: size.height * 0.015),
                           Container(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            margin: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
                               color: isDarkMode
-                                  ? Colors.white.withOpacity(0.05)
-                                  : Colors.black.withOpacity(0.03),
-                              borderRadius: BorderRadius.circular(16),
+                                  ? Colors.white.withOpacity(0.08)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: !_isPasswordValid
-                                    ? Colors.red
-                                    : (isDarkMode
-                                        ? Colors.white.withOpacity(0.1)
-                                        : Colors.black.withOpacity(0.05)),
+                                    ? Colors.red.withOpacity(0.8)
+                                    : Colors.transparent,
                                 width: 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 5),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                                child: TextField(
-                                  controller: _passwordController,
-                                  obscureText: _obscurePassword,
-                                  enableSuggestions: false,
-                                  autocorrect: false,
-                                  onChanged: (value) {
-                                    if (!_isPasswordValid) {
-                                      setState(() {
-                                        _isPasswordValid = true;
-                                      });
-                                    }
-                                  },
-                                  style: TextStyle(
-                                    color: isDarkMode ? Colors.white : Colors.black,
-                                    fontSize: 16,
+                              borderRadius: BorderRadius.circular(12),
+                              child: TextField(
+                                controller: _passwordController,
+                                obscureText: _obscurePassword,
+                                enableSuggestions: false,
+                                autocorrect: false,
+                                onChanged: (value) {
+                                  if (!_isPasswordValid) {
+                                    setState(() {
+                                      _isPasswordValid = true;
+                                    });
+                                  }
+                                },
+                                style: TextStyle(
+                                  color: isDarkMode ? Colors.white : Colors.black87,
+                                  fontSize: 16,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Password',
+                                  hintStyle: TextStyle(
+                                    color: isDarkMode ? Colors.white60 : Colors.grey[500],
                                   ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Password',
-                                    hintStyle: TextStyle(
-                                      color: isDarkMode ? Colors.white60 : Colors.black54,
-                                    ),
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: size.width < 360 ? 14 : 16,
-                                    ),
-                                    border: InputBorder.none,
-                                    prefixIcon: Container(
-                                      margin: const EdgeInsets.only(left: 16, right: 8),
-                                      child: Icon(
-                                        Icons.lock_outline,
-                                        color: isDarkMode
-                                            ? primaryColor.withOpacity(0.9)
-                                            : primaryColor,
-                                        size: 22,
-                                      ),
-                                    ),
-                                    suffixIcon: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (!_isPasswordValid)
-                                          Container(
-                                            margin: const EdgeInsets.only(right: 8),
-                                            child: const Icon(
-                                              Icons.error_outline,
-                                              color: Colors.red,
-                                              size: 22,
-                                            ),
-                                          ),
-                                        Container(
-                                          margin: const EdgeInsets.only(right: 16),
-                                          child: IconButton(
-                                            icon: Icon(
-                                              _obscurePassword
-                                                  ? Icons.visibility
-                                                  : Icons.visibility_off,
-                                              color: isDarkMode ? Colors.white60 : Colors.grey,
-                                              size: 22,
-                                            ),
-                                            onPressed: () =>
-                                                setState(() => _obscurePassword = !_obscurePassword),
-                                            padding: EdgeInsets.zero,
-                                            constraints: const BoxConstraints(),
-                                          ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: size.width < 360 ? 16 : 18,
+                                  ),
+                                  border: InputBorder.none,
+                                  prefixIcon: Icon(
+                                    Icons.lock_outline,
+                                    color: isDarkMode
+                                        ? primaryColor.withOpacity(0.9)
+                                        : primaryColor,
+                                    size: 22,
+                                  ),
+                                  suffixIcon: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (!_isPasswordValid)
+                                        const Icon(
+                                          Icons.error_outline,
+                                          color: Colors.red,
+                                          size: 22,
                                         ),
-                                      ],
-                                    ),
+                                      IconButton(
+                                        icon: Icon(
+                                          _obscurePassword
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
+                                          color: isDarkMode ? Colors.white60 : Colors.grey,
+                                          size: 22,
+                                        ),
+                                        onPressed: () =>
+                                            setState(() => _obscurePassword = !_obscurePassword),
+                                        padding: const EdgeInsets.all(8),
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -658,7 +589,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               ),
                             ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -667,22 +598,19 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                     SizedBox(
                                       height: 24,
                                       width: 24,
-                                      child: Transform.scale(
-                                        scale: 0.9,
-                                        child: Checkbox(
-                                          value: _rememberMe,
-                                          onChanged: (value) =>
-                                              setState(() => _rememberMe = value ?? false),
-                                          fillColor: WidgetStateProperty.resolveWith(
-                                            (states) => states.contains(WidgetState.selected)
-                                                ? primaryColor
-                                                : (isDarkMode
-                                                    ? Colors.white38
-                                                    : Colors.grey.shade300),
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
+                                      child: Checkbox(
+                                        value: _rememberMe,
+                                        onChanged: (value) =>
+                                            setState(() => _rememberMe = value ?? false),
+                                        fillColor: WidgetStateProperty.resolveWith(
+                                          (states) => states.contains(WidgetState.selected)
+                                              ? primaryColor
+                                              : (isDarkMode
+                                                  ? Colors.white38
+                                                  : Colors.grey.shade300),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(4),
                                         ),
                                       ),
                                     ),
@@ -690,9 +618,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                     Text(
                                       'Remember me',
                                       style: TextStyle(
-                                        color: isDarkMode
-                                            ? Colors.white
-                                            : const Color.fromARGB(221, 0, 0, 0),
+                                        color: isDarkMode ? Colors.white70 : Colors.grey[800],
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -705,12 +631,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                       content: const Text('Forgot password feature coming soon'),
                                       behavior: SnackBarBehavior.floating,
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16)),
+                                          borderRadius: BorderRadius.circular(12)),
                                       margin: const EdgeInsets.all(16),
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 20, vertical: 12),
                                       duration: const Duration(seconds: 3),
-                                      elevation: 6,
                                     ),
                                   ),
                                   style: TextButton.styleFrom(
@@ -730,20 +655,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               ],
                             ),
                           ),
-                          SizedBox(height: size.height * 0.01),
+                          SizedBox(height: size.height * 0.015),
                           Container(
                             height: buttonHeight,
-                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            margin: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: primaryColor.withOpacity(0.4),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 8),
-                                  spreadRadius: -4,
-                                ),
-                              ],
+                              borderRadius: BorderRadius.circular(12),
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -754,6 +671,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                       ]
                                     : [primaryColor, secondaryColor],
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: primaryColor.withOpacity(0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _handleLogin,
@@ -762,7 +686,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 foregroundColor: Colors.white,
                                 shadowColor: Colors.transparent,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 padding: EdgeInsets.zero,
                                 elevation: 0,
@@ -787,7 +711,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                               fontSize: size.width < 360 ? 16 : 18,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
-                                              letterSpacing: 1.2,
+                                              letterSpacing: 1.1,
                                             ),
                                           ),
                                           const SizedBox(width: 8),
@@ -801,7 +725,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               ),
                             ),
                           ),
-                          SizedBox(height: size.height * 0.008),
+                          SizedBox(height: size.height * 0.015),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Row(
@@ -810,8 +734,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 Text(
                                   'New user?',
                                   style: TextStyle(
-                                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                                    color: isDarkMode ? Colors.white70 : Colors.grey[600],
                                     fontSize: 15,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                                 TextButton(
@@ -833,131 +758,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               ],
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    height: 1.5,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          isDarkMode ? Colors.transparent : Colors.white,
-                                          isDarkMode ? Colors.white38 : Colors.grey[400]!,
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  child: Container(
-                                    padding:
-                                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: isDarkMode
-                                          ? Colors.white.withOpacity(0.05)
-                                          : Colors.grey[100],
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: isDarkMode
-                                            ? Colors.white.withOpacity(0.1)
-                                            : Colors.grey[300]!,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'OR',
-                                      style: TextStyle(
-                                        color: isDarkMode ? Colors.white70 : Colors.black54,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: 1,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Container(
-                                    height: 1.5,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          isDarkMode ? Colors.white38 : Colors.grey[400]!,
-                                          isDarkMode ? Colors.transparent : Colors.white,
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: size.height * 0.01),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 5),
-                            child: Text(
-                              'Sign in with Google',
-                              style: TextStyle(
-                                color: isDarkMode ? Colors.white70 : Colors.black87,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: 4,
-                              bottom: math.max(12.0, padding.bottom),
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 350.0,
-                                height: 45.0,
-                                decoration: BoxDecoration(
-                                  color: isDarkMode ? Colors.white.withOpacity(0.1) : Colors.white,
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  border: Border.all(
-                                    color: isDarkMode ? Colors.white24 : Colors.grey[300]!,
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                      spreadRadius: -2,
-                                    ),
-                                  ],
-                                ),
-                                child: InkWell(
-                                  onTap: () => _handleSocialLogin('Google'),
-                                  borderRadius: BorderRadius.circular(12.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/images/google.png',
-                                        width: 24.0,
-                                        height: 24.0,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        'Continue with Google',
-                                        style: TextStyle(
-                                          color: isDarkMode ? Colors.white : Colors.black87,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -967,67 +767,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _socialButton(
-    String iconPath,
-    VoidCallback onPressed,
-    bool isDarkMode,
-    Color primaryColor,
-    int index,
-    Size size, [
-    double? customSize,
-  ]) {
-    final buttonSize = customSize ?? (size.width < 360 ? 48.0 : 56.0);
-    final iconSize = buttonSize * 0.5;
-
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        final delay = 0.2 + (index * 0.1);
-        final opacity = _animationController.value > delay
-            ? ((_animationController.value - delay) / (1 - delay)).clamp(0.0, 1.0)
-            : 0.0;
-
-        return Opacity(
-          opacity: opacity,
-          child: Transform.translate(
-            offset: Offset(0, 20 * (1 - opacity)),
-            child: child,
-          ),
-        );
-      },
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(buttonSize / 2),
-        child: Container(
-          width: buttonSize,
-          height: buttonSize,
-          padding: EdgeInsets.all(buttonSize * 0.25),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDarkMode ? Colors.white.withOpacity(0.05) : Colors.white,
-            border: Border.all(
-              color: isDarkMode ? Colors.white24 : Colors.grey[300]!,
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-                spreadRadius: -5,
-              ),
-            ],
-          ),
-          child: Image.asset(
-            iconPath,
-            height: iconSize,
-            width: iconSize,
-          ),
-        ),
       ),
     );
   }

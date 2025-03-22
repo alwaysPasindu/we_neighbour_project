@@ -18,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   // For animated particles
   final List<Map<String, dynamic>> _particles = [];
-  final int _particleCount = 20;
+  // final int _particleCount = 20;
 
   @override
   void initState() {
@@ -95,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final size = MediaQuery.of(context).size;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     const primaryColor = Color.fromARGB(255, 0, 18, 152);
-    const secondaryColor = Color.fromARGB(255, 14, 105, 213);
+    const secondaryColor = Color.fromARGB(255, 18, 115, 234);
     
     return Scaffold(
       body: Stack(
@@ -114,8 +114,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         secondaryColor.withOpacity(0.8),
                       ]
                     : [
-                        secondaryColor,
-                        const Color(0xFF4285F4),
+                        const Color.fromARGB(255, 73, 151, 247),
+                        const Color.fromARGB(255, 37, 121, 255),
                       ],
               ),
             ),
@@ -212,23 +212,23 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           ),
           
           // Wave effect at bottom
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, _) {
-                return CustomPaint(
-                  size: Size(size.width, 120),
-                  painter: WavePainter(
-                    animationValue: _animationController.value,
-                    isDarkMode: isDarkMode,
-                  ),
-                );
-              },
-            ),
-          ),
+          // Positioned(
+          //   bottom: 0,
+          //   left: 0,
+          //   right: 0,
+          //   // child: AnimatedBuilder(
+          //   //   animation: _animationController,
+          //   //   // builder: (context, _) {
+          //   //   //   return CustomPaint(
+          //   //   //     size: Size(size.width, 120),
+          //   //   //   //   painter: WavePainter(
+          //   //   //   //     animationValue: _animationController.value,
+          //   //   //   //     isDarkMode: isDarkMode,
+          //   //   //   //   ),
+          //   //   //   // );
+          //   //   // },
+          //   // ),
+          // ),
           
           // Main content with animations
           Center(
@@ -405,7 +405,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           
           // Version number at bottom
           Positioned(
-            bottom: 20,
+            bottom: 30,
             left: 0,
             right: 0,
             child: AnimatedBuilder(
@@ -418,7 +418,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -433,58 +433,58 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 }
 
 // Custom wave painter for bottom wave effect
-class WavePainter extends CustomPainter {
-  final double animationValue;
-  final bool isDarkMode;
+// class WavePainter extends CustomPainter {
+//   final double animationValue;
+//   final bool isDarkMode;
 
-  WavePainter({required this.animationValue, required this.isDarkMode});
+//   WavePainter({required this.animationValue, required this.isDarkMode});
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
-      ..style = PaintingStyle.fill;
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     final paint = Paint()
+//       ..color = Colors.white.withOpacity(0.1)
+//       ..style = PaintingStyle.fill;
     
-    final path = Path();
-    final width = size.width;
-    final height = size.height;
+//     final path = Path();
+//     final width = size.width;
+//     final height = size.height;
     
-    path.moveTo(0, height);
+//     path.moveTo(0, height);
     
-    for (int i = 0; i < width; i++) {
-      final x = i.toDouble();
-      final sinValue = math.sin((x / width * 4 * math.pi) + (animationValue * math.pi * 2));
-      final y = height - (height * 0.5) - (sinValue * 10);
-      path.lineTo(x, y);
-    }
+//     for (int i = 0; i < width; i++) {
+//       final x = i.toDouble();
+//       final sinValue = math.sin((x / width * 4 * math.pi) + (animationValue * math.pi * 2));
+//       final y = height - (height * 0.5) - (sinValue * 10);
+//       path.lineTo(x, y);
+//     }
     
-    path.lineTo(width, height);
-    path.close();
+//     path.lineTo(width, height);
+//     path.close();
     
-    canvas.drawPath(path, paint);
+//     canvas.drawPath(path, paint);
     
-    // Second wave with different phase
-    final paint2 = Paint()
-      ..color = Colors.white.withOpacity(0.15)
-      ..style = PaintingStyle.fill;
+//     // Second wave with different phase
+//     final paint2 = Paint()
+//       ..color = Colors.white.withOpacity(0.15)
+//       ..style = PaintingStyle.fill;
     
-    final path2 = Path();
-    path2.moveTo(0, height);
+//     final path2 = Path();
+//     path2.moveTo(0, height);
     
-    for (int i = 0; i < width; i++) {
-      final x = i.toDouble();
-      final sinValue = math.sin((x / width * 3 * math.pi) + (animationValue * math.pi * 2) + math.pi / 2);
-      final y = height - (height * 0.3) - (sinValue * 8);
-      path2.lineTo(x, y);
-    }
+//     for (int i = 0; i < width; i++) {
+//       final x = i.toDouble();
+//       final sinValue = math.sin((x / width * 3 * math.pi) + (animationValue * math.pi * 2) + math.pi / 2);
+//       final y = height - (height * 0.3) - (sinValue * 8);
+//       path2.lineTo(x, y);
+//     }
     
-    path2.lineTo(width, height);
-    path2.close();
+//     path2.lineTo(width, height);
+//     path2.close();
     
-    canvas.drawPath(path2, paint2);
-  }
+//     canvas.drawPath(path2, paint2);
+//   }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
+//   @override
+//   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+// }
 
