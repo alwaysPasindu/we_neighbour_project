@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key, required Null Function() onFinish});
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -324,6 +324,7 @@ class _SplashScreenState extends State<SplashScreen>
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
                               Colors.white.withOpacity(0.9)),
+
                           strokeWidth: 3,
                         ),
                       ),
@@ -454,47 +455,46 @@ class _SplashScreenState extends State<SplashScreen>
 //     final paint = Paint()
 //       ..color = Colors.white.withOpacity(0.1)
 //       ..style = PaintingStyle.fill;
-    
+
 //     final path = Path();
 //     final width = size.width;
 //     final height = size.height;
-    
+
 //     path.moveTo(0, height);
-    
+
 //     for (int i = 0; i < width; i++) {
 //       final x = i.toDouble();
 //       final sinValue = math.sin((x / width * 4 * math.pi) + (animationValue * math.pi * 2));
 //       final y = height - (height * 0.5) - (sinValue * 10);
 //       path.lineTo(x, y);
 //     }
-    
+
 //     path.lineTo(width, height);
 //     path.close();
-    
+
 //     canvas.drawPath(path, paint);
-    
+
 //     // Second wave with different phase
 //     final paint2 = Paint()
 //       ..color = Colors.white.withOpacity(0.15)
 //       ..style = PaintingStyle.fill;
-    
+
 //     final path2 = Path();
 //     path2.moveTo(0, height);
-    
+
 //     for (int i = 0; i < width; i++) {
 //       final x = i.toDouble();
 //       final sinValue = math.sin((x / width * 3 * math.pi) + (animationValue * math.pi * 2) + math.pi / 2);
 //       final y = height - (height * 0.3) - (sinValue * 8);
 //       path2.lineTo(x, y);
 //     }
-    
+
 //     path2.lineTo(width, height);
 //     path2.close();
-    
+
 //     canvas.drawPath(path2, paint2);
 //   }
 
 //   @override
 //   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 // }
-
