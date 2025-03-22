@@ -1,10 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
 import 'package:we_neighbour/main.dart';
-import 'package:we_neighbour/models/image_service.dart';
 import 'package:we_neighbour/models/resource.dart' as model;
 import 'package:we_neighbour/widgets/share_dialog.dart';
 import '../../constants/colors.dart';
@@ -45,7 +43,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      userId = prefs.getString('userId'); // Use backend userId
+      userId = prefs.getString('userId');
       authToken = prefs.getString('token');
     });
 
@@ -95,15 +93,21 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       }
     } catch (e) {
       setState(() => _isLoading = false);
+      print('Fetch resources error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching resources: $e')),
       );
     }
   }
 
-  Future<void> _addResource(String title, String description, String quantity, List<String> imageUrls) async {
+  Future<void> _addResource(String title, String description, String quantity) async {
     final token = await _getToken();
-    if (token == null) return;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Authentication token not found')),
+      );
+      return;
+    }
 
     try {
       final headers = {
@@ -114,9 +118,9 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         'resourceName': title,
         'description': description,
         'quantity': quantity,
-        'images': imageUrls,
         'userId': userId,
       });
+
       final response = await http
           .post(
             Uri.parse('$baseUrl/api/resource/create-request'),
@@ -130,22 +134,23 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         setState(() {
           resources.insert(0, newResource);
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Resource request created successfully')),
-        );
       } else {
         throw Exception('Failed to create resource: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error creating resource: $e')),
-      );
+      print('Add resource error: $e');
+      throw e; // Re-throw to handle in the dialog
     }
   }
 
   Future<void> _deleteResource(String id) async {
     final token = await _getToken();
-    if (token == null) return;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Authentication token not found')),
+      );
+      return;
+    }
 
     try {
       final headers = {'x-auth-token': token};
@@ -154,22 +159,18 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
             Uri.parse('$baseUrl/api/resource/delete-request/$id'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 25));
 
       if (response.statusCode == 200) {
         setState(() {
           resources.removeWhere((resource) => resource.id == id);
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Resource request deleted successfully')),
-        );
       } else {
-        throw Exception('Failed to delete resource: ${response.statusCode}');
+        throw Exception('Failed to delete resource: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting resource: $e')),
-      );
+      print('Delete resource error: $e');
+      throw e; // Re-throw to handle in the dialog
     }
   }
 
@@ -208,8 +209,6 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
     final TextEditingController quantityController = TextEditingController();
-    List<XFile> selectedImages = [];
-    List<String> imageUrls = [];
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final isDarkMode = themeProvider.isDarkMode;
 
@@ -231,32 +230,25 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                   controller: titleController,
                   decoration: const InputDecoration(labelText: 'Resource Name'),
                   style: AppTextStyles.getBodyTextStyle(isDarkMode),
+                  autocorrect: false, // Disable autocorrect
+                  enableSuggestions: false, // Disable predictive text
                 ),
                 TextField(
                   controller: descriptionController,
                   decoration: const InputDecoration(labelText: 'Description'),
                   style: AppTextStyles.getBodyTextStyle(isDarkMode),
+                  autocorrect: false, // Disable autocorrect
+                  enableSuggestions: false, // Disable predictive text
                 ),
                 TextField(
                   controller: quantityController,
                   decoration: const InputDecoration(labelText: 'Quantity'),
                   style: AppTextStyles.getBodyTextStyle(isDarkMode),
                   keyboardType: TextInputType.number,
+                  autocorrect: false, // Disable autocorrect
+                  enableSuggestions: false, // Disable predictive text
                 ),
                 const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () async {
-                    final images = await ImageService.pickMultipleImages();
-                    if (images.isNotEmpty) {
-                      setState(() {
-                        selectedImages = images;
-                      });
-                    }
-                  },
-                  child: const Text('Pick Images'),
-                ),
-                if (selectedImages.isNotEmpty)
-                  Text('${selectedImages.length} image(s) selected'),
               ],
             ),
           ),
@@ -276,22 +268,21 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                   return;
                 }
 
-                if (selectedImages.isNotEmpty) {
-                  for (var image in selectedImages) {
-                    final url = await ImageService.uploadImage(image);
-                    if (url != null) {
-                      imageUrls.add(url);
-                    }
-                  }
+                try {
+                  await _addResource(
+                    titleController.text,
+                    descriptionController.text,
+                    quantityController.text,
+                  );
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Resource request created successfully')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error creating resource: $e')),
+                  );
                 }
-
-                await _addResource(
-                  titleController.text,
-                  descriptionController.text,
-                  quantityController.text,
-                  imageUrls,
-                );
-                Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -328,9 +319,19 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
             child: Text('Cancel', style: AppTextStyles.getBodyTextStyle(isDarkMode)),
           ),
           ElevatedButton(
-            onPressed: () {
-              _deleteResource(id);
-              Navigator.pop(context);
+            onPressed: () async {
+              try {
+                await _deleteResource(id);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Resource request deleted successfully')),
+                );
+              } catch (e) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error deleting resource: $e')),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -356,44 +357,40 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           'Resources',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.chat),
-            onPressed: () => Navigator.pushNamed(context, '/chat-list'),
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: resources.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final resource = resources[index];
-                return ResourceCard(
-                  title: resource.title,
-                  description: resource.description,
-                  userName: resource.userName,
-                  apartmentCode: resource.apartmentCode,
-                  userId: resource.userId,
-                  currentUserId: userId,
-                  isDarkMode: isDarkMode,
-                  onShare: userId != resource.userId
-                      ? () async {
-                          final message = await showDialog<String>(
-                            context: context,
-                            builder: (context) => ShareDialog(resource: resource),
-                          );
-                          if (message != null && message.isNotEmpty) {
-                            _initiateChat(resource.userId, message, resource.id);
-                          }
-                        }
-                      : null,
-                  onDelete: userId == resource.userId ? () => _showDeleteDialog(resource.id) : null,
-                );
-              },
-            ),
+          : resources.isEmpty
+              ? const Center(child: Text('No resources available'))
+              : ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: resources.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final resource = resources[index];
+                    return ResourceCard(
+                      title: resource.title,
+                      description: resource.description,
+                      userName: resource.userName,
+                      apartmentCode: resource.apartmentCode,
+                      userId: resource.userId,
+                      currentUserId: userId,
+                      isDarkMode: isDarkMode,
+                      onShare: userId != resource.userId
+                          ? () async {
+                              final message = await showDialog<String>(
+                                context: context,
+                                builder: (context) => ShareDialog(resource: resource),
+                              );
+                              if (message != null && message.isNotEmpty) {
+                                _initiateChat(resource.userId, message, resource.id);
+                              }
+                            }
+                          : null,
+                      onDelete: userId == resource.userId ? () => _showDeleteDialog(resource.id) : null,
+                    );
+                  },
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateDialog,
         backgroundColor: AppColors.primary,
