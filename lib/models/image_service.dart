@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
@@ -7,15 +6,20 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:we_neighbour/main.dart'; // Ensure this provides `baseUrl`
 
 class ImageService {
   static final ImagePicker _picker = ImagePicker();
-  static const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
 
   // Pick multiple images from gallery
   static Future<List<XFile>> pickMultipleImages() async {
     try {
-      final List<XFile> images = await _picker.pickMultiImage();
+      final List<XFile> images = await _picker.pickMultiImage(
+        imageQuality: 80, // Added quality to reduce size
+      );
+      if (images.isEmpty) {
+        print('No images selected');
+      }
       return images;
     } catch (e) {
       print('Error picking multiple images: $e');
@@ -28,8 +32,11 @@ class ImageService {
     try {
       final XFile? image = await _picker.pickImage(
         source: source,
-        imageQuality: 80,
+        imageQuality: 80, // Consistent quality setting
       );
+      if (image == null) {
+        print('No image selected');
+      }
       return image;
     } catch (e) {
       print('Error picking image: $e');
@@ -43,22 +50,40 @@ class ImageService {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
       if (token == null) {
-        print('No auth token available');
+        print('No auth token available. Please log in.');
         return null;
       }
 
-      final uri = Uri.parse('$baseUrl/api/upload');
+      // Use baseUrl from main.dart
+      final String uploadUrl = baseUrl.isNotEmpty ? '$baseUrl/api/upload' : '';
+      final uri = Uri.parse(uploadUrl);
+
+      // Prepare multipart request
       final request = http.MultipartRequest('POST', uri)
         ..headers['x-auth-token'] = token
-        ..files.add(await http.MultipartFile.fromPath('image', image.path));
+        ..files.add(await http.MultipartFile.fromPath(
+          'image', // Field name expected by server
+          image.path,
+          filename: path.basename(image.path), // Preserve original filename
+        ));
 
-      final response = await request.send();
+      // Send request and handle response
+      final response = await request.send().timeout(const Duration(seconds: 30));
+      print('Upload response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
+        print('Response body: $responseBody');
         final json = jsonDecode(responseBody);
-        return json['imageUrl'];
+        if (json['imageUrl'] != null) {
+          return json['imageUrl'] as String;
+        } else {
+          print('Invalid response format: missing imageUrl');
+          return null;
+        }
       } else {
-        print('Failed to upload image: ${response.statusCode}');
+        final errorBody = await response.stream.bytesToString();
+        print('Failed to upload image: ${response.statusCode} - $errorBody');
         return null;
       }
     } catch (e) {
@@ -67,7 +92,21 @@ class ImageService {
     }
   }
 
-  // Save image to app directory (optional, for local caching)
+  // Upload multiple images and return a list of URLs
+  static Future<List<String>> uploadMultipleImages(List<XFile> images) async {
+    final List<String> uploadedUrls = [];
+    for (final image in images) {
+      final url = await uploadImage(image);
+      if (url != null) {
+        uploadedUrls.add(url);
+      } else {
+        print('Failed to upload one of the images');
+      }
+    }
+    return uploadedUrls;
+  }
+
+  // Save image to app directory (for local caching or fallback)
   static Future<String?> saveImageToAppDirectory(XFile file) async {
     try {
       final appDir = await getApplicationDocumentsDirectory();
@@ -75,6 +114,7 @@ class ImageService {
       final savedImage = File('${appDir.path}/$fileName');
       await file.saveTo(savedImage.path);
       if (await savedImage.exists()) {
+        print('Image saved locally: ${savedImage.path}');
         return savedImage.path;
       } else {
         throw Exception('Failed to save image');
@@ -91,8 +131,10 @@ class ImageService {
       final file = File(imagePath);
       if (await file.exists()) {
         await file.delete();
+        print('Image deleted: $imagePath');
         return true;
       }
+      print('Image not found: $imagePath');
       return false;
     } catch (e) {
       print('Error deleting image: $e');
@@ -152,7 +194,9 @@ class ImageService {
     try {
       final file = File(imagePath);
       final bytes = await file.length();
-      return bytes / (1024 * 1024); // Convert to MB
+      final sizeInMb = bytes / (1024 * 1024);
+      print('Image size: $sizeInMb MB');
+      return sizeInMb;
     } catch (e) {
       print('Error getting image size: $e');
       return 0.0;
