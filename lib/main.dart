@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/colors.dart';
+import 'package:we_neighbour/features/chat/chat_list_page.dart';
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'package:we_neighbour/features/resource_share/resource_sharing_page.dart';
 import 'package:we_neighbour/features/services/service_page.dart';
@@ -25,9 +26,6 @@ import 'package:we_neighbour/screens/reports_screen.dart';
 import 'package:we_neighbour/screens/residents_requests_screen.dart';
 import 'package:we_neighbour/settings/settings_screen.dart';
 import 'package:we_neighbour/splashScreen/splash_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 enum UserType { resident, manager, serviceProvider }
 
@@ -35,15 +33,14 @@ const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(); // Still initialize Firebase for Firestore
   try {
     final prefs = await SharedPreferences.getInstance();
     final isDarkMode = prefs.getBool('isDarkMode') ?? false;
     runApp(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(
-              create: (_) => ThemeProvider(isDarkMode: isDarkMode)),
+          ChangeNotifierProvider(create: (_) => ThemeProvider(isDarkMode: isDarkMode)),
           ChangeNotifierProvider(create: (_) => ChatProvider()),
         ],
         child: const MyApp(),
@@ -54,8 +51,7 @@ void main() async {
     runApp(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(
-              create: (_) => ThemeProvider(isDarkMode: false)),
+          ChangeNotifierProvider(create: (_) => ThemeProvider(isDarkMode: false)),
           ChangeNotifierProvider(create: (_) => ChatProvider()),
         ],
         child: const MyApp(),
@@ -77,8 +73,6 @@ class _MyAppState extends State<MyApp> {
   String? _token;
   bool _isLoading = true;
 
-  get prefs => null;
-
   @override
   void initState() {
     super.initState();
@@ -91,8 +85,7 @@ class _MyAppState extends State<MyApp> {
       final token = prefs.getString('token');
 
       if (token != null) {
-        final userRole =
-            prefs.getString('userRole')?.toLowerCase() ?? 'resident';
+        final userRole = prefs.getString('userRole')?.toLowerCase() ?? 'resident';
         final userStatus = prefs.getString('userStatus')?.toLowerCase();
 
         UserType userType;
@@ -109,9 +102,6 @@ class _MyAppState extends State<MyApp> {
             userType = UserType.resident;
         }
 
-        // Sync Firebase with JWT (optional, uncomment if needed)
-        // await _syncFirebaseWithJwt(token);
-
         setState(() {
           _isLoggedIn = true;
           _userType = userType;
@@ -119,15 +109,9 @@ class _MyAppState extends State<MyApp> {
           _isLoading = false;
         });
 
-        // Redirect to appropriate screen based on user status
-        if (mounted) {
-          if (userType == UserType.resident && userStatus == 'pending') {
+        if (userType == UserType.resident && userStatus == 'pending') {
+          if (mounted) {
             Navigator.pushReplacementNamed(context, '/pending-approval');
-          } else if (userType == UserType.resident ||
-              userType == UserType.manager) {
-            Navigator.pushReplacementNamed(context, '/home');
-          } else if (userType == UserType.serviceProvider) {
-            Navigator.pushReplacementNamed(context, '/provider-home');
           }
         }
       } else {
@@ -142,27 +126,6 @@ class _MyAppState extends State<MyApp> {
         _isLoggedIn = false;
         _isLoading = false;
       });
-    }
-  }
-
-  Future<void> _syncFirebaseWithJwt(String jwtToken) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/auth/firebase-token'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'jwtToken': jwtToken}),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final customToken = data['firebaseToken'];
-        await FirebaseAuth.instance.signInWithCustomToken(customToken);
-        print('Firebase synced with JWT successfully');
-      } else {
-        print(
-            'Failed to get Firebase token: ${response.statusCode} - ${response.body}');
-      }
-    } catch (e) {
-      print('Error syncing Firebase with JWT: $e');
     }
   }
 
@@ -200,59 +163,41 @@ class _MyAppState extends State<MyApp> {
             ),
           ),
           themeMode: themeProvider.themeMode,
-          initialRoute: '/splash', // Always start with splash screen
+          initialRoute: '/splash',
           routes: {
-            '/splash': (context) => SplashScreen(
-                  onFinish: () {
-                    if (_isLoggedIn) {
-                      if (_userType == UserType.resident &&
-                          prefs.getString('userStatus')?.toLowerCase() ==
-                              'pending') {
-                        Navigator.pushReplacementNamed(
-                            context, '/pending-approval');
-                      } else if (_userType == UserType.serviceProvider) {
-                        Navigator.pushReplacementNamed(
-                            context, '/provider-home');
-                      } else {
-                        Navigator.pushReplacementNamed(context, '/home');
-                      }
-                    } else {
-                      Navigator.pushReplacementNamed(context, '/login');
-                    }
-                  },
-                ),
-            '/login': (context) => const LoginPage(),
+            '/splash': (context) => const SplashScreen(),
             '/account-type': (context) => const AccountTypePage(),
             '/resident-signup': (context) => const ResidentSignUpPage(),
             '/manager-signup': (context) => const ManagerSignUpPage(),
-            '/service-provider-signup': (context) =>
-                const ServiceProviderSignUpPage(),
+            '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
+            '/provider-home': (context) => const ProviderHomePage(),
+            '/provider-profile': (context) => const CompanyProfileScreen(),
+            '/chat-list': (context) => ChatListPage(),
+            '/pending-approval': (context) => const PendingApprovalPage(),
+            '/resource': (context) => const ResourceSharingPage(),
+            '/resident-req': (context) => const ResidentsRequestScreen(),
+            '/pending-task': (context) => const PendingTasksScreen(),
+            '/reports': (context) => const ReportsScreen(),
+            '/login': (context) => const LoginPage(),
+            '/settings': (context) => const SettingsScreen(),
+            '/maintenance': (context) => _token != null
+                ? MaintenanceScreen(authToken: _token!, isManager: _userType == UserType.manager)
+                : const LoginPage(),
+            '/manager-maintenance': (context) => _token != null
+                ? ManagerMaintenanceScreen(authToken: _token!)
+                : const LoginPage(),
             '/home': (context) {
               final args = ModalRoute.of(context)?.settings.arguments;
               final userType = args is UserType ? args : _userType;
-              return HomeScreen(userType: userType);
+              return userType == UserType.serviceProvider
+                  ? ServicesPage(userType: userType)
+                  : HomeScreen(userType: userType);
             },
-            '/provider-home': (context) => const ProviderHomePage(),
             '/service': (context) {
               final args = ModalRoute.of(context)?.settings.arguments;
               final userType = args is UserType ? args : _userType;
               return ServicesPage(userType: userType);
             },
-            '/maintenance': (context) => _token != null
-                ? MaintenanceScreen(
-                    authToken: _token!,
-                    isManager: _userType == UserType.manager)
-                : const LoginPage(),
-            '/manager-maintenance': (context) => _token != null
-                ? ManagerMaintenanceScreen(authToken: _token!)
-                : const LoginPage(),
-            '/resource': (context) => const ResourceSharingPage(),
-            '/resident-req': (context) => const ResidentsRequestScreen(),
-            '/pending-task': (context) => const PendingTasksScreen(),
-            '/reports': (context) => const ReportsScreen(),
-            '/settings': (context) => const SettingsScreen(),
-            '/pending-approval': (context) => const PendingApprovalPage(),
-            '/provider-profile': (context) => const CompanyProfileScreen(),
           },
           onGenerateRoute: (settings) {
             if (settings.name == '/profile') {
@@ -260,14 +205,11 @@ class _MyAppState extends State<MyApp> {
               final userType = args is UserType ? args : _userType;
               switch (userType) {
                 case UserType.resident:
-                  return MaterialPageRoute(
-                      builder: (_) => const ResidentProfileScreen());
+                  return MaterialPageRoute(builder: (_) => const ResidentProfileScreen());
                 case UserType.manager:
-                  return MaterialPageRoute(
-                      builder: (_) => const ManagerProfileScreen());
+                  return MaterialPageRoute(builder: (_) => const ManagerProfileScreen());
                 case UserType.serviceProvider:
-                  return MaterialPageRoute(
-                      builder: (_) => const CompanyProfileScreen());
+                  return MaterialPageRoute(builder: (_) => const CompanyProfileScreen());
               }
             }
             return null;
