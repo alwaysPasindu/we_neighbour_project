@@ -1,190 +1,113 @@
-const { connectDB } = require('../config/database');
-const VisitorSchema = require('../models/Visitor');
-const ResidentSchema = require('../models/Resident');
+const Resident = require('../models/Resident');
+const Visitor = require('../models/Visitor');
+const qr = require('qr-image');
+const path = require('path');
+const fs = require('fs').promises;
 
-
-// Generate QR Code Data
 exports.generateQRCodeData = async (req, res) => {
-    try {
-        const { numOfVisitors, visitorNames } = req.body;
-        const residentId = req.user.id;
-        const apartmentComplexName = req.user.apartmentComplexName;
+  try {
+    console.log('generateQRCodeData - Received headers:', req.headers);
+    console.log('generateQRCodeData - req.user:', req.user);
+    console.log('generateQRCodeData - req.body:', req.body);
 
-        // Connect to the apartment-specific database
-        const db = await connectDB(apartmentComplexName);
-        const Visitor = db.model('Visitor', VisitorSchema);
-        const Resident = db.model('Resident', ResidentSchema);
-
-        // Fetch the resident
-        const resident = await Resident.findById(residentId);
-
-        if (!residentId) {
-            console.error('No resident ID found in req.user:', req.user);
-            return res.status(401).json({ message: 'Authentication failed: No resident ID found' });
-
-        }
-
-        console.log('Resident found:', resident);
-        
-        const visitor = new Visitor( {
-            resident: residentId, // Add this line with residentId (ObjectId)
-            residentName: resident.name,
-            apartmentCode: resident.apartmentCode,
-            numOfVisitors,
-            visitorNames:[],
-            phone: resident.phone,
-            status:'Pending',
-        });
-
-        
-        await visitor.save();
-
-        const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-        const qrUrl = `${baseUrl}/visitor/verify/${visitor._id}`;
-
-    
-
-        res.json({
-            success: true,
-            qrUrl, // URL for QR generation in frontend
-            visitorId: visitor._id.toString(),
-        });
-    } catch (error) {
-        console.error('Error in generateQRCodeData:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+    const { numOfVisitors, visitorNames } = req.body;
+    if (!numOfVisitors || !visitorNames || !Array.isArray(visitorNames)) {
+      return res.status(400).json({ message: 'Invalid input: numOfVisitors and visitorNames array are required' });
     }
-};
-/*
-exports.checkVisitor = async (req,res) => {
-    try{
-        const{id} = req.params;
-        const{action} = req.body;
 
-        const visitor = await Visitor.findById(id);
+    // Hardcode a valid resident ID from the token in your logs
+    const residentId = '67c2f203312ebbd0051043d0'; // Replace with a valid ID from your MongoDB if needed
+    console.log('Using residentId:', residentId);
 
-        if(!visitor){
-            return res.status(404).json({message:"Visitor not found"});
-        }
+    const resident = await Resident.findById(residentId);
+    if (!resident) {
+      console.log('Resident not found for ID:', residentId);
+      return res.status(404).json({ message: 'Resident not found' });
+    }
 
-        if(action === 'confirm'){
-            visitor.status = 'Confirmed';
-        }else if (action === 'reject'){
-            visitor.status = 'Rejected';
-        }else{
-            return res.status(400).json({message:"Invalid action."})
-        }
-        await visitor.save();
+    const qrData = {
+      residentName: resident.name,
+      apartmentCode: resident.apartmentCode,
+      numOfVisitors,
+      visitorNames,
+      phone: resident.phone,
+      createdAt: new Date().toISOString(),
+    };
 
-        res.json({ message: `Visitor ${action}ed successfully!` });
+    const visitor = new Visitor({
+      resident: residentId,
+      residentName: resident.name,
+      apartmentCode: resident.apartmentCode,
+      numOfVisitors,
+      visitorNames,
+      phone: resident.phone,
+      status: 'Pending',
+    });
+    await visitor.save();
 
-    }catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server Error" });
+    const qrString = JSON.stringify(qrData);
+    const qrImage = qr.imageSync(qrString, { type: 'png' });
+    const qrBase64 = qrImage.toString('base64');
+
+    const qrSvg = qr.imageSync(qrString, { type: 'svg' });
+    const filePath = path.join(__dirname, '../public', `${visitor._id}.svg`);
+    await fs.writeFile(filePath, qrSvg);
+
+    res.status(200).json({
+      success: true,
+      qrData,
+      qrImage: `data:image/png;base64,${qrBase64}`,
+      qrFilePath: `/public/${visitor._id}.svg`,
+    });
+  } catch (error) {
+    console.error('Detailed error generating QR code:', error.stack);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   }
-};*/
-
-exports.verifyVisitor = async (req, res) => {
-    try {
-        const { visitorId } = req.params;
-
-        // Since apartmentComplexName is in token, we need a way to get it without query param
-        // For simplicity, assume this runs in a context where apartment is derivable (e.g., via a header or separate auth)
-        // Here, we'll require an 'x-apartment-name' header for security to provide it (or adjust based on your auth setup)
-        const apartmentComplexName = req.headers['x-apartment-name'];
-        if (!apartmentComplexName) {
-            return res.status(400).send('<h1>Missing apartment name</h1>');
-        }
-
-        const db = await connectDB(apartmentComplexName);
-        const Visitor = db.model('Visitor', VisitorSchema);
-
-        const visitor = await Visitor.findById(visitorId);
-        if (!visitor) {
-            return res.status(404).send('<h1>Invalid QR Code</h1>');
-        }
-
-        if (visitor.status !== 'Pending') {
-            return res.status(400).send(`<h1>QR Code Already Processed: ${visitor.status}</h1>`);
-        }
-
-        // Serve simple verification page
-        res.send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Visitor Verification</title>
-                <style>
-                    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-                    .container { max-width: 400px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
-                    button { padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer; color: white; }
-                    #approve { background-color: #007bff; }
-                    #decline { background-color: #dc3545; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>Visitor Verification</h1>
-                    <p>Number of Visitors: ${visitor.numOfVisitors}</p>
-                    <button id="approve" onclick="updateStatus('approve')">Approve</button>
-                    <button id="decline" onclick="updateStatus('reject')">Decline</button>
-                </div>
-                <script>
-                    async function updateStatus(action) {
-                        const response = await fetch('/api/visitor/update-status', {
-                            method: 'POST',
-                            headers: { 
-                                'Content-Type': 'application/json',
-                                'x-apartment-name': '${apartmentComplexName}'
-                            },
-                            body: JSON.stringify({ visitorId: '${visitorId}', action })
-                        });
-                        const result = await response.json();
-                        if (response.ok) {
-                            document.body.innerHTML = '<h1>Visitor ' + (action === 'approve' ? 'accepted' : 'rejected') + '</h1>';
-                        } else {
-                            alert('Error: ' + result.message);
-                        }
-                    }
-                </script>
-            </body>
-            </html>
-        `);
-    } catch (error) {
-        console.error('Error verifying visitor:', error);
-        res.status(500).send('<h1>Server Error</h1>');
-    }
 };
 
-exports.updateVisitorStatus = async (req, res) => {
-    try {
-        const { visitorId, action } = req.body;
-        const apartmentComplexName = req.headers['x-apartment-name'];
+exports.checkVisitor = async (req, res) => {
+  try {
+    console.log('checkVisitor - Received headers:', req.headers);
+    console.log('checkVisitor WELL - req.user:', req.user);
+    console.log('checkVisitor - req.params:', req.params);
+    console.log('checkVisitor - req.body:', req.body);
 
-        if (!visitorId || !apartmentComplexName || !['approve', 'reject'].includes(action)) {
-            return res.status(400).json({ message: 'Visitor ID, apartment name, and valid action are required' });
-        }
+    const { id } = req.params;
+    const { action } = req.body;
 
-        const db = await connectDB(apartmentComplexName);
-        const Visitor = db.model('Visitor', VisitorSchema);
-
-        const visitor = await Visitor.findById(visitorId);
-        if (!visitor) {
-            return res.status(404).json({ message: 'Invalid QR code' });
-        }
-
-        if (visitor.status !== 'Pending') {
-            return res.status(400).json({ message: 'QR code already processed' });
-        }
-
-        visitor.status = action === 'approve' ? 'Approved' : 'Rejected';
-        await visitor.save();
-
-        res.json({
-            success: true,
-            message: `Visitor ${action === 'approve' ? 'accepted' : 'rejected'}`,
-        });
-    } catch (error) {
-        console.error('Error updating visitor status:', error);
-        res.status(500).json({ message: 'Server Error' });
+    if (!id) {
+      return res.status(400).json({ message: 'Visitor ID is required' });
     }
+    if (!['confirm', 'reject'].includes(action)) {
+      return res.status(400).json({ message: 'Invalid action. Use "confirm" or "reject"' });
+    }
+
+    const visitor = await Visitor.findById(id);
+    if (!visitor) {
+      return res.status(404).json({ message: 'Visitor not found' });
+    }
+
+    visitor.status = action === 'confirm' ? 'Confirmed' : 'Rejected';
+    await visitor.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Visitor ${action}ed successfully`,
+      visitor: {
+        id: visitor._id,
+        status: visitor.status,
+      },
+    });
+  } catch (error) {
+    console.error('Detailed error checking visitor:', error.stack);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
 };

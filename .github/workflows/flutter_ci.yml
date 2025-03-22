@@ -28,7 +28,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.2' # Use the version compatible with your project
+          flutter-version: '3.19.0' # Use the version compatible with your project
           channel: 'stable'
 
       # Get dependencies
@@ -47,10 +47,9 @@ jobs:
       - name: Build APK
         run: flutter build apk --debug
 
-      # Upload APK using the updated v4 action
+      # Optionally store the APK as an artifact
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: app-debug.apk
           path: build/app/outputs/flutter-apk/app-debug.apk
-          if-no-files-found: error # Optional: fail the step if no files are found

@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
 import 'package:we_neighbour/features/notifications&alets/notifications_screen.dart';
 import 'package:we_neighbour/features/notifications&alets/safety_alerts.dart';
-import '../main.dart';
 
 class HeaderWidget extends StatefulWidget {
   final bool isDarkMode;

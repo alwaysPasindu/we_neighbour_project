@@ -139,7 +139,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       }
     } catch (e) {
       print('Add resource error: $e');
-      throw e; // Re-throw to handle in the dialog
+      rethrow; // Re-throw to handle in the dialog
     }
   }
 
@@ -170,7 +170,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       }
     } catch (e) {
       print('Delete resource error: $e');
-      throw e; // Re-throw to handle in the dialog
+      rethrow; // Re-throw to handle in the dialog
     }
   }
 

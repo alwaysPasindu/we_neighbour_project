@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
-import 'package:we_neighbour/widgets/share_dialog.dart';
-import '../models/resource.dart';
 
 class ResourceCard extends StatelessWidget {
   final String title;

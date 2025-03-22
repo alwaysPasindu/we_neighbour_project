@@ -430,7 +430,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           ShaderMask(
-                            shaderCallback: (bounds) => LinearGradient(
+                            shaderCallback: (bounds) => const LinearGradient(
                               colors: [primaryColor, secondaryColor],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -718,7 +718,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                     minimumSize: const Size(0, 0),
                                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   ),
-                                  child: Text(
+                                  child: const Text(
                                     'Forgot password?',
                                     style: TextStyle(
                                       color: primaryColor,
@@ -821,7 +821,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                     minimumSize: const Size(0, 0),
                                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   ),
-                                  child: Text(
+                                  child: const Text(
                                     'Register',
                                     style: TextStyle(
                                       color: primaryColor,
