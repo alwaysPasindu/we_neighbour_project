@@ -48,7 +48,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     });
 
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    final apartmentName = prefs.getString('userApartment') ?? 'Negombo-Dreams';
+    final apartmentName = prefs.getString('userApartment') ?? '';
     if (userId != null && userId!.isNotEmpty && chatProvider.currentUserId != userId) {
       await chatProvider.setUser(userId!, apartmentName);
       print('ChatProvider updated with userId: $userId, apartmentName: $apartmentName');
@@ -190,7 +190,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       print('Message sent successfully');
       Navigator.pushNamed(
         context,
-        '/chat-screen',
+          '/chat-screen',
         arguments: {
           'chatId': chatId,
           'isGroup': false,
