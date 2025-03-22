@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ImageService {
   static final ImagePicker _picker = ImagePicker();
-  static const String baseUrl = 'https://we-neighbour-backend.vercel.app';
+  static const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
 
   // Pick multiple images from gallery
   static Future<List<XFile>> pickMultipleImages() async {

@@ -13,7 +13,7 @@ class ResidentsRequestsScreen extends StatefulWidget {
 }
 
 class _ResidentsRequestsScreenState extends State<ResidentsRequestsScreen> {
-  static const String baseUrl = 'http://172.20.10.3:3000';
+  static const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
   List<dynamic> pendingResidents = [];
   bool _isLoading = true;
 
