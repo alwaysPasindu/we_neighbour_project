@@ -11,7 +11,7 @@ const VisitorSchema = new mongoose.Schema({
     numOfVisitors:{type:Number, required:true},
     visitorNames: [{type:String,required:true}],
     phone:{type:String, required:true},
-    status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+    status:{type:String, enum:['Pending','Approved','Rejected'], default:'Pending'},
     createdAt:{type:Date, default:Date.now},
 });
 
