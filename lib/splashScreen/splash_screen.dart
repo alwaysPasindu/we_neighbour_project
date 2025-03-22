@@ -4,13 +4,14 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({super.key, required Null Function() onFinish});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -24,16 +25,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    
+
     // Generate random particles
     // _generateParticles();
-    
+
     // Initialize animation controller
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2500),
     );
-    
+
     // Create animations
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -41,31 +42,31 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
       ),
     );
-    
+
     _scaleAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
       ),
     );
-    
+
     _rotationAnimation = Tween<double>(begin: -0.2, end: 0.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeInOut),
       ),
     );
-    
+
     _slideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
       ),
     );
-    
+
     // Start animation
     _animationController.forward();
-    
+
     // Navigate to login page after delay
     Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacementNamed(context, '/login');
@@ -97,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     const primaryColor = Color.fromARGB(255, 0, 18, 152);
     const secondaryColor = Color.fromARGB(255, 18, 115, 234);
-    
+
     return Scaffold(
       body: Stack(
         children: [
@@ -121,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               ),
             ),
           ),
-          
+
           // Animated particles
           ...List.generate(_particles.length, (index) {
             return AnimatedBuilder(
@@ -133,10 +134,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 final particleSize = particle['size'];
                 final speed = particle['speed'];
                 final opacity = particle['opacity'] * _fadeAnimation.value;
-                
+
                 return Positioned(
                   left: posX,
-                  top: posY + (30 * math.sin(_animationController.value * math.pi * 2 * speed)),
+                  top: posY +
+                      (30 *
+                          math.sin(_animationController.value *
+                              math.pi *
+                              2 *
+                              speed)),
                   child: Container(
                     width: particleSize,
                     height: particleSize,
@@ -156,7 +162,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               },
             );
           }),
-          
+
           // Decorative circles
           Positioned(
             top: -size.width * 0.4,
@@ -184,7 +190,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               },
             ),
           ),
-          
+
           Positioned(
             bottom: -size.width * 0.6,
             left: -size.width * 0.3,
@@ -211,7 +217,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               },
             ),
           ),
-          
+
           // Wave effect at bottom
           // Positioned(
           //   bottom: 0,
@@ -230,7 +236,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           //   //   // },
           //   // ),
           // ),
-          
+
           // Main content with animations
           Center(
             child: Column(
@@ -270,30 +276,30 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
-                      
+
                       // Reflection effect
                       // Container(
                       //   height: 20,
                       //   width: 140,
                       //   margin: const EdgeInsets.only(top: 10),
-                        // decoration: BoxDecoration(
-                          // gradient: LinearGradient(
-                          //   begin: Alignment.topCenter,
-                          //   end: Alignment.bottomCenter,
-                            // colors: [
-                            //   const Color.fromARGB(255, 255, 255, 255).withOpacity(0.3),
-                            //   Colors.white.withOpacity(0.0),
-                            // ],
-                          // ),
-                        //   borderRadius: BorderRadius.circular(100),
-                        // ),
+                      // decoration: BoxDecoration(
+                      // gradient: LinearGradient(
+                      //   begin: Alignment.topCenter,
+                      //   end: Alignment.bottomCenter,
+                      // colors: [
+                      //   const Color.fromARGB(255, 255, 255, 255).withOpacity(0.3),
+                      //   Colors.white.withOpacity(0.0),
+                      // ],
+                      // ),
+                      //   borderRadius: BorderRadius.circular(100),
+                      // ),
                       // ),
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 // Modern loading indicator
                 AnimatedBuilder(
                   animation: _animationController,
@@ -317,17 +323,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white.withOpacity(0.9)
-                          ),
+                              Colors.white.withOpacity(0.9)),
                           strokeWidth: 3,
                         ),
                       ),
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 30),
-                
+
                 // App name with animated slide
                 AnimatedBuilder(
                   animation: _animationController,
@@ -372,19 +377,23 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       //     ),
                       //   ),
                       // ),
-                      
+
                       const SizedBox(height: 15),
-                      
+
                       // Tagline with animated typing effect
                       SizedBox(
                         height: 20,
                         child: AnimatedBuilder(
                           animation: _animationController,
                           builder: (context, _) {
-                            const String fullText = "Connecting Communities · Simplifying Life";
-                            final int textLength = (fullText.length * _animationController.value).round();
-                            final String visibleText = fullText.substring(0, textLength.clamp(0, fullText.length));
-                            
+                            const String fullText =
+                                "Connecting Communities · Simplifying Life";
+                            final int textLength =
+                                (fullText.length * _animationController.value)
+                                    .round();
+                            final String visibleText = fullText.substring(
+                                0, textLength.clamp(0, fullText.length));
+
                             return Text(
                               visibleText,
                               style: const TextStyle(
@@ -403,7 +412,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               ],
             ),
           ),
-          
+
           // Version number at bottom
           Positioned(
             bottom: 30,
