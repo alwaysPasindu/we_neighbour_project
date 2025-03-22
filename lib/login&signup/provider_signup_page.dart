@@ -8,7 +8,8 @@ class ServiceProviderSignUpPage extends StatefulWidget {
   const ServiceProviderSignUpPage({super.key});
 
   @override
-  State<ServiceProviderSignUpPage> createState() => _ServiceProviderSignUpPageState();
+  State<ServiceProviderSignUpPage> createState() =>
+      _ServiceProviderSignUpPageState();
 }
 
 class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
@@ -18,7 +19,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
   final _serviceTypeController = TextEditingController();
   final _contactController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false; // Added loading state
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -46,7 +47,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
 
   Future<void> _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true); // Show loading indicator
+      setState(() => _isLoading = true);
       final providerData = {
         'name': _companyNameController.text.trim(),
         'email': _emailController.text.trim(),
@@ -64,19 +65,21 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
 
         final responseData = json.decode(response.body);
         if (response.statusCode == 201) {
-          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData['message'] ?? 'Service provider registered successfully!')),
+            SnackBar(
+                content: Text(responseData['message'] ??
+                    'Service provider registered successfully!')),
           );
-          // Delay navigation to allow the user to see the success message
           await Future.delayed(const Duration(seconds: 3));
-          // Navigate to login page and clear the navigation stack
           if (mounted) {
-            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+            Navigator.pushNamedAndRemoveUntil(
+                context, '/login', (route) => false);
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData['message'] ?? 'Sign-up failed: ${response.body}')),
+            SnackBar(
+                content: Text(responseData['message'] ??
+                    'Sign-up failed: ${response.body}')),
           );
           print('Failed to sign up: ${response.body}');
         }
@@ -86,7 +89,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
         );
         print('Network error: $e');
       } finally {
-        if (mounted) setState(() => _isLoading = false); // Reset loading state
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
@@ -118,7 +121,8 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[600]),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
           errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
         ),
@@ -150,32 +154,46 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                   const SizedBox(height: 24),
                   const Text(
                     'Service Provider Sign Up',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
+                    style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
                   ),
                   const SizedBox(height: 32),
                   _buildTextField(
                     hint: 'Company Name/Your Name',
                     controller: _companyNameController,
                     keyboardType: TextInputType.name,
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Company name is required' : value.length < 2 ? 'Please enter a valid company name' : null,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
+                    ],
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Company name is required'
+                        : value.length < 2
+                            ? 'Please enter a valid company name'
+                            : null,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     hint: 'Email',
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Email is required' : !_isValidEmail(value) ? 'Please enter a valid email address' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Email is required'
+                        : !_isValidEmail(value)
+                            ? 'Please enter a valid email address'
+                            : null,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     hint: 'Service Type',
                     controller: _serviceTypeController,
                     keyboardType: TextInputType.text,
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Service type is required' : value.length < 3 ? 'Please enter a valid service type' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Service type is required'
+                        : value.length < 3
+                            ? 'Please enter a valid service type'
+                            : null,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
@@ -183,8 +201,11 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                     controller: _contactController,
                     keyboardType: TextInputType.phone,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Contact number is required' : !_isValidContact(value) ? 'Please enter a valid contact number' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Contact number is required'
+                        : !_isValidContact(value)
+                            ? 'Please enter a valid contact number'
+                            : null,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
@@ -192,32 +213,44 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                     controller: _passwordController,
                     obscureText: true,
                     keyboardType: TextInputType.visiblePassword,
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Password is required' : !_isStrongPassword(value) ? 'Password must be at least 6 characters with a letter and number' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Password is required'
+                        : !_isStrongPassword(value)
+                            ? 'Password must be at least 6 characters with a letter and number'
+                            : null,
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _handleSignUp, // Disable button when loading
+                    onPressed: _isLoading ? null : _handleSignUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A237E),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white) // Show spinner when loading
+                        ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                             'Sign Up',
-                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                           ),
                   ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Already have an account? ', style: TextStyle(color: Colors.black87)),
+                      const Text('Already have an account? ',
+                          style: TextStyle(color: Colors.black87)),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
-                        child: const Text('Sign in', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                        onTap: () => Navigator.pushNamedAndRemoveUntil(
+                            context, '/login', (route) => false),
+                        child: const Text('Sign in',
+                            style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
