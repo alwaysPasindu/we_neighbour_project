@@ -1,61 +1,69 @@
-const SafetySchema = require('../models/SafetyAlerts');
-const ManagerSchema = require('../models/Manager');
-const {connectDB} = require('../config/database');
+const SafetySchema = require('../models/SafetyAlerts'); // Ensure this file exists
+const { connectDB } = require('../config/database');
 
-//Create Safety alerts
-exports.createSafetyAlert = async(req,res) => {
-    try{
-        const{title, description} = req.body;
+// Get All Safety Alerts
+exports.getSafetyAlerts = async (req, res) => {
+  try {
+    const apartmentComplexName = req.user.apartmentComplexName;
 
-        const apartmentComplexName = req.user.apartmentComplexName;
+    const db = await connectDB(apartmentComplexName);
+    const SafetyAlert = db.model('SafetyAlert', SafetySchema);
 
-        const db = await connectDB(apartmentComplexName);
-        const SafetyAlerts = db.model('SafetyAlerts',SafetySchema);
+    const alerts = await SafetyAlert.find()
+      .sort({ createdAt: -1 })
+      .populate('createdBy', 'name');
 
-        const safetyAlerts = new SafetyAlerts({
-            title,
-            description,
-            createdBy: req.user.id,
-        });
-
-        await safetyAlerts.save();
-        res.status(201).json({message:"Safety  Alert Created successfully!"});
-    }catch(error){
-        console.error(error);
-        res.status(500).json({message:"Server Error"});
-    }
+    res.json(alerts);
+  } catch (error) {
+    console.error('Error fetching safety alerts:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };
 
-//display safety alerts
-exports.getSafetyAlerts = async(req,res) => {
-    try{
-        const apartmentComplexName = req.user.apartmentComplexName;
+// Create Safety Alert
+exports.createSafetyAlert = async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const apartmentComplexName = req.user.apartmentComplexName;
 
-        const db = await connectDB(apartmentComplexName);
-        const SafetyAlerts = db.model('SafetyAlerts',SafetySchema);
-
-        const safetyAlerts = await SafetyAlerts.find().sort({createdAt:-1}).populate('createdBy','name');
-        res.json(safetyAlerts);
-    }catch(error){
-        console.error(error);
-        res.status(500).json({message:"Server Error"});
+    if (!title || !description) {
+      return res.status(400).json({ message: 'Title and description are required' });
     }
+
+    const db = await connectDB(apartmentComplexName);
+    const SafetyAlert = db.model('SafetyAlert', SafetySchema);
+
+    const alert = new SafetyAlert({
+      title,
+      description,
+      createdBy: req.user.id,
+    });
+    await alert.save();
+    res.status(201).json({ message: 'Safety Alert created successfully!' });
+  } catch (error) {
+    console.error('Error creating safety alert:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };
 
-//delete safety alert
-exports.deleteSafetyAlert = async(req,res) => {
-    try{
-        const{id} = req.params;
-        const apartmentComplexName = req.user.apartmentComplexName;
+// Delete Safety Alert
+exports.deleteSafetyAlert = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const apartmentComplexName = req.user.apartmentComplexName;
 
-        const db =await connectDB(apartmentComplexName);
-        const SafetyAlerts = db.model('SafetyAlerts', SafetySchema);
+    const db = await connectDB(apartmentComplexName);
+    const SafetyAlert = db.model('SafetyAlert', SafetySchema);
 
-        await SafetyAlerts.findByIdAndDelete(id);
-        res.json({message: "Safety Alert deleted succuessfully!"});
-    }catch(error){
-        console.error(error);
-        res.status(500).json({message:"Server Error"});
-        
+    const alert = await SafetyAlert.findById(id);
+    if (!alert) {
+      return res.status(404).json({ message: 'Alert not found' });
     }
+
+    await SafetyAlert.findByIdAndDelete(id);
+    res.json({ message: 'Safety Alert deleted successfully!' });
+  } catch (error) {
+    console.error('Error deleting safety alert:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };
