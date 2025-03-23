@@ -1,7 +1,10 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class AuthUtils {
+  static final Logger logger = Logger(); // Added logger instance as static field
+
   static Future<UserType> getUserType() async {
     final prefs = await SharedPreferences.getInstance();
     final userRole = prefs.getString('userRole')?.toLowerCase() ?? 'resident';
@@ -72,7 +75,7 @@ class AuthUtils {
     await prefs.setString('userPhone', phone);
     if (apartmentComplexName != null) {
       await prefs.setString('userApartment', apartmentComplexName);
-      print('Saved userApartment: $apartmentComplexName');
+      logger.d('Saved userApartment: $apartmentComplexName'); // Replaced print
     }
     if (address != null) await prefs.setString('userAddress', address);
     if (serviceType != null) await prefs.setString('serviceType', serviceType);
@@ -115,7 +118,7 @@ class AuthUtils {
     if (role == 'resident' || role == 'manager') {
       final apartmentName = userData['user']['apartmentComplexName'] ?? '';
       await prefs.setString('userApartment', apartmentName);
-      print('Saved userApartment in updateUserDataOnLogin: $apartmentName');
+      logger.d('Saved userApartment in updateUserDataOnLogin: $apartmentName'); // Replaced print
     }
     if (role == 'serviceprovider') {
       await prefs.setString('userAddress', userData['user']['address'] ?? '');
