@@ -333,7 +333,6 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   //   );
   // }
 
-
   Widget _buildContactInfo(bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
