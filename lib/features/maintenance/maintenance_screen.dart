@@ -4,6 +4,7 @@ import 'package:we_neighbour/main.dart';
 import 'dart:convert';
 import 'create_maintenance_request_screen.dart';
 import 'package:we_neighbour/utils/auth_utils.dart'; // Import AuthUtils
+import 'package:logger/logger.dart'; // Added logger import
 
 class MaintenanceCard {
   final String id;
@@ -57,6 +58,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
   List<MaintenanceCard> _requests = [];
   bool _isLoading = true;
   String? _userId; // Store user ID
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -67,7 +69,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
 
   Future<void> _loadUserId() async {
     _userId = await AuthUtils.getUserId(); // Use AuthUtils to get user ID
-    print('Loaded User ID: $_userId');
+    logger.d('Loaded User ID: $_userId'); // Replaced print
     if (mounted) setState(() {}); // Force rebuild after loading user ID
   }
 
@@ -77,9 +79,9 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
           ? '$baseUrl/api/maintenance/get-pending-request'
           : '$baseUrl/api/maintenance/get-completed-request';
       
-      print('Fetching requests for ${widget.isManager ? "Manager" : "Resident"} with URL: $url');
-      print('Fetching requests with token: ${widget.authToken}');
-      print('Authorization header: x-auth-token: ${widget.authToken}');
+      logger.d('Fetching requests for ${widget.isManager ? "Manager" : "Resident"} with URL: $url'); // Replaced print
+      logger.d('Fetching requests with token: ${widget.authToken}'); // Replaced print
+      logger.d('Authorization header: x-auth-token: ${widget.authToken}'); // Replaced print
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -87,8 +89,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         },
       );
 
-      print('Fetch requests status code: ${response.statusCode}');
-      print('Fetch requests response body: ${response.body}');
+      logger.d('Fetch requests status code: ${response.statusCode}'); // Replaced print
+      logger.d('Fetch requests response body: ${response.body}'); // Replaced print
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -105,7 +107,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load requests: ${e.toString()}')),
         );
-        print('Fetch requests error: $e');
+        logger.d('Fetch requests error: $e'); // Replaced print
       }
     }
   }
@@ -121,8 +123,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         },
       );
 
-      print('Mark as done status code: ${response.statusCode}');
-      print('Mark as done response body: ${response.body}');
+      logger.d('Mark as done status code: ${response.statusCode}'); // Replaced print
+      logger.d('Mark as done response body: ${response.body}'); // Replaced print
 
       if (response.statusCode == 200) {
         _fetchRequests();
@@ -152,8 +154,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         body: jsonEncode({'stars': rating}),
       );
 
-      print('Rate request status code: ${response.statusCode}');
-      print('Rate request response body: ${response.body}');
+      logger.d('Rate request status code: ${response.statusCode}'); // Replaced print
+      logger.d('Rate request response body: ${response.body}'); // Replaced print
 
       if (response.statusCode == 200) {
         _fetchRequests(); // Refresh requests to update ratings
