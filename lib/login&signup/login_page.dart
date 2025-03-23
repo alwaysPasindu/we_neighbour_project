@@ -335,7 +335,7 @@ class _LoginPageState extends State<LoginPage>
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           ShaderMask(
-                            shaderCallback: (bounds) => LinearGradient(
+                            shaderCallback: (bounds) => const LinearGradient(
                               colors: [primaryColor, secondaryColor],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -577,6 +577,7 @@ class _LoginPageState extends State<LoginPage>
                                     ),
                                   ),
                                   style: TextButton.styleFrom(
+
                                       padding: EdgeInsets.zero,
                                       minimumSize: const Size(0, 0),
                                       tapTargetSize:
@@ -586,6 +587,7 @@ class _LoginPageState extends State<LoginPage>
                                           color: primaryColor,
                                           fontWeight: FontWeight.w600,
                                           fontSize: 14)),
+
                                 ),
                               ],
                             ),
@@ -672,6 +674,7 @@ class _LoginPageState extends State<LoginPage>
                                   onPressed: () => Navigator.pushNamed(
                                       context, '/account-type'),
                                   style: TextButton.styleFrom(
+
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8),
                                       minimumSize: const Size(0, 0),
@@ -682,6 +685,7 @@ class _LoginPageState extends State<LoginPage>
                                           color: primaryColor,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 15)),
+
                                 ),
                               ],
                             ),
