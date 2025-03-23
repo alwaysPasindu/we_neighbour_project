@@ -6,6 +6,7 @@ import '../../constants/text_styles.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class SafetyAlert {
   final String id;
@@ -44,6 +45,7 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
   List<SafetyAlert> alerts = [];
   bool _isLoading = true;
   String? userRole;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -56,14 +58,14 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userRole = prefs.getString('userRole')?.toLowerCase();
-      print('Loaded User Role: $userRole');
+      logger.d('Loaded User Role: $userRole'); // Replaced print
     });
   }
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    print('Retrieved token: $token');
+    logger.d('Retrieved token: $token'); // Replaced print
     return token;
   }
 
@@ -71,19 +73,19 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
     final token = await _getToken();
     if (token == null) {
       setState(() => _isLoading = false);
-      print('No token available');
+      logger.d('No token available'); // Replaced print
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      print('Fetching alerts from: $baseUrl/api/safety-alerts/get-alerts');
+      logger.d('Fetching alerts from: $baseUrl/api/safety-alerts/get-alerts'); // Replaced print
       final response = await http.get(
         Uri.parse('$baseUrl/api/safety-alerts/get-alerts'),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 30));
 
-      print('Fetch response: ${response.statusCode} - ${response.body}');
+      logger.d('Fetch response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
@@ -94,7 +96,7 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
         throw Exception('Failed to fetch alerts: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Fetch error: $e');
+      logger.d('Fetch error: $e'); // Replaced print
       setState(() => _isLoading = false);
       if (mounted) {
         String errorMessage = 'Failed to load alerts: $e';
@@ -111,14 +113,14 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
   Future<void> _createAlert(String title, String description) async {
     final token = await _getToken();
     if (token == null) {
-      print('No token available for create');
+      logger.d('No token available for create'); // Replaced print
       return;
     }
 
     try {
       final requestBody = jsonEncode({'title': title, 'description': description});
-      print('Create request: $baseUrl/api/safety-alerts/create-alerts');
-      print('Create request body: $requestBody');
+      logger.d('Create request: $baseUrl/api/safety-alerts/create-alerts'); // Replaced print
+      logger.d('Create request body: $requestBody'); // Replaced print
       final response = await http.post(
         Uri.parse('$baseUrl/api/safety-alerts/create-alerts'),
         headers: {
@@ -128,7 +130,7 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
         body: requestBody,
       ).timeout(const Duration(seconds: 15));
 
-      print('Create response: ${response.statusCode} - ${response.body}');
+      logger.d('Create response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 201) {
         _fetchAlerts();
         if (mounted) {
@@ -144,7 +146,7 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
         throw Exception('Failed to create: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Create error: $e');
+      logger.d('Create error: $e'); // Replaced print
       if (mounted) {
         String errorMessage = 'Error creating alert: $e';
         if (e.toString().contains('Connection refused')) {
@@ -162,13 +164,13 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
     if (token == null) return;
 
     try {
-      print('Delete request: $baseUrl/api/safety-alerts/delete-alerts/$id');
+      logger.d('Delete request: $baseUrl/api/safety-alerts/delete-alerts/$id'); // Replaced print
       final response = await http.delete(
         Uri.parse('$baseUrl/api/safety-alerts/delete-alerts/$id'),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 15));
 
-      print('Delete response: ${response.statusCode} - ${response.body}');
+      logger.d('Delete response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 200) {
         _fetchAlerts();
         if (mounted) {
@@ -180,7 +182,7 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
         throw Exception('Failed to delete: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Delete error: $e');
+      logger.d('Delete error: $e'); // Replaced print
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error deleting alert: $e')),
