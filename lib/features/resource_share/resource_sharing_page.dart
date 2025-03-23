@@ -128,7 +128,6 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         setState(() {
           resources.insert(0, newResource);
         });
-        if (!mounted) return;
         ScaffoldMessenger.of(dialogContext).showSnackBar(
           const SnackBar(content: Text('Resource request created successfully')),
         );
@@ -137,7 +136,6 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         throw Exception('Failed to create resource: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      if (!mounted) return;
       ScaffoldMessenger.of(dialogContext).showSnackBar(
         SnackBar(content: Text('Error creating resource: $e')),
       );
@@ -162,7 +160,6 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         setState(() {
           resources.removeWhere((resource) => resource.id == id);
         });
-        if (!mounted) return;
         ScaffoldMessenger.of(dialogContext).showSnackBar(
           const SnackBar(content: Text('Resource request deleted successfully')),
         );
@@ -171,7 +168,6 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         throw Exception('Failed to delete resource: ${response.statusCode}');
       }
     } catch (e) {
-      if (!mounted) return;
       ScaffoldMessenger.of(dialogContext).showSnackBar(
         SnackBar(content: Text('Error deleting resource: $e')),
       );
@@ -298,7 +294,6 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                   imageUrls,
                   dialogContext,
                 );
-                if (!mounted) return;
                 Navigator.pop(dialogContext);
               },
               style: ElevatedButton.styleFrom(
@@ -338,7 +333,6 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           ElevatedButton(
             onPressed: () async {
               await _deleteResource(id, dialogContext);
-              if (!mounted) return;
               Navigator.pop(dialogContext);
             },
             style: ElevatedButton.styleFrom(
