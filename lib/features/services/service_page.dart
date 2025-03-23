@@ -16,6 +16,7 @@ import 'package:we_neighbour/models/service.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
+import 'package:logger/logger.dart'; // Added logger import
 
 class ServicesPage extends StatefulWidget {
   final UserType userType;
@@ -39,6 +40,7 @@ class _ServicesPageState extends State<ServicesPage> {
   double? _userLatitude;
   double? _userLongitude;
   String _locationAddress = 'Unknown Location';
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -77,7 +79,7 @@ class _ServicesPageState extends State<ServicesPage> {
         });
       }
     } catch (e) {
-      print('Error fetching location address: $e');
+      logger.d('Error fetching location address: $e'); // Replaced print
       if (mounted) {
         setState(() {
           _locationAddress = 'Unknown Location';
@@ -95,16 +97,16 @@ class _ServicesPageState extends State<ServicesPage> {
           _token = prefs.getString('token');
         });
       }
-      print('Token loaded: $_token');
+      logger.d('Token loaded: $_token'); // Replaced print
       if (_token == null || _token!.isEmpty) {
-        print('No token found in SharedPreferences');
+        logger.d('No token found in SharedPreferences'); // Replaced print
         if (mounted && ModalRoute.of(context)?.settings.name != '/login') {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in again')));
           Navigator.pushReplacementNamed(context, '/login');
         }
       }
     } catch (e) {
-      print('Error loading user data: $e');
+      logger.d('Error loading user data: $e'); // Replaced print
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
       }
@@ -112,65 +114,65 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   Future<void> _loadServices() async {
-  if (_token == null) return;
+    if (_token == null) return;
 
-  setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
-  try {
-    final queryParams = {
-      'latitude': (_userLatitude ?? 6.9271).toString(),
-      'longitude': (_userLongitude ?? 79.8612).toString(),
-    };
-    final uri = Uri.parse('$baseUrl/api/service').replace(queryParameters: queryParams); // Updated endpoint
-    final response = await http.get(
-      uri,
-      headers: {
-        'x-auth-token': _token!,
-        'Content-Type': 'application/json',
-      },
-    ).timeout(const Duration(seconds: 30));
+    try {
+      final queryParams = {
+        'latitude': (_userLatitude ?? 6.9271).toString(),
+        'longitude': (_userLongitude ?? 79.8612).toString(),
+      };
+      final uri = Uri.parse('$baseUrl/api/service').replace(queryParameters: queryParams); // Updated endpoint
+      final response = await http.get(
+        uri,
+        headers: {
+          'x-auth-token': _token!,
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 30));
 
-    print('Load services response: ${response.statusCode} - ${response.body}');
+      logger.d('Load services response: ${response.statusCode} - ${response.body}'); // Replaced print
 
-    if (response.statusCode == 200) {
-      final List<dynamic> servicesJson = jsonDecode(response.body);
-      final services = servicesJson.map((json) => Service.fromJson(json as Map<String, dynamic>)).toList();
-      setState(() {
-        _allServices = services;
-        _filteredServices = List.from(_allServices);
-      });
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
-    } else if (response.statusCode == 401) {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+      if (response.statusCode == 200) {
+        final List<dynamic> servicesJson = jsonDecode(response.body);
+        final services = servicesJson.map((json) => Service.fromJson(json as Map<String, dynamic>)).toList();
+        setState(() {
+          _allServices = services;
+          _filteredServices = List.from(_allServices);
+        });
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
+      } else if (response.statusCode == 401) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/login');
+        }
+        throw Exception('Unauthorized: Invalid or expired token');
+      } else {
+        throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
       }
-      throw Exception('Unauthorized: Invalid or expired token');
-    } else {
-      throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
+    } catch (e) {
+      logger.d('Error loading services: $e'); // Replaced print
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e')));
+      }
+      final prefs = await SharedPreferences.getInstance();
+      final String? servicesJson = prefs.getString('services');
+      if (servicesJson != null) {
+        final List<dynamic> decodedServices = jsonDecode(servicesJson);
+        setState(() {
+          _allServices = decodedServices.map((json) => Service.fromJson(json)).toList();
+          _filteredServices = List.from(_allServices);
+        });
+      }
+    } finally {
+      setState(() => _isLoading = false);
     }
-  } catch (e) {
-    print('Error loading services: $e');
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e')));
-    }
-    final prefs = await SharedPreferences.getInstance();
-    final String? servicesJson = prefs.getString('services');
-    if (servicesJson != null) {
-      final List<dynamic> decodedServices = jsonDecode(servicesJson);
-      setState(() {
-        _allServices = decodedServices.map((json) => Service.fromJson(json)).toList();
-        _filteredServices = List.from(_allServices);
-      });
-    }
-  } finally {
-    setState(() => _isLoading = false);
   }
-}
 
   Future<void> _deleteService(Service service) async {
     if (_token == null) {
-      print('No authentication token found');
+      logger.d('No authentication token found'); // Replaced print
       return;
     }
 
@@ -183,7 +185,7 @@ class _ServicesPageState extends State<ServicesPage> {
         },
       );
 
-      print('Delete service response: ${response.statusCode} - ${response.body}');
+      logger.d('Delete service response: ${response.statusCode} - ${response.body}'); // Replaced print
 
       if (response.statusCode == 200) {
         if (mounted) {
@@ -204,7 +206,7 @@ class _ServicesPageState extends State<ServicesPage> {
         throw Exception('Failed to delete service: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error deleting service: $e');
+      logger.d('Error deleting service: $e'); // Replaced print
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting service: $e')));
       }
@@ -335,392 +337,390 @@ class _ServicesPageState extends State<ServicesPage> {
     );
   }
 
+  void _addNewService() {
+    final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).themeMode == ThemeMode.dark;
 
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String title = '';
+        String description = '';
+        double latitude = _userLatitude ?? 6.9271; // Default to Colombo coordinates
+        double longitude = _userLongitude ?? 79.8612;
+        String availableHours = '';
+        List<XFile> imageFiles = [];
+        bool isLoading = false;
 
-void _addNewService() {
-  final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).themeMode == ThemeMode.dark;
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      String title = '';
-      String description = '';
-      double latitude = _userLatitude ?? 6.9271; // Default to Colombo coordinates
-      double longitude = _userLongitude ?? 79.8612;
-      String availableHours = '';
-      List<XFile> imageFiles = [];
-      bool isLoading = false;
-
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return Dialog(
-            backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
-            child: Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
-                maxWidth: MediaQuery.of(context).size.width * 0.9,
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Add New Service',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    TextField(
-                      style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-                      decoration: InputDecoration(
-                        labelText: 'Title',
-                        labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
-                        filled: true,
-                        fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.8,
+                  maxWidth: MediaQuery.of(context).size.width * 0.9,
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Add New Service',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
-                      onChanged: (value) => title = value,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-                      decoration: InputDecoration(
-                        labelText: 'Description',
-                        labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
-                        filled: true,
-                        fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      maxLines: 3,
-                      onChanged: (value) => description = value,
-                    ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () async {
-                        final gmaps.LatLng? selectedLocation = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LocationPicker(
-                              initialLatitude: latitude,
-                              initialLongitude: longitude,
-                            ),
+                      const SizedBox(height: 24),
+                      TextField(
+                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                        decoration: InputDecoration(
+                          labelText: 'Title',
+                          labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                          filled: true,
+                          fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
                           ),
-                        );
-                        if (selectedLocation != null && mounted) {
-                          setDialogState(() {
-                            latitude = selectedLocation.latitude;
-                            longitude = selectedLocation.longitude;
-                          });
-                          await _fetchLocationAddress(latitude, longitude);
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Lat: ${latitude.toStringAsFixed(4)}, Lng: ${longitude.toStringAsFixed(4)}',
-                              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                        onChanged: (value) => title = value,
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                        decoration: InputDecoration(
+                          labelText: 'Description',
+                          labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                          filled: true,
+                          fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        maxLines: 3,
+                        onChanged: (value) => description = value,
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () async {
+                          final gmaps.LatLng? selectedLocation = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LocationPicker(
+                                initialLatitude: latitude,
+                                initialLongitude: longitude,
+                              ),
                             ),
-                            Icon(
-                              Icons.map,
-                              color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ],
+                          );
+                          if (selectedLocation != null && mounted) {
+                            setDialogState(() {
+                              latitude = selectedLocation.latitude;
+                              longitude = selectedLocation.longitude;
+                            });
+                            await _fetchLocationAddress(latitude, longitude);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Lat: ${latitude.toStringAsFixed(4)}, Lng: ${longitude.toStringAsFixed(4)}',
+                                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                              ),
+                              Icon(
+                                Icons.map,
+                                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Location Address: $_locationAddress',
-                      style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-                    ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () async {
-                        final TimeOfDay? pickedStart = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
-                          builder: (context, child) => Theme(
-                            data: isDarkMode ? ThemeData.dark() : ThemeData.light(),
-                            child: child!,
-                          ),
-                        );
-                        if (pickedStart != null) {
-                          final TimeOfDay? pickedEnd = await showTimePicker(
+                      const SizedBox(height: 16),
+                      Text(
+                        'Location Address: $_locationAddress',
+                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () async {
+                          final TimeOfDay? pickedStart = await showTimePicker(
                             context: context,
-                            initialTime: pickedStart,
+                            initialTime: TimeOfDay.now(),
                             builder: (context, child) => Theme(
                               data: isDarkMode ? ThemeData.dark() : ThemeData.light(),
                               child: child!,
                             ),
                           );
-                          if (pickedEnd != null && mounted) {
-                            setDialogState(() {
-                              availableHours = '${pickedStart.format(context)} - ${pickedEnd.format(context)}';
-                            });
+                          if (pickedStart != null) {
+                            final TimeOfDay? pickedEnd = await showTimePicker(
+                              context: context,
+                              initialTime: pickedStart,
+                              builder: (context, child) => Theme(
+                                data: isDarkMode ? ThemeData.dark() : ThemeData.light(),
+                                child: child!,
+                              ),
+                            );
+                            if (pickedEnd != null && mounted) {
+                              setDialogState(() {
+                                availableHours = '${pickedStart.format(context)} - ${pickedEnd.format(context)}';
+                              });
+                            }
                           }
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                availableHours.isEmpty ? 'Select Available Hours' : availableHours,
+                                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                              ),
+                              Icon(
+                                Icons.access_time,
+                                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Service Images',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 120,
                         decoration: BoxDecoration(
                           color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Stack(
                           children: [
-                            Text(
-                              availableHours.isEmpty ? 'Select Available Hours' : availableHours,
-                              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-                            ),
-                            Icon(
-                              Icons.access_time,
-                              color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Service Images',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Stack(
-                        children: [
-                          if (imageFiles.isEmpty)
-                            Center(
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.add_photo_alternate,
-                                  size: 40,
-                                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                            if (imageFiles.isEmpty)
+                              Center(
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.add_photo_alternate,
+                                    size: 40,
+                                    color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                                  ),
+                                  onPressed: () async {
+                                    final picker = ImagePicker();
+                                    final pickedFiles = await picker.pickMultiImage();
+                                    if (mounted) {
+                                      setDialogState(() {
+                                        imageFiles.addAll(pickedFiles);
+                                      });
+                                    }
+                                  },
                                 ),
-                                onPressed: () async {
-                                  final picker = ImagePicker();
-                                  final pickedFiles = await picker.pickMultiImage();
-                                  if (mounted) {
-                                    setDialogState(() {
-                                      imageFiles.addAll(pickedFiles);
-                                    });
-                                  }
-                                },
-                              ),
-                            )
-                          else
-                            ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: imageFiles.length + 1,
-                              itemBuilder: (context, index) {
-                                if (index == imageFiles.length) {
-                                  return Center(
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.add_photo_alternate,
-                                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                                      ),
-                                      onPressed: () async {
-                                        final picker = ImagePicker();
-                                        final pickedFiles = await picker.pickMultiImage();
-                                        if (mounted) {
-                                          setDialogState(() {
-                                            imageFiles.addAll(pickedFiles);
-                                          });
-                                        }
-                                      },
-                                    ),
-                                  );
-                                }
-                                return Stack(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(4),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.file(
-                                          File(imageFiles[index].path),
-                                          height: 112,
-                                          width: 112,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: 0,
-                                      right: 0,
+                              )
+                            else
+                              ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: imageFiles.length + 1,
+                                itemBuilder: (context, index) {
+                                  if (index == imageFiles.length) {
+                                    return Center(
                                       child: IconButton(
-                                        icon: const Icon(Icons.remove_circle, color: Colors.red),
-                                        onPressed: () {
+                                        icon: Icon(
+                                          Icons.add_photo_alternate,
+                                          color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                                        ),
+                                        onPressed: () async {
+                                          final picker = ImagePicker();
+                                          final pickedFiles = await picker.pickMultiImage();
                                           if (mounted) {
                                             setDialogState(() {
-                                              imageFiles.removeAt(index);
+                                              imageFiles.addAll(pickedFiles);
                                             });
                                           }
                                         },
                                       ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
-                          ),
-                          onPressed: () => Navigator.pop(context),
+                                    );
+                                  }
+                                  return Stack(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(4),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: Image.file(
+                                            File(imageFiles[index].path),
+                                            height: 112,
+                                            width: 112,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 0,
+                                        right: 0,
+                                        child: IconButton(
+                                          icon: const Icon(Icons.remove_circle, color: Colors.red),
+                                          onPressed: () {
+                                            if (mounted) {
+                                              setDialogState(() {
+                                                imageFiles.removeAt(index);
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+                            ),
+                            onPressed: () => Navigator.pop(context),
                           ),
-                          onPressed: () async {
-                            if (_token == null) {
-                              if (mounted && ModalRoute.of(context)?.settings.name != '/login') {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
-                                Navigator.pushReplacementNamed(context, '/login');
-                              }
-                              return;
-                            }
-
-                            if (title.isEmpty || description.isEmpty || imageFiles.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
-                              return;
-                            }
-
-                            setDialogState(() => isLoading = true);
-
-                            try {
-                              List<String> imagePaths = [];
-                              for (var file in imageFiles) {
-                                final String savedPath = await _saveImageToAppDirectory(file);
-                                imagePaths.add(savedPath);
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            onPressed: () async {
+                              if (_token == null) {
+                                if (mounted && ModalRoute.of(context)?.settings.name != '/login') {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
+                                  Navigator.pushReplacementNamed(context, '/login');
+                                }
+                                return;
                               }
 
-                              final companyName = await _getCompanyName();
+                              if (title.isEmpty || description.isEmpty || imageFiles.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
+                                return;
+                              }
 
-                              final requestBody = {
-                                'title': title,
-                                'description': description,
-                                'images': imagePaths,
-                                'location': {
-                                  'type': 'Point',
-                                  'coordinates': [longitude, latitude],
-                                  'address': _locationAddress,
-                                },
-                                'serviceProviderName': companyName,
-                                'availableHours': availableHours,
-                              };
+                              setDialogState(() => isLoading = true);
 
-                              print('Adding service with body: $requestBody');
-                              print('Using token: $_token');
+                              try {
+                                List<String> imagePaths = [];
+                                for (var file in imageFiles) {
+                                  final String savedPath = await _saveImageToAppDirectory(file);
+                                  imagePaths.add(savedPath);
+                                }
 
-                              final response = await http.post(
-                                Uri.parse('$baseUrl/api/service'),
-                                headers: {
-                                  'Authorization': 'Bearer $_token',
-                                  'Content-Type': 'application/json',
-                                },
-                                body: jsonEncode(requestBody),
-                              ).timeout(const Duration(seconds: 15));
+                                final companyName = await _getCompanyName();
 
-                              print('Add service response: ${response.statusCode} - ${response.body}');
+                                final requestBody = {
+                                  'title': title,
+                                  'description': description,
+                                  'images': imagePaths,
+                                  'location': {
+                                    'type': 'Point',
+                                    'coordinates': [longitude, latitude],
+                                    'address': _locationAddress,
+                                  },
+                                  'serviceProviderName': companyName,
+                                  'availableHours': availableHours,
+                                };
 
-                              if (response.statusCode == 201) {
-                                await _loadServices();
-                                final prefs = await SharedPreferences.getInstance();
-                                await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-                                if (mounted) {
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service added successfully')));
-                                  if (ModalRoute.of(context)?.settings.name == '/provider-home') {
-                                    await _loadServices();
+                                logger.d('Adding service with body: $requestBody'); // Replaced print
+                                logger.d('Using token: $_token'); // Replaced print
+
+                                final response = await http.post(
+                                  Uri.parse('$baseUrl/api/service'),
+                                  headers: {
+                                    'Authorization': 'Bearer $_token',
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: jsonEncode(requestBody),
+                                ).timeout(const Duration(seconds: 15));
+
+                                logger.d('Add service response: ${response.statusCode} - ${response.body}'); // Replaced print
+
+                                if (response.statusCode == 201) {
+                                  await _loadServices();
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
+                                  if (mounted) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service added successfully')));
+                                    if (ModalRoute.of(context)?.settings.name == '/provider-home') {
+                                      await _loadServices();
+                                    }
+                                  }
+                                } else {
+                                  try {
+                                    final errorData = jsonDecode(response.body);
+                                    throw Exception(errorData['message'] ?? 'Failed to add service: ${response.statusCode}');
+                                  } catch (e) {
+                                    throw Exception('Failed to add service: ${response.statusCode} - ${response.body}');
                                   }
                                 }
-                              } else {
-                                try {
-                                  final errorData = jsonDecode(response.body);
-                                  throw Exception(errorData['message'] ?? 'Failed to add service: ${response.statusCode}');
-                                } catch (e) {
-                                  throw Exception('Failed to add service: ${response.statusCode} - ${response.body}');
+                              } catch (e) {
+                                logger.d('Error adding service: $e'); // Replaced print
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setDialogState(() => isLoading = false);
                                 }
                               }
-                            } catch (e) {
-                              print('Error adding service: $e');
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                                );
-                              }
-                            } finally {
-                              if (mounted) {
-                                setDialogState(() => isLoading = false);
-                              }
-                            }
-                          },
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Add Service'),
-                        ),
-                      ],
-                    ),
-                  ],
+                            },
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Add Service'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
-      );
-    },
-  );
-}
+            );
+          },
+        );
+      },
+    );
+  }
 
   Future<String> _saveImageToAppDirectory(XFile imageFile) async {
     final directory = await getApplicationDocumentsDirectory();

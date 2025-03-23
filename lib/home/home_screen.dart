@@ -12,6 +12,7 @@ import '../constants/colors.dart';
 import '../main.dart';
 import '../models/service.dart';
 import '../utils/auth_utils.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class HomeScreen extends StatefulWidget {
   final UserType userType;
@@ -33,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   bool _isLoading = true;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -107,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         throw Exception('Unauthorized: Invalid or expired token');
       }
     } catch (e) {
-      print('Error loading services: $e');
+      logger.d('Error loading services: $e'); // Replaced print
       if (mounted) {
         _showErrorSnackBar('Unable to load services. Please check your connection.');
       }

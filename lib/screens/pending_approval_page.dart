@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class PendingApprovalPage extends StatefulWidget {
   const PendingApprovalPage({super.key});
@@ -22,6 +23,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
   Timer? _statusCheckTimer;
   static const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
   bool _isLoadingToken = true;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -74,7 +76,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
     final token = await _getToken();
     setState(() => _isLoadingToken = false);
     if (token == null) {
-      print('No token found on init, prompting re-login');
+      logger.d('No token found on init, prompting re-login'); // Replaced print
       _showReloginDialog();
     } else {
       _startStatusCheck();
@@ -84,16 +86,16 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
   Future<void> _checkApprovalStatus() async {
     final token = await _getToken();
     if (token == null) {
-      print('No token found, cannot check status');
+      logger.d('No token found, cannot check status'); // Replaced print
       _showReloginDialog();
       return;
     }
-    print('Token being sent: $token');
+    logger.d('Token being sent: $token'); // Replaced print
 
     final prefs = await SharedPreferences.getInstance();
     final role = prefs.getString('userRole');
     if (role != 'Resident') {
-      print('Invalid role for this page: $role');
+      logger.d('Invalid role for this page: $role'); // Replaced print
       await _signOut();
       return;
     }
@@ -107,33 +109,33 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
         },
       ).timeout(const Duration(seconds: 10));
 
-      print('Status check response: ${response.statusCode} - ${response.body}');
+      logger.d('Status check response: ${response.statusCode} - ${response.body}'); // Replaced print
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final status = data['status']?.toString().toLowerCase();
         if (status == 'approved' && mounted) {
-          print('Resident approved, navigating to /home');
+          logger.d('Resident approved, navigating to /home'); // Replaced print
           _statusCheckTimer?.cancel();
           Navigator.pushReplacementNamed(context, '/home');
         } else if (status == 'rejected' && mounted) {
-          print('Resident rejected');
+          logger.d('Resident rejected'); // Replaced print
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Your request was rejected. Please contact the manager.')),
           );
         } else if (status == 'pending') {
-          print('Resident still pending');
+          logger.d('Resident still pending'); // Replaced print
         } else {
-          print('Unknown status: $status');
+          logger.d('Unknown status: $status'); // Replaced print
         }
       } else if (response.statusCode == 401) {
-        print('Token expired or invalid, signing out');
+        logger.d('Token expired or invalid, signing out'); // Replaced print
         await _signOut();
       } else {
-        print('Status check failed: ${response.statusCode} - ${response.body}');
+        logger.d('Status check failed: ${response.statusCode} - ${response.body}'); // Replaced print
       }
     } catch (e) {
-      print('Error checking approval status: $e');
+      logger.d('Error checking approval status: $e'); // Replaced print
     }
   }
 
@@ -150,12 +152,12 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
       await prefs.remove('userRole');
       await prefs.remove('userId');
       if (mounted) {
-        print('Signing out, navigating to login');
+        logger.d('Signing out, navigating to login'); // Replaced print
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } catch (e) {
       if (mounted) {
-        print('Error signing out: $e');
+        logger.d('Error signing out: $e'); // Replaced print
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error signing out: $e')),
         );

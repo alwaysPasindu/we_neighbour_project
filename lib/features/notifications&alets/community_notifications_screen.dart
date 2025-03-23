@@ -6,6 +6,7 @@ import '../../constants/text_styles.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class CommunityNotification {
   final String id;
@@ -47,6 +48,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
   List<CommunityNotification> notifications = [];
   String? userRole;
   String? currentUserId;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -60,32 +62,32 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
     setState(() {
       userRole = prefs.getString('userRole')?.toLowerCase();
       currentUserId = prefs.getString('userId');
-      print('Loaded User Role: $userRole, User ID: $currentUserId');
+      logger.d('Loaded User Role: $userRole, User ID: $currentUserId'); // Replaced print
     });
   }
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    print('Retrieved token: $token');
+    logger.d('Retrieved token: $token'); // Replaced print
     return token;
   }
 
   Future<void> _fetchNotifications() async {
     final token = await _getToken();
     if (token == null) {
-      print('No token available');
+      logger.d('No token available'); // Replaced print
       return;
     }
 
     try {
-      print('Fetching notifications from: $baseUrl/api/notifications/community');
+      logger.d('Fetching notifications from: $baseUrl/api/notifications/community'); // Replaced print
       final response = await http.get(
         Uri.parse('$baseUrl/api/notifications/community'),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 15));
 
-      print('Fetch response: ${response.statusCode} - ${response.body}');
+      logger.d('Fetch response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
@@ -95,7 +97,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         throw Exception('Failed to fetch notifications: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Fetch error: $e');
+      logger.d('Fetch error: $e'); // Replaced print
       if (mounted) {
         String errorMessage = 'Failed to load notifications: $e';
         if (e.toString().contains('Connection refused')) {
@@ -111,14 +113,14 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
   Future<void> _createNotification(String title, String message) async {
     final token = await _getToken();
     if (token == null) {
-      print('No token available for create');
+      logger.d('No token available for create'); // Replaced print
       return;
     }
 
     try {
       final requestBody = jsonEncode({'title': title, 'message': message});
-      print('Create request: $baseUrl/api/notifications/community');
-      print('Create request body: $requestBody');
+      logger.d('Create request: $baseUrl/api/notifications/community'); // Replaced print
+      logger.d('Create request body: $requestBody'); // Replaced print
       final response = await http.post(
         Uri.parse('$baseUrl/api/notifications/community'),
         headers: {
@@ -128,7 +130,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         body: requestBody,
       ).timeout(const Duration(seconds: 15));
 
-      print('Create response: ${response.statusCode} - ${response.body}');
+      logger.d('Create response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 201) {
         _fetchNotifications();
         if (mounted) {
@@ -144,7 +146,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         throw Exception('Failed to create: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Create error: $e');
+      logger.d('Create error: $e'); // Replaced print
       if (mounted) {
         String errorMessage = 'Error creating notification: $e';
         if (e.toString().contains('Connection refused')) {
@@ -165,13 +167,13 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
       final url = userRole == 'manager'
           ? '$baseUrl/api/notifications/community/remove-by-manager/$id'
           : '$baseUrl/api/notifications/community/$id';
-      print('Delete request: $url');
+      logger.d('Delete request: $url'); // Replaced print
       final response = await http.delete(
         Uri.parse(url),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 15));
 
-      print('Delete response: ${response.statusCode} - ${response.body}');
+      logger.d('Delete response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 200) {
         _fetchNotifications();
         if (mounted) {
@@ -183,7 +185,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         throw Exception('Failed to delete: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Delete error: $e');
+      logger.d('Delete error: $e'); // Replaced print
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error deleting notification: $e')),
@@ -197,13 +199,13 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
     if (token == null) return;
 
     try {
-      print('Remove request: $baseUrl/api/notifications/community/$id/remove-for-user');
+      logger.d('Remove request: $baseUrl/api/notifications/community/$id/remove-for-user'); // Replaced print
       final response = await http.delete(
         Uri.parse('$baseUrl/api/notifications/community/$id/remove-for-user'),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 15));
 
-      print('Remove response: ${response.statusCode} - ${response.body}');
+      logger.d('Remove response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 200) {
         _fetchNotifications();
         if (mounted) {
@@ -215,7 +217,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         throw Exception('Failed to remove: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Remove error: $e');
+      logger.d('Remove error: $e'); // Replaced print
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error removing notification: $e')),
@@ -230,8 +232,8 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
 
     try {
       final requestBody = jsonEncode({'title': title, 'message': message});
-      print('Edit request: $baseUrl/api/notifications/community/$id');
-      print('Edit request body: $requestBody');
+      logger.d('Edit request: $baseUrl/api/notifications/community/$id'); // Replaced print
+      logger.d('Edit request body: $requestBody'); // Replaced print
       final response = await http.put(
         Uri.parse('$baseUrl/api/notifications/community/$id'),
         headers: {
@@ -241,7 +243,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         body: requestBody,
       ).timeout(const Duration(seconds: 15));
 
-      print('Edit response: ${response.statusCode} - ${response.body}');
+      logger.d('Edit response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 200) {
         _fetchNotifications();
         if (mounted) {
@@ -253,7 +255,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         throw Exception('Failed to edit: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Edit error: $e');
+      logger.d('Edit error: $e'); // Replaced print
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error editing notification: $e')),

@@ -2,11 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:we_neighbour/models/chat.dart';
 import 'package:we_neighbour/models/message.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class ChatProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? _currentUserId;
   String? _currentApartmentName;
+  final Logger logger = Logger(); // Added logger instance
 
   String? get currentUserId => _currentUserId;
   String? get currentApartmentName => _currentApartmentName;
@@ -38,7 +40,7 @@ class ChatProvider with ChangeNotifier {
         .where('isGroup', isEqualTo: false)
         .get()
         .catchError((e) {
-          print('Error querying existing chat: $e');
+          logger.d('Error querying existing chat: $e'); // Replaced print
           throw e;
         });
 
@@ -61,7 +63,7 @@ class ChatProvider with ChangeNotifier {
         'isResourceChat': false,
         'userId': _currentUserId,
       }).catchError((e) {
-        print('Error creating chat: $e');
+        logger.d('Error creating chat: $e'); // Replaced print
         throw e;
       });
     }
@@ -79,7 +81,7 @@ class ChatProvider with ChangeNotifier {
       throw Exception('Chat does not exist: $chatId');
     }
     // Removed restriction for resource chats
-    print('Sending message in chatId: $chatId, content: $content, userId: $_currentUserId');
+    logger.d('Sending message in chatId: $chatId, content: $content, userId: $_currentUserId'); // Replaced print
 
     final messageId = _firestore.collection('chats').doc(chatId).collection('messages').doc().id;
     await _firestore.collection('chats').doc(chatId).collection('messages').doc(messageId).set({
@@ -89,7 +91,7 @@ class ChatProvider with ChangeNotifier {
       'isResourceMessage': false,
       'userId': _currentUserId,
     }).catchError((e) {
-      print('Error sending message: $e');
+      logger.d('Error sending message: $e'); // Replaced print
       throw e;
     });
     await _firestore.collection('chats').doc(chatId).update({
@@ -97,7 +99,7 @@ class ChatProvider with ChangeNotifier {
       'timestamp': FieldValue.serverTimestamp(),
       'userId': _currentUserId,
     }).catchError((e) {
-      print('Error updating last message: $e');
+      logger.d('Error updating last message: $e'); // Replaced print
       throw e;
     });
   }
@@ -117,7 +119,7 @@ class ChatProvider with ChangeNotifier {
         'timestamp': FieldValue.serverTimestamp(),
         'userId': _currentUserId,
       }).catchError((e) {
-        print('Error creating resource chat: $e');
+        logger.d('Error creating resource chat: $e'); // Replaced print
         throw e;
       });
     } else {
@@ -127,7 +129,7 @@ class ChatProvider with ChangeNotifier {
         'timestamp': FieldValue.serverTimestamp(),
         'userId': _currentUserId,
       }, SetOptions(merge: true)).catchError((e) {
-        print('Error updating chat to resource chat: $e');
+        logger.d('Error updating chat to resource chat: $e'); // Replaced print
         throw e;
       });
     }
@@ -140,7 +142,7 @@ class ChatProvider with ChangeNotifier {
       'isResourceMessage': true,
       'userId': _currentUserId,
     }).catchError((e) {
-      print('Error sending resource message: $e');
+      logger.d('Error sending resource message: $e'); // Replaced print
       throw e;
     });
   }
@@ -158,7 +160,7 @@ class ChatProvider with ChangeNotifier {
           .doc(messageId)
           .delete()
           .catchError((e) {
-        print('Error deleting message for everyone: $e');
+        logger.d('Error deleting message for everyone: $e'); // Replaced print
         throw e;
       });
     } else {
@@ -172,7 +174,7 @@ class ChatProvider with ChangeNotifier {
         'senderId': _currentUserId,
         'userId': _currentUserId,
       }).catchError((e) {
-        print('Error deleting message for sender: $e');
+        logger.d('Error deleting message for sender: $e'); // Replaced print
         throw e;
       });
     }

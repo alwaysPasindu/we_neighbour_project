@@ -11,6 +11,7 @@ import 'package:we_neighbour/utils/auth_utils.dart';
 import 'dart:io';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class ServiceDetailsPage extends StatefulWidget {
   final Service service;
@@ -33,6 +34,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   int _currentImageIndex = 0;
   List<dynamic> _reviews = [];
   bool _isLoadingReviews = false;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -43,7 +45,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   Future<String?> _getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    print('Retrieved auth token: $token');
+    logger.d('Retrieved auth token: $token'); // Replaced print
     return token;
   }
 
@@ -66,7 +68,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
         },
       );
 
-      print('Fetch reviews response: ${response.statusCode} - ${response.body}');
+      logger.d('Fetch reviews response: ${response.statusCode} - ${response.body}'); // Replaced print
 
       if (response.statusCode == 200) {
         final serviceData = jsonDecode(response.body);
@@ -77,7 +79,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
         throw Exception('Failed to fetch reviews: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error fetching reviews: $e');
+      logger.d('Error fetching reviews: $e'); // Replaced print
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching reviews: $e')));
     } finally {
       setState(() {
@@ -89,7 +91,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   Future<Map<String, String>> _getUserData() async {
     final profileData = await AuthUtils.getUserProfileData();
     final role = await AuthUtils.getUserType().then((userType) => userType.toString().split('.').last);
-    print('Retrieved user data: name=${profileData['name']}, role=$role');
+    logger.d('Retrieved user data: name=${profileData['name']}, role=$role'); // Replaced print
     return {
       'name': profileData['name'] ?? 'Anonymous', // Still used for display, not payload
       'role': role ?? 'Unknown',
@@ -97,97 +99,97 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   }
 
   void _addReview() async {
-  final TextEditingController commentController = TextEditingController();
-  int rating = 5;
+    final TextEditingController commentController = TextEditingController();
+    int rating = 5;
 
-  final userData = await _getUserData();
-  final token = await _getAuthToken();
+    final userData = await _getUserData();
+    final token = await _getAuthToken();
 
-  if (token == null) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to add a review')));
-    return;
-  }
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to add a review')));
+      return;
+    }
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            title: const Text('Add Review'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButton<int>(
-                    value: rating,
-                    items: List.generate(5, (index) => index + 1)
-                        .map((value) => DropdownMenuItem<int>(
-                              value: value,
-                              child: Text('$value Stars'),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      setDialogState(() {
-                        rating = value!;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: commentController,
-                    decoration: const InputDecoration(labelText: 'Comment'),
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  try {
-                    final response = await http.post(
-                      Uri.parse('$baseUrl/api/service/${widget.service.id}/reviews'),
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'x-auth-token': token,
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Add Review'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButton<int>(
+                      value: rating,
+                      items: List.generate(5, (index) => index + 1)
+                          .map((value) => DropdownMenuItem<int>(
+                                value: value,
+                                child: Text('$value Stars'),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setDialogState(() {
+                          rating = value!;
+                        });
                       },
-                      body: jsonEncode({
-                        'rating': rating,
-                        'comment': commentController.text,
-                        // Remove 'role' from payload
-                      }),
-                    );
-
-                    print('Add review response: ${response.statusCode} - ${response.body}');
-
-                    if (response.statusCode == 201) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review added successfully')));
-                      await _fetchReviews();
-                      setState(() {});
-                    } else {
-                      final errorData = jsonDecode(response.body);
-                      throw Exception('Failed to add review: ${errorData['message'] ?? response.statusCode}');
-                    }
-                  } catch (e) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                  }
-                },
-                child: const Text('Submit'),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: commentController,
+                      decoration: const InputDecoration(labelText: 'Comment'),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
               ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      final response = await http.post(
+                        Uri.parse('$baseUrl/api/service/${widget.service.id}/reviews'),
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'x-auth-token': token,
+                        },
+                        body: jsonEncode({
+                          'rating': rating,
+                          'comment': commentController.text,
+                          // Remove 'role' from payload
+                        }),
+                      );
+
+                      logger.d('Add review response: ${response.statusCode} - ${response.body}'); // Replaced print
+
+                      if (response.statusCode == 201) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review added successfully')));
+                        await _fetchReviews();
+                        setState(() {});
+                      } else {
+                        final errorData = jsonDecode(response.body);
+                        throw Exception('Failed to add review: ${errorData['message'] ?? response.statusCode}');
+                      }
+                    } catch (e) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
+                  },
+                  child: const Text('Submit'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   void _openGoogleMaps(double latitude, double longitude) async {
     final url = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';

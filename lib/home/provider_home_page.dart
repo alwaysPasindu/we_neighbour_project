@@ -12,6 +12,7 @@ import '../features/services/service_detailsPage.dart';
 import '../widgets/provider_bottom_navigation.dart';
 import '../main.dart';
 import '../models/service.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class Advertisement {
   final String title;
@@ -19,11 +20,12 @@ class Advertisement {
   final String imageUrl;
   final String companyName;
 
-  Advertisement(
-      {required this.title,
-      required this.description,
-      required this.imageUrl,
-      required this.companyName});
+  Advertisement({
+    required this.title,
+    required this.description,
+    required this.imageUrl,
+    required this.companyName,
+  });
 }
 
 class ProviderHomePage extends StatefulWidget {
@@ -42,6 +44,7 @@ class _HomePageState extends State<ProviderHomePage> {
   String? _token;
   late SharedPreferences prefs;
   bool _isLoading = true;
+  final Logger logger = Logger(); // Added logger instance
 
   final List<Advertisement> generalAds = [
     Advertisement(
@@ -108,8 +111,8 @@ class _HomePageState extends State<ProviderHomePage> {
         },
       ).timeout(const Duration(seconds: 30));
 
-      print(
-          'ProviderHomePage load services response: ${response.statusCode} - ${response.body}');
+      logger.d(
+          'ProviderHomePage load services response: ${response.statusCode} - ${response.body}'); // Replaced print
 
       if (response.statusCode == 200) {
         final List<dynamic> servicesJson = jsonDecode(response.body);
@@ -130,7 +133,7 @@ class _HomePageState extends State<ProviderHomePage> {
             'Failed to load services: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error loading services: $e');
+      logger.d('Error loading services: $e'); // Replaced print
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error loading services: $e')));

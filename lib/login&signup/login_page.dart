@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:http/io_client.dart';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:logger/logger.dart'; // Added logger import
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -30,6 +31,7 @@ class _LoginPageState extends State<LoginPage>
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _scaleAnimation;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -93,7 +95,7 @@ class _LoginPageState extends State<LoginPage>
         }
       }
     } catch (e) {
-      print('Error loading saved email: $e');
+      logger.d('Error loading saved email: $e'); // Replaced print
     }
   }
 
@@ -118,8 +120,8 @@ class _LoginPageState extends State<LoginPage>
         throw TimeoutException('Request timed out after 50 seconds');
       });
 
-      print('Response status: ${response.statusCode}');
-      print('Raw response body: ${response.body}');
+      logger.d('Response status: ${response.statusCode}'); // Replaced print
+      logger.d('Raw response body: ${response.body}'); // Replaced print
 
       if (response.body.isEmpty) {
         throw Exception('Empty response body');
@@ -167,8 +169,8 @@ class _LoginPageState extends State<LoginPage>
             'Login failed', data['message'] ?? 'Invalid credentials');
       }
     } catch (e, stackTrace) {
-      print('Login error: $e');
-      print('Stack trace: $stackTrace');
+      logger.d('Login error: $e'); // Replaced print
+      logger.d('Stack trace: $stackTrace'); // Replaced print
       _showErrorDialog(
           'Connection Error', 'Unable to connect to the server: $e');
     } finally {

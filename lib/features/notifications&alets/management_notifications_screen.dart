@@ -6,6 +6,7 @@ import '../../constants/text_styles.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class ManagementNotification {
   final String id;
@@ -43,6 +44,7 @@ class ManagementNotificationsScreen extends StatefulWidget {
 class _ManagementNotificationsScreenState extends State<ManagementNotificationsScreen> {
   List<ManagementNotification> notifications = [];
   String? userRole;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -55,32 +57,32 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userRole = prefs.getString('userRole')?.toLowerCase();
-      print('Loaded User Role: $userRole');
+      logger.d('Loaded User Role: $userRole'); // Replaced print
     });
   }
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    print('Retrieved token: $token');
+    logger.d('Retrieved token: $token'); // Replaced print
     return token;
   }
 
   Future<void> _fetchNotifications() async {
     final token = await _getToken();
     if (token == null) {
-      print('No token available');
+      logger.d('No token available'); // Replaced print
       return;
     }
 
     try {
-      print('Fetching notifications from: $baseUrl/api/notifications/management');
+      logger.d('Fetching notifications from: $baseUrl/api/notifications/management'); // Replaced print
       final response = await http.get(
         Uri.parse('$baseUrl/api/notifications/management'),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 15));
 
-      print('Fetch response: ${response.statusCode} - ${response.body}');
+      logger.d('Fetch response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
@@ -90,7 +92,7 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
         throw Exception('Failed to fetch notifications: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Fetch error: $e');
+      logger.d('Fetch error: $e'); // Replaced print
       if (mounted) {
         String errorMessage = 'Failed to load notifications: $e';
         if (e.toString().contains('Connection refused')) {
@@ -106,14 +108,14 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
   Future<void> _createNotification(String title, String message) async {
     final token = await _getToken();
     if (token == null) {
-      print('No token available for create');
+      logger.d('No token available for create'); // Replaced print
       return;
     }
 
     try {
       final requestBody = jsonEncode({'title': title, 'message': message});
-      print('Create request: $baseUrl/api/notifications/management');
-      print('Create request body: $requestBody');
+      logger.d('Create request: $baseUrl/api/notifications/management'); // Replaced print
+      logger.d('Create request body: $requestBody'); // Replaced print
       final response = await http.post(
         Uri.parse('$baseUrl/api/notifications/management'),
         headers: {
@@ -123,7 +125,7 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
         body: requestBody,
       ).timeout(const Duration(seconds: 15));
 
-      print('Create response: ${response.statusCode} - ${response.body}');
+      logger.d('Create response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 201) {
         _fetchNotifications();
         if (mounted) {
@@ -139,7 +141,7 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
         throw Exception('Failed to create: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Create error: $e');
+      logger.d('Create error: $e'); // Replaced print
       if (mounted) {
         String errorMessage = 'Error creating notification: $e';
         if (e.toString().contains('Connection refused')) {
@@ -157,13 +159,13 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
     if (token == null) return;
 
     try {
-      print('Delete request: $baseUrl/api/notifications/management/$id');
+      logger.d('Delete request: $baseUrl/api/notifications/management/$id'); // Replaced print
       final response = await http.delete(
         Uri.parse('$baseUrl/api/notifications/management/$id'),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 15));
 
-      print('Delete response: ${response.statusCode} - ${response.body}');
+      logger.d('Delete response: ${response.statusCode} - ${response.body}'); // Replaced print
       if (response.statusCode == 200) {
         _fetchNotifications();
         if (mounted) {
@@ -175,7 +177,7 @@ class _ManagementNotificationsScreenState extends State<ManagementNotificationsS
         throw Exception('Failed to delete: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Delete error: $e');
+      logger.d('Delete error: $e'); // Replaced print
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error deleting notification: $e')),
