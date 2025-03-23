@@ -9,26 +9,30 @@ class ShareAppScreen extends StatelessWidget {
   final Logger logger = Logger();
 
   void _shareApp(BuildContext context) {
-    logger.d('Sharing app via general share');
-    try {
-      Share.share(
-        'Check out We-Neighbour, the ultimate community management app for apartment residents! Download now: https://weneighbour.com/app',
-        subject: 'Join your community on We-Neighbour!',
-      );
-    } catch (e) {
-      logger.e('Error sharing app: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to share: $e')),
-      );
-    }
+  final scaffoldMessenger = ScaffoldMessenger.of(context); // Capture the ScaffoldMessenger
+
+  logger.d('Sharing app via general share');
+  try {
+    Share.share(
+      'Check out We-Neighbour, the ultimate community management app for apartment residents! Download now: https://weneighbour.com/app',
+      subject: 'Join your community on We-Neighbour!',
+    );
+  } catch (e) {
+    logger.e('Error sharing app: $e');
+    scaffoldMessenger.showSnackBar( // Use captured ScaffoldMessenger
+      SnackBar(content: Text('Failed to share: $e')),
+    );
   }
+}
 
   void _copyLink(BuildContext context) {
+    final scaffoldMessenger = ScaffoldMessenger.of(context); // Capture the ScaffoldMessenger
+
     logger.d('Copying app link to clipboard');
     Clipboard.setData(const ClipboardData(
       text: 'https://weneighbour.com/app',
     )).then((_) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar( // Use captured ScaffoldMessenger
         const SnackBar(
           content: Text('Link copied to clipboard'),
           duration: Duration(seconds: 2),
@@ -36,7 +40,7 @@ class ShareAppScreen extends StatelessWidget {
       );
     }).catchError((e) {
       logger.e('Error copying link: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar( // Use captured ScaffoldMessenger
         SnackBar(content: Text('Failed to copy link: $e')),
       );
     });
