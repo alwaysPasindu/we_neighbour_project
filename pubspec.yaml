@@ -48,9 +48,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  http: ^1.3.0 # Check for the latest version
+  mockito: ^5.4.2
+  build_runner: ^2.4.6
   flutter_lints: ^3.0.0
-  flutter_launcher_icons: ^0.13.1
 
 # flutter_icons:
 #   ios: true

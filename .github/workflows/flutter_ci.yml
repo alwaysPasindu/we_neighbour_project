@@ -3,7 +3,7 @@ name: Flutter CI
 on:
   push:
     branches:
-      - main
+      - dev_user_test
   pull_request:
     branches:
       - main
@@ -28,7 +28,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.0' # Use the version compatible with your project
+          flutter-version: '3.29.2' # Use the version compatible with your project
           channel: 'stable'
 
       # Get dependencies
@@ -49,7 +49,7 @@ jobs:
 
       # Optionally store the APK as an artifact
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
           path: build/app/outputs/flutter-apk/app-debug.apk

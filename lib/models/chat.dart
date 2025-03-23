@@ -2,36 +2,32 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Chat {
   final String id;
-  final List<String> participants; // For one-to-one chats
-  final List<String> members; // For group chats
+  final List<String> participants;
   final bool isGroup;
-  final String? groupName;
+  final String? name;
   final String? lastMessage;
   final Timestamp? timestamp;
-  final String? resourceId;
+  final List<String>? members;
 
   Chat({
     required this.id,
     required this.participants,
-    required this.members,
     required this.isGroup,
-    this.groupName,
+    this.name,
     this.lastMessage,
     this.timestamp,
-    this.resourceId,
+    this.members,
   });
 
-  factory Chat.fromDocument(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+  factory Chat.fromMap(String id, Map<String, dynamic> data) {
     return Chat(
-      id: doc.id,
+      id: id,
       participants: List<String>.from(data['participants'] ?? []),
-      members: List<String>.from(data['members'] ?? []),
       isGroup: data['isGroup'] ?? false,
-      groupName: data['groupName'],
+      name: data['name'],
       lastMessage: data['lastMessage'],
-      timestamp: data['timestamp'] as Timestamp?,
-      resourceId: data['resourceId'],
+      timestamp: data['timestamp'],
+      members: data['members'] != null ? List<String>.from(data['members']) : null,
     );
   }
 }

@@ -1,85 +1,100 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:we_neighbour/constants/colors.dart';
+import 'package:we_neighbour/constants/text_styles.dart';
+import 'package:we_neighbour/models/message.dart';
 import 'package:we_neighbour/providers/chat_provider.dart';
-
-// Assuming a Message model
-class Message {
-  final String id;
-  final String senderId;
-  final String content;
-  final Timestamp timestamp;
-
-  Message({
-    required this.id,
-    required this.senderId,
-    required this.content,
-    required this.timestamp,
-  });
-
-  factory Message.fromDocument(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return Message(
-      id: doc.id,
-      senderId: data['senderId'] ?? '',
-      content: data['content'] ?? '',
-      timestamp: data['timestamp'] as Timestamp? ?? Timestamp.now(),
-    );
-  }
-}
+import 'package:we_neighbour/providers/theme_provider.dart';
+import 'package:intl/intl.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
   final bool isGroup;
-  final String? resourceId;
 
-  const ChatScreen({
-    super.key,
-    required this.chatId,
-    this.isGroup = false,
-    this.resourceId,
-  });
+  const ChatScreen({super.key, required this.chatId, required this.isGroup});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
-  late Stream<List<Message>> _messagesStream;
+  final ScrollController _scrollController = ScrollController();
+  bool _canReply = true; // Default to true
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _messagesStream = FirebaseFirestore.instance
-        .collection('chats')
-        .doc(widget.chatId)
-        .collection('messages')
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => Message.fromDocument(doc)).toList());
+    _initializeChat();
   }
 
-  Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty) return;
-    try {
-      await Provider.of<ChatProvider>(context, listen: false)
-          .sendMessage(widget.chatId, _messageController.text.trim());
-      _messageController.clear();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error sending message: $e')),
-      );
+  Future<void> _initializeChat() async {
+    print('Initializing chat for chatId: ${widget.chatId}');
+    await _checkReplyPermission();
+    print('After permission check - _canReply: $_canReply, _isLoading: $_isLoading');
+    _scrollToBottom();
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Set _isLoading to false');
     }
   }
 
-  Future<void> _deleteMessage(String messageId) async {
+  Future<void> _checkReplyPermission() async {
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
     try {
-      await Provider.of<ChatProvider>(context, listen: false)
-          .deleteMessage(widget.chatId, messageId);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Message deleted')),
-      );
+      final chatDoc = await FirebaseFirestore.instance.collection('chats').doc(widget.chatId).get();
+      if (!chatDoc.exists) {
+        print('Chat document does not exist for chatId: ${widget.chatId}');
+        _canReply = true; // Default to true if chat doesn't exist yet
+        return;
+      }
+      final isResourceChat = chatDoc.data()?['isResourceChat'] ?? false;
+      final participants = List<String>.from(chatDoc.data()?['participants'] ?? []);
+      print('isResourceChat: $isResourceChat, participants: $participants, currentUserId: ${chatProvider.currentUserId}');
+
+      // Allow both sender and receiver to reply in all chats (resource or not)
+      _canReply = true;
+      print('Setting _canReply to true for all users');
+    } catch (e) {
+      print('Error checking reply permission: $e');
+      _canReply = true; // Default to true on error
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  void _sendMessage(ChatProvider chatProvider) async {
+    if (_messageController.text.isNotEmpty) {
+      try {
+        await chatProvider.sendMessage(widget.chatId, _messageController.text);
+        _messageController.clear();
+        _scrollToBottom();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error sending message: $e')),
+        );
+      }
+    }
+  }
+
+  void _deleteMessage(ChatProvider chatProvider, String messageId, bool deleteForEveryone) async {
+    try {
+      await chatProvider.deleteMessage(widget.chatId, messageId, deleteForEveryone);
+      _scrollToBottom();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error deleting message: $e')),
@@ -89,81 +104,174 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
     final chatProvider = Provider.of<ChatProvider>(context);
-    final currentUserId = chatProvider.currentUserId;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isGroup ? 'Group Chat' : 'One-on-One Chat'),
-        actions: widget.resourceId != null
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.info),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Resource ID: ${widget.resourceId}')),
-                    );
-                  },
-                ),
-              ]
-            : [],
+        title: FutureBuilder<String>(
+          future: _getChatTitle(chatProvider),
+          builder: (context, snapshot) {
+            return Text(
+              snapshot.data ?? 'Chat',
+              style: AppTextStyles.getGreetingStyle(isDarkMode).copyWith(color: Colors.white),
+            );
+          },
+        ),
+        backgroundColor: AppColors.primary,
       ),
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<List<Message>>(
-              stream: _messagesStream,
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('chats')
+                  .doc(widget.chatId)
+                  .collection('messages')
+                  .orderBy('timestamp', descending: false)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: AppTextStyles.getBodyTextStyle(isDarkMode),
+                    ),
+                  );
                 }
-                final messages = snapshot.data ?? [];
+                final messages = snapshot.data?.docs.map((doc) {
+                  return Message.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+                }).toList() ?? [];
+
                 return ListView.builder(
-                  reverse: true,
+                  controller: _scrollController,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    final isMe = message.senderId == currentUserId;
-                    return ListTile(
-                      title: Text(message.content),
-                      subtitle: Text(message.senderId),
-                      trailing: isMe
-                          ? IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () => _deleteMessage(message.id),
-                            )
-                          : null,
+                    final isSender = message.senderId == chatProvider.currentUserId;
+                    return Column(
+                      crossAxisAlignment:
+                          isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
+                          child: Text(
+                            DateFormat('yyyy-MM-dd HH:mm:ss').format(message.timestamp.toDate()),
+                            style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
+                              fontSize: 12,
+                              color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onLongPress: () {
+                            if (isSender) {
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) => Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ListTile(
+                                      leading: const Icon(Icons.delete),
+                                      title: const Text('Delete for Me'),
+                                      onTap: () {
+                                        _deleteMessage(chatProvider, message.id, false);
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    ListTile(
+                                      leading: const Icon(Icons.delete_forever),
+                                      title: const Text('Delete for Everyone'),
+                                      onTap: () {
+                                        _deleteMessage(chatProvider, message.id, true);
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                            padding: const EdgeInsets.all(10.0),
+                            decoration: BoxDecoration(
+                              color: isSender ? AppColors.primary : Colors.grey[300],
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: Text(
+                              message.content,
+                              style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
+                                color: isSender ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     );
                   },
                 );
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message...',
-                      border: OutlineInputBorder(),
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
+          else if (_canReply)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0)),
+                        filled: true,
+                        fillColor: isDarkMode ? AppColors.darkCardBackground : Colors.white,
+                      ),
+                      style: AppTextStyles.getBodyTextStyle(isDarkMode),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _sendMessage,
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    color: AppColors.primary,
+                    onPressed: () => _sendMessage(chatProvider),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
+  }
+
+  Future<String> _getChatTitle(ChatProvider chatProvider) async {
+    final chatDoc = await FirebaseFirestore.instance.collection('chats').doc(widget.chatId).get();
+    final chatData = chatDoc.data();
+    if (!widget.isGroup && chatData?['participants'] != null) {
+      final participants = List<String>.from(chatData!['participants']);
+      final otherUserId = participants.firstWhere((id) => id != chatProvider.currentUserId);
+      try {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('apartments')
+            .doc(chatProvider.currentApartmentName)
+            .collection('users')
+            .doc(otherUserId)
+            .get();
+        return userDoc.data()?['name'] ?? 'Unknown User';
+      } catch (e) {
+        print('Error fetching user name: $e');
+        return 'Unknown User';
+      }
+    }
+    return 'Chat';
   }
 }

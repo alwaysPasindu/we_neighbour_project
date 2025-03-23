@@ -255,7 +255,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
               onTap: _pickImage,
               child: Container(
                 padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))]),
+                decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2))]),
                 child: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
               ),
             ),

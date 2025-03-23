@@ -151,7 +151,7 @@ class _EventCalendarState extends State<EventCalendar> {
         margin: const EdgeInsets.symmetric(horizontal: 16.0),
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Center(
@@ -166,7 +166,7 @@ class _EventCalendarState extends State<EventCalendar> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListView.builder(
