@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:we_neighbour/features/event_calendar/firebase_service.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class HealthWellnessScreen extends StatefulWidget {
   const HealthWellnessScreen({super.key});
 
   @override
-  _HealthWellnessScreenState createState() => _HealthWellnessScreenState();
+  State<HealthWellnessScreen> createState() => _HealthWellnessScreenState(); // Made public by using State<HealthWellnessScreen>
 }
 
 class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
   final FirebaseService _firebaseService = FirebaseService();
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
   final List<Map<String, dynamic>> _activities = [
     {'name': 'Spa', 'icon': Icons.spa},
     {'name': 'Yoga', 'icon': Icons.self_improvement},
@@ -36,7 +36,7 @@ class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) { // Renamed for clarity
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
@@ -100,7 +100,6 @@ class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
                                   if (picked != null && picked != startTime) {
                                     setState(() {
                                       startTime = picked;
-                                      // Ensure end time is after start time
                                       if (_timeToDouble(endTime) <=
                                           _timeToDouble(startTime)) {
                                         endTime = TimeOfDay(
@@ -173,7 +172,7 @@ class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
                 TextButton(
                   child: const Text('Cancel'),
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    Navigator.of(dialogContext).pop();
                   },
                 ),
                 TextButton(
@@ -183,7 +182,7 @@ class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
                         activityName == 'Other' ? customActivity : activityName;
 
                     if (activityName == 'Other' && customActivity.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
                         const SnackBar(
                             content:
                                 Text('Please enter a custom activity name')),
@@ -191,7 +190,6 @@ class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
                       return;
                     }
 
-                    // Create start and end DateTime objects
                     final DateTime startDateTime = DateTime(
                       selectedDate.year,
                       selectedDate.month,
@@ -216,16 +214,19 @@ class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
                         notes,
                       );
 
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      if (!dialogContext.mounted) return; // Check dialog mounted state
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
                         SnackBar(
                             content:
                                 Text('$finalActivityName booked successfully')),
                       );
-                      Navigator.of(context).pop();
+                      Navigator.of(dialogContext).pop();
+                      if (!mounted) return; // Check widget mounted state
                       Navigator.of(context).pop(); // Go back to calendar screen
                     } catch (e) {
-                      logger.d('Error booking activity: $e'); // Replaced print
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      logger.d('Error booking activity: $e');
+                      if (!dialogContext.mounted) return; // Check dialog mounted state
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
                         SnackBar(content: Text('Failed to book activity: $e')),
                       );
                     }
@@ -239,7 +240,6 @@ class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
     );
   }
 
-  // Helper method to convert TimeOfDay to double for comparison
   double _timeToDouble(TimeOfDay time) {
     return time.hour + time.minute / 60.0;
   }

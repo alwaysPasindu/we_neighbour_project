@@ -7,7 +7,7 @@ import 'package:we_neighbour/models/message.dart';
 import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:logger/logger.dart'; // Add this import
+import 'package:logger/logger.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -16,7 +16,7 @@ class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key, required this.chatId, required this.isGroup});
 
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  State<ChatScreen> createState() => _ChatScreenState(); // Made public by using State<ChatScreen>
 }
 
 class _ChatScreenState extends State<ChatScreen> {
@@ -33,15 +33,15 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _initializeChat() async {
-    logger.d('Initializing chat for chatId: ${widget.chatId}'); // Replaced print
+    logger.d('Initializing chat for chatId: ${widget.chatId}');
     await _checkReplyPermission();
-    logger.d('After permission check - _canReply: $_canReply, _isLoading: $_isLoading'); // Replaced print
+    logger.d('After permission check - _canReply: $_canReply, _isLoading: $_isLoading');
     _scrollToBottom();
     if (mounted) {
       setState(() {
         _isLoading = false;
       });
-      logger.d('Set _isLoading to false'); // Replaced print
+      logger.d('Set _isLoading to false');
     }
   }
 
@@ -50,19 +50,19 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final chatDoc = await FirebaseFirestore.instance.collection('chats').doc(widget.chatId).get();
       if (!chatDoc.exists) {
-        logger.d('Chat document does not exist for chatId: ${widget.chatId}'); // Replaced print
+        logger.d('Chat document does not exist for chatId: ${widget.chatId}');
         _canReply = true; // Default to true if chat doesn't exist yet
         return;
       }
       final isResourceChat = chatDoc.data()?['isResourceChat'] ?? false;
       final participants = List<String>.from(chatDoc.data()?['participants'] ?? []);
-      logger.d('isResourceChat: $isResourceChat, participants: $participants, currentUserId: ${chatProvider.currentUserId}'); // Replaced print
+      logger.d('isResourceChat: $isResourceChat, participants: $participants, currentUserId: ${chatProvider.currentUserId}');
 
       // Allow both sender and receiver to reply in all chats (resource or not)
       _canReply = true;
-      logger.d('Setting _canReply to true for all users'); // Replaced print
+      logger.d('Setting _canReply to true for all users');
     } catch (e) {
-      logger.d('Error checking reply permission: $e'); // Replaced print
+      logger.d('Error checking reply permission: $e');
       _canReply = true; // Default to true on error
     }
   }
@@ -80,24 +80,28 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _sendMessage(ChatProvider chatProvider) async {
-    if (_messageController.text.isNotEmpty) {
-      try {
-        await chatProvider.sendMessage(widget.chatId, _messageController.text);
-        _messageController.clear();
-        _scrollToBottom();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error sending message: $e')),
-        );
-      }
+    if (_messageController.text.isEmpty) return;
+
+    try {
+      await chatProvider.sendMessage(widget.chatId, _messageController.text);
+      if (!mounted) return; // Check if still mounted before proceeding
+      _messageController.clear();
+      _scrollToBottom();
+    } catch (e) {
+      if (!mounted) return; // Check if still mounted before using context
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error sending message: $e')),
+      );
     }
   }
 
   void _deleteMessage(ChatProvider chatProvider, String messageId, bool deleteForEveryone) async {
     try {
       await chatProvider.deleteMessage(widget.chatId, messageId, deleteForEveryone);
+      if (!mounted) return; // Check if still mounted before proceeding
       _scrollToBottom();
     } catch (e) {
+      if (!mounted) return; // Check if still mounted before using context
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error deleting message: $e')),
       );
@@ -270,7 +274,7 @@ class _ChatScreenState extends State<ChatScreen> {
             .get();
         return userDoc.data()?['name'] ?? 'Unknown User';
       } catch (e) {
-        logger.d('Error fetching user name: $e'); // Replaced print
+        logger.d('Error fetching user name: $e');
         return 'Unknown User';
       }
     }

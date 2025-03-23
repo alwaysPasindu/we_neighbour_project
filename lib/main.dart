@@ -26,7 +26,7 @@ import 'package:we_neighbour/screens/reports_screen.dart';
 import 'package:we_neighbour/screens/residents_requests_screen.dart';
 import 'package:we_neighbour/settings/settings_screen.dart';
 import 'package:we_neighbour/splashScreen/splash_screen.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 enum UserType { resident, manager, serviceProvider }
 
@@ -34,8 +34,8 @@ const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Still initialize Firebase for Firestore
-  final Logger logger = Logger(); // Logger instance for main function
+  await Firebase.initializeApp();
+  final Logger logger = Logger();
   try {
     final prefs = await SharedPreferences.getInstance();
     final isDarkMode = prefs.getBool('isDarkMode') ?? false;
@@ -49,7 +49,7 @@ void main() async {
       ),
     );
   } catch (e) {
-    logger.d('Error initializing app: $e'); // Replaced print
+    logger.d('Error initializing app: $e');
     runApp(
       MultiProvider(
         providers: [
@@ -74,7 +74,7 @@ class _MyAppState extends State<MyApp> {
   UserType _userType = UserType.resident;
   String? _token;
   bool _isLoading = true;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -105,6 +105,7 @@ class _MyAppState extends State<MyApp> {
             userType = UserType.resident;
         }
 
+        if (!mounted) return; // Check if still mounted
         setState(() {
           _isLoggedIn = true;
           _userType = userType;
@@ -113,18 +114,19 @@ class _MyAppState extends State<MyApp> {
         });
 
         if (userType == UserType.resident && userStatus == 'pending') {
-          if (mounted) {
-            Navigator.pushReplacementNamed(context, '/pending-approval');
-          }
+          if (!mounted) return; // Check if still mounted
+          Navigator.pushReplacementNamed(context, '/pending-approval');
         }
       } else {
+        if (!mounted) return; // Check if still mounted
         setState(() {
           _isLoggedIn = false;
           _isLoading = false;
         });
       }
     } catch (e) {
-      logger.d('Error checking login status: $e'); // Replaced print
+      logger.d('Error checking login status: $e');
+      if (!mounted) return; // Check if still mounted
       setState(() {
         _isLoggedIn = false;
         _isLoading = false;

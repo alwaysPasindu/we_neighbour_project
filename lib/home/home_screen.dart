@@ -12,7 +12,7 @@ import '../constants/colors.dart';
 import '../main.dart';
 import '../models/service.dart';
 import '../utils/auth_utils.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserType userType;
@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   bool _isLoading = true;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -62,23 +62,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Future<void> _initializePrefs() async {
     prefs = await SharedPreferences.getInstance();
     await _loadUserData();
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadUserData() async {
     _token = prefs.getString('token');
     if (_token == null) {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
+      if (!mounted) return; // Check if still mounted
+      Navigator.pushReplacementNamed(context, '/login');
       return;
     }
 
     final userStatus = prefs.getString('userStatus') ?? 'approved';
     if (userStatus == 'pending' && widget.userType == UserType.resident) {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/pending-approval');
-      }
+      if (!mounted) return; // Check if still mounted
+      Navigator.pushReplacementNamed(context, '/pending-approval');
       return;
     }
 
@@ -98,24 +98,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       if (response.statusCode == 200) {
         final List<dynamic> servicesJson = jsonDecode(response.body);
         final services = servicesJson.map((json) => Service.fromJson(json)).toList();
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _featuredServices = services;
         });
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
       } else if (response.statusCode == 401) {
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/login');
-        }
+        if (!mounted) return; // Check if still mounted
+        Navigator.pushReplacementNamed(context, '/login');
         throw Exception('Unauthorized: Invalid or expired token');
       }
     } catch (e) {
-      logger.d('Error loading services: $e'); // Replaced print
-      if (mounted) {
-        _showErrorSnackBar('Unable to load services. Please check your connection.');
-      }
+      logger.d('Error loading services: $e');
+      if (!mounted) return; // Check if still mounted
+      _showErrorSnackBar('Unable to load services. Please check your connection.');
       final String? servicesJson = prefs.getString('services');
       if (servicesJson != null) {
         final List<dynamic> decodedServices = jsonDecode(servicesJson);
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _featuredServices = decodedServices.map((service) => Service.fromJson(service)).toList();
         });
@@ -144,9 +144,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<void> _signOut() async {
     await prefs.clear();
-    if (mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-    }
+    if (!mounted) return; // Check if still mounted
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
   void _startAutoSlide() {
@@ -315,14 +314,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 ),
                                 child: Card(
                                   elevation: _currentPage == index ? 8 : 4,
-                                  shadowColor: isDarkMode 
+                                  shadowColor: isDarkMode
                                       ? Colors.black.withValues(alpha: 0.5)
                                       : Colors.grey.withValues(alpha: 0.5),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
-                                  color: isDarkMode 
-                                      ? AppColors.darkCardBackground 
+                                  color: isDarkMode
+                                      ? AppColors.darkCardBackground
                                       : AppColors.cardBackground,
                                   child: InkWell(
                                     onTap: () => _onServiceTap(service),

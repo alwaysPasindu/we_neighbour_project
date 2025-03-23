@@ -11,7 +11,7 @@ import 'package:we_neighbour/utils/auth_utils.dart';
 import 'dart:io';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class ServiceDetailsPage extends StatefulWidget {
   final Service service;
@@ -34,7 +34,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   int _currentImageIndex = 0;
   List<dynamic> _reviews = [];
   bool _isLoadingReviews = false;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -45,7 +45,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   Future<String?> _getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    logger.d('Retrieved auth token: $token'); // Replaced print
+    logger.d('Retrieved auth token: $token');
     return token;
   }
 
@@ -68,7 +68,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
         },
       );
 
-      logger.d('Fetch reviews response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Fetch reviews response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
         final serviceData = jsonDecode(response.body);
@@ -79,21 +79,24 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
         throw Exception('Failed to fetch reviews: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Error fetching reviews: $e'); // Replaced print
+      logger.d('Error fetching reviews: $e');
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching reviews: $e')));
     } finally {
-      setState(() {
-        _isLoadingReviews = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingReviews = false;
+        });
+      }
     }
   }
 
   Future<Map<String, String>> _getUserData() async {
     final profileData = await AuthUtils.getUserProfileData();
     final role = await AuthUtils.getUserType().then((userType) => userType.toString().split('.').last);
-    logger.d('Retrieved user data: name=${profileData['name']}, role=$role'); // Replaced print
+    logger.d('Retrieved user data: name=${profileData['name']}, role=$role');
     return {
-      'name': profileData['name'] ?? 'Anonymous', // Still used for display, not payload
+      'name': profileData['name'] ?? 'Anonymous',
       'role': role ?? 'Unknown',
     };
   }
@@ -106,15 +109,16 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
     final token = await _getAuthToken();
 
     if (token == null) {
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to add a review')));
       return;
     }
 
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (dialogContext, setDialogState) {
             return AlertDialog(
               title: const Text('Add Review'),
               content: SingleChildScrollView(
@@ -146,7 +150,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(dialogContext),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
@@ -161,23 +165,24 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                         body: jsonEncode({
                           'rating': rating,
                           'comment': commentController.text,
-                          // Remove 'role' from payload
                         }),
                       );
 
-                      logger.d('Add review response: ${response.statusCode} - ${response.body}'); // Replaced print
+                      logger.d('Add review response: ${response.statusCode} - ${response.body}');
 
                       if (response.statusCode == 201) {
-                        Navigator.pop(context);
+                        Navigator.pop(dialogContext);
+                        if (!mounted) return; // Check if still mounted
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review added successfully')));
                         await _fetchReviews();
-                        setState(() {});
+                        if (mounted) setState(() {}); // Check if still mounted before setState
                       } else {
                         final errorData = jsonDecode(response.body);
                         throw Exception('Failed to add review: ${errorData['message'] ?? response.statusCode}');
                       }
                     } catch (e) {
-                      Navigator.pop(context);
+                      Navigator.pop(dialogContext);
+                      if (!mounted) return; // Check if still mounted
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                     }
                   },
@@ -196,6 +201,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open Google Maps')));
     }
   }
@@ -209,7 +215,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+    final isDarkMode = themeProvider.isDarkMode; // Fixed to use isDarkMode getter
     final size = MediaQuery.of(context).size;
     final averageRating = _calculateAverageRating();
 
@@ -390,6 +396,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
+                          if (!mounted) return; // Check if still mounted
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking functionality coming soon!')));
                         },
                         style: ElevatedButton.styleFrom(
