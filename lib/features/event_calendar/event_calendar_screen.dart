@@ -9,7 +9,7 @@ import 'package:we_neighbour/features/event_calendar/firebase_service.dart';
 import 'package:we_neighbour/features/event_calendar/health_wellness_screen.dart';
 import 'package:we_neighbour/widgets/calendar_custom_button.dart';
 import 'package:we_neighbour/widgets/calendar_feature_column.dart';
-
+import 'package:logger/logger.dart'; // Added logger import
 
 class EventCalendarScreen extends StatefulWidget {
   const EventCalendarScreen({super.key});
@@ -20,6 +20,7 @@ class EventCalendarScreen extends StatefulWidget {
 
 class _EventCalendarScreenState extends State<EventCalendarScreen> {
   final FirebaseService _firebaseService = FirebaseService();
+  final Logger logger = Logger(); // Added logger instance
   String _activeView = 'calendar'; // 'calendar' or 'list'
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
@@ -51,7 +52,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
         (QuerySnapshot snapshot) {
           final Map<DateTime, List<dynamic>> newEvents = {};
 
-          print('Received ${snapshot.docs.length} events from Firestore');
+          logger.d('Received ${snapshot.docs.length} events from Firestore'); // Replaced print
 
           for (var doc in snapshot.docs) {
             final data = doc.data() as Map<String, dynamic>;
@@ -96,7 +97,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
           }
         },
         onError: (error) {
-          print('Error loading events: $error');
+          logger.d('Error loading events: $error'); // Replaced print
           if (mounted) {
             setState(() {
               _isLoading = false;
@@ -105,7 +106,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
         },
       );
     } catch (e) {
-      print('Exception in _loadEvents: $e');
+      logger.d('Exception in _loadEvents: $e'); // Replaced print
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -258,7 +259,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                             content: Text('Event added successfully')),
                       );
                     } catch (e) {
-                      print('Error adding event: $e');
+                      logger.d('Error adding event: $e'); // Replaced print
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Failed to add event: $e')),
                       );
@@ -301,7 +302,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                     const SnackBar(content: Text('Event deleted successfully')),
                   );
                 } catch (e) {
-                  print('Error deleting event: $e');
+                  logger.d('Error deleting event: $e'); // Replaced print
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Failed to delete event: $e')),
                   );
