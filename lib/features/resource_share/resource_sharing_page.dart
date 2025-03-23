@@ -131,6 +131,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         SnackBar(content: Text('Error creating resource: $e')),
       );
       print('ResourceSharingPage: Error creating resource: $e');
+
     }
   }
 
@@ -159,10 +160,12 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         throw Exception('Failed to delete resource: ${response.statusCode}');
       }
     } catch (e) {
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error deleting resource: $e')),
       );
       print('ResourceSharingPage: Error deleting resource: $e');
+
     }
   }
 

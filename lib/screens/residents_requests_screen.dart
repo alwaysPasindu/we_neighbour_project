@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ResidentsRequestScreen extends StatefulWidget {
-  const ResidentsRequestScreen({Key? key}) : super(key: key);
+  const ResidentsRequestScreen({super.key});
 
   @override
   State<ResidentsRequestScreen> createState() => _ResidentsRequestScreenState();
