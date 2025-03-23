@@ -80,7 +80,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
       }
     } catch (e) {
       logger.d('Error fetching reviews: $e');
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching reviews: $e')));
     } finally {
       if (mounted) {
@@ -97,19 +97,49 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
     logger.d('Retrieved user data: name=${profileData['name']}, role=$role');
     return {
       'name': profileData['name'] ?? 'Anonymous',
-      'role': role ?? 'Unknown',
+      'role': role,
     };
+  }
+
+  Future<void> _submitReview(int rating, String comment, String token, BuildContext dialogContext) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/service/${widget.service.id}/reviews'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+        body: jsonEncode({
+          'rating': rating,
+          'comment': comment,
+        }),
+      );
+
+      logger.d('Add review response: ${response.statusCode} - ${response.body}');
+
+      if (response.statusCode == 201) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('Review added successfully')));
+        await _fetchReviews();
+        if (mounted) setState(() {});
+      } else {
+        final errorData = jsonDecode(response.body);
+        throw Exception('Failed to add review: ${errorData['message'] ?? response.statusCode}');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
   void _addReview() async {
     final TextEditingController commentController = TextEditingController();
     int rating = 5;
 
-    final userData = await _getUserData();
     final token = await _getAuthToken();
 
     if (token == null) {
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to add a review')));
       return;
     }
@@ -155,36 +185,8 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    try {
-                      final response = await http.post(
-                        Uri.parse('$baseUrl/api/service/${widget.service.id}/reviews'),
-                        headers: {
-                          'Content-Type': 'application/json',
-                          'x-auth-token': token,
-                        },
-                        body: jsonEncode({
-                          'rating': rating,
-                          'comment': commentController.text,
-                        }),
-                      );
-
-                      logger.d('Add review response: ${response.statusCode} - ${response.body}');
-
-                      if (response.statusCode == 201) {
-                        Navigator.pop(dialogContext);
-                        if (!mounted) return; // Check if still mounted
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review added successfully')));
-                        await _fetchReviews();
-                        if (mounted) setState(() {}); // Check if still mounted before setState
-                      } else {
-                        final errorData = jsonDecode(response.body);
-                        throw Exception('Failed to add review: ${errorData['message'] ?? response.statusCode}');
-                      }
-                    } catch (e) {
-                      Navigator.pop(dialogContext);
-                      if (!mounted) return; // Check if still mounted
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                    }
+                    Navigator.pop(dialogContext);
+                    await _submitReview(rating, commentController.text, token, context);
                   },
                   child: const Text('Submit'),
                 ),
@@ -198,10 +200,11 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
 
   void _openGoogleMaps(double latitude, double longitude) async {
     final url = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
-    if (await canLaunch(url)) {
-      await launch(url);
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     } else {
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open Google Maps')));
     }
   }
@@ -215,7 +218,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode; // Fixed to use isDarkMode getter
+    final isDarkMode = themeProvider.isDarkMode;
     final size = MediaQuery.of(context).size;
     final averageRating = _calculateAverageRating();
 
@@ -396,7 +399,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          if (!mounted) return; // Check if still mounted
+                          if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking functionality coming soon!')));
                         },
                         style: ElevatedButton.styleFrom(
@@ -502,7 +505,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
     required bool isDarkMode,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16), // Fixed to 'bottom'
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDarkMode ? Colors.grey[850] : Colors.grey[100],

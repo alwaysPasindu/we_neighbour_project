@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -34,10 +33,10 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   @override
   void initState() {
     super.initState();
-    _loadUserData().then((_) => _fetchResources());
+    _loadUserData(context).then((_) => _fetchResources());
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> _loadUserData(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userId = prefs.getString('userId');
@@ -60,7 +59,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   Future<void> _fetchResources() async {
     final token = await _getToken();
     if (token == null) {
-      if (!mounted) return; // Check before using context
+      if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No authentication token available')),
@@ -85,7 +84,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         throw Exception('Failed to load resources: ${response.statusCode}');
       }
     } catch (e) {
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching resources: $e')),
@@ -94,7 +93,13 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     }
   }
 
-  Future<void> _addResource(String title, String description, String quantity, List<String> imageUrls) async {
+  Future<void> _addResource(
+    String title,
+    String description,
+    String quantity,
+    List<String> imageUrls,
+    BuildContext dialogContext,
+  ) async {
     final token = await _getToken();
     if (token == null) return;
 
@@ -123,8 +128,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         setState(() {
           resources.insert(0, newResource);
         });
-        if (!mounted) return; // Check if still mounted
-        ScaffoldMessenger.of(context).showSnackBar(
+        if (!mounted) return;
+        ScaffoldMessenger.of(dialogContext).showSnackBar(
           const SnackBar(content: Text('Resource request created successfully')),
         );
         logger.d('ResourceSharingPage: Resource created - id: ${newResource.id}');
@@ -132,15 +137,15 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         throw Exception('Failed to create resource: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      if (!mounted) return; // Check if still mounted
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
         SnackBar(content: Text('Error creating resource: $e')),
       );
       logger.d('ResourceSharingPage: Error creating resource: $e');
     }
   }
 
-  Future<void> _deleteResource(String id) async {
+  Future<void> _deleteResource(String id, BuildContext dialogContext) async {
     final token = await _getToken();
     if (token == null) return;
 
@@ -157,8 +162,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         setState(() {
           resources.removeWhere((resource) => resource.id == id);
         });
-        if (!mounted) return; // Check if still mounted
-        ScaffoldMessenger.of(context).showSnackBar(
+        if (!mounted) return;
+        ScaffoldMessenger.of(dialogContext).showSnackBar(
           const SnackBar(content: Text('Resource request deleted successfully')),
         );
         logger.d('ResourceSharingPage: Resource deleted - id: $id');
@@ -166,8 +171,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         throw Exception('Failed to delete resource: ${response.statusCode}');
       }
     } catch (e) {
-      if (!mounted) return; // Check if still mounted
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
         SnackBar(content: Text('Error deleting resource: $e')),
       );
       logger.d('ResourceSharingPage: Error deleting resource: $e');
@@ -177,7 +182,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   Future<void> _initiateChat(String resourceUserId, String message) async {
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
     if (chatProvider.currentUserId == null || chatProvider.currentUserId!.isEmpty) {
-      if (!mounted) return; // Check before using context
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User not authenticated. Please log in again.')),
       );
@@ -189,7 +194,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       final resourceMessage = "[Resource Share] $message";
       await chatProvider.sendResourceMessage(chatId, resourceMessage, resourceUserId);
       logger.d('ResourceSharingPage: Chat initiated - chatId: $chatId, resourceUserId: $resourceUserId');
-      if (!mounted) return; // Check if still mounted before navigation
+      if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -197,7 +202,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         ),
       );
     } catch (e) {
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       logger.d('ResourceSharingPage: Chat initiation error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error initiating chat: $e')),
@@ -291,8 +296,9 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                   descriptionController.text,
                   quantityController.text,
                   imageUrls,
+                  dialogContext,
                 );
-                if (!mounted) return; // Check if still mounted before popping
+                if (!mounted) return;
                 Navigator.pop(dialogContext);
               },
               style: ElevatedButton.styleFrom(
@@ -331,8 +337,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           ),
           ElevatedButton(
             onPressed: () async {
-              await _deleteResource(id);
-              if (!mounted) return; // Check if still mounted before popping
+              await _deleteResource(id, dialogContext);
+              if (!mounted) return;
               Navigator.pop(dialogContext);
             },
             style: ElevatedButton.styleFrom(

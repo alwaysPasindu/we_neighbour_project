@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/features/services/service_detailsPage.dart';
+import 'package:we_neighbour/features/services/service_details_page.dart';
 import '../widgets/header_widget.dart';
 import '../widgets/feature_grid.dart';
 import '../widgets/bottom_navigation.dart';
@@ -70,14 +71,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Future<void> _loadUserData() async {
     _token = prefs.getString('token');
     if (_token == null) {
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/login');
       return;
     }
 
     final userStatus = prefs.getString('userStatus') ?? 'approved';
     if (userStatus == 'pending' && widget.userType == UserType.resident) {
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/pending-approval');
       return;
     }
@@ -98,24 +99,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       if (response.statusCode == 200) {
         final List<dynamic> servicesJson = jsonDecode(response.body);
         final services = servicesJson.map((json) => Service.fromJson(json)).toList();
-        if (!mounted) return; // Check if still mounted before setState
+        if (!mounted) return;
         setState(() {
           _featuredServices = services;
         });
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
       } else if (response.statusCode == 401) {
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/login');
         throw Exception('Unauthorized: Invalid or expired token');
       }
     } catch (e) {
       logger.d('Error loading services: $e');
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       _showErrorSnackBar('Unable to load services. Please check your connection.');
       final String? servicesJson = prefs.getString('services');
       if (servicesJson != null) {
         final List<dynamic> decodedServices = jsonDecode(servicesJson);
-        if (!mounted) return; // Check if still mounted before setState
+        if (!mounted) return;
         setState(() {
           _featuredServices = decodedServices.map((service) => Service.fromJson(service)).toList();
         });
@@ -124,6 +125,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _showErrorSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -144,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<void> _signOut() async {
     await prefs.clear();
-    if (!mounted) return; // Check if still mounted
+    if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
