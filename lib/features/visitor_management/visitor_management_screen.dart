@@ -205,7 +205,7 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blueAccent.withOpacity(0.1), Colors.white],
+            colors: [Colors.blueAccent.withValues(alpha: 0.5), Colors.white],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -245,7 +245,7 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                           elevation: 5,
-                          shadowColor: Colors.blueAccent.withOpacity(0.5),
+                          shadowColor: Colors.blueAccent.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -265,7 +265,7 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.blueAccent.withOpacity(0.2),
+                              color: Colors.blueAccent.withValues(alpha: 0.5),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
@@ -304,7 +304,7 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                           elevation: 5,
-                          shadowColor: Colors.blue.withOpacity(0.5),
+                          shadowColor: Colors.blue.withValues(alpha: 0.5),
                         ),
                       ),
                     ],

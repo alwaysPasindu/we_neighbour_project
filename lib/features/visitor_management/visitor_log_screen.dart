@@ -55,8 +55,8 @@ class VisitorLogScreen extends StatelessWidget {
                       boxShadow: [
                         BoxShadow(
                           color: isDarkMode 
-                            ? Colors.black.withOpacity(0.4)
-                            : Colors.grey.withOpacity(0.4),
+                            ? Colors.black.withValues(alpha: 0.5)
+                            : Colors.grey.withValues(alpha: 0.5),
                           offset: const Offset(0, 4),
                           blurRadius: 8,
                         ),
@@ -72,7 +72,7 @@ class VisitorLogScreen extends StatelessWidget {
                                 width: 50,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(alpha: 0.5),
                                   borderRadius: BorderRadius.circular(25),
                                 ),
                                 child: Center(
@@ -118,7 +118,7 @@ class VisitorLogScreen extends StatelessWidget {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: _getStatusColor(index).withOpacity(0.1),
+                                  color: _getStatusColor(index).withValues(alpha: 0.5),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -140,7 +140,7 @@ class VisitorLogScreen extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: isDarkMode 
-                              ? Colors.black.withOpacity(0.2)
+                              ? Colors.black.withValues(alpha: 0.5)
                               : Colors.grey.shade50,
                             borderRadius: const BorderRadius.vertical(
                               bottom: Radius.circular(16),

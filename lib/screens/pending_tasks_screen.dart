@@ -55,8 +55,8 @@ class PendingTasksScreen extends StatelessWidget {
                       boxShadow: [
                         BoxShadow(
                           color: isDarkMode 
-                            ? Colors.black.withOpacity(0.4)
-                            : Colors.grey.withOpacity(0.4),
+                            ? Colors.black.withValues(alpha: 0.4)
+                            : Colors.grey.withValues(alpha: 0.4),
                           offset: const Offset(0, 4),
                           blurRadius: 8,
                         ),
@@ -72,7 +72,7 @@ class PendingTasksScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: _getPriorityColor(index).withOpacity(0.1),
+                                  color: _getPriorityColor(index).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
@@ -113,7 +113,7 @@ class PendingTasksScreen extends StatelessWidget {
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: _getPriorityColor(index).withOpacity(0.1),
+                                            color: _getPriorityColor(index).withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(20),
                                           ),
                                           child: Text(
@@ -162,7 +162,7 @@ class PendingTasksScreen extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: isDarkMode 
-                                ? Colors.black.withOpacity(0.2)
+                                ? Colors.black.withValues(alpha: 0.2)
                                 : Colors.grey.shade50,
                               borderRadius: const BorderRadius.vertical(
                                 bottom: Radius.circular(16),

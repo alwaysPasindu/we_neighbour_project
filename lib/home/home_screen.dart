@@ -314,8 +314,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 child: Card(
                                   elevation: _currentPage == index ? 8 : 4,
                                   shadowColor: isDarkMode 
-                                      ? Colors.black.withOpacity(0.4) 
-                                      : Colors.grey.withOpacity(0.4),
+                                      ? Colors.black.withValues(alpha: 0.5)
+                                      : Colors.grey.withValues(alpha: 0.5),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
@@ -344,8 +344,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                                     decoration: BoxDecoration(
                                                       gradient: LinearGradient(
                                                         colors: [
-                                                          AppColors.primary.withOpacity(0.7),
-                                                          AppColors.primary.withOpacity(0.4),
+                                                          AppColors.primary.withValues(alpha: 0.5),
+                                                          AppColors.primary.withValues(alpha: 0.5),
                                                         ],
                                                         begin: Alignment.topLeft,
                                                         end: Alignment.bottomRight,
@@ -369,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                                       end: Alignment.bottomCenter,
                                                       colors: [
                                                         Colors.transparent,
-                                                        Colors.black.withOpacity(0.8),
+                                                        Colors.black.withValues(alpha: 0.5),
                                                       ],
                                                     ),
                                                   ),
@@ -452,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                                         Text(
                                                           service.serviceProviderName,
                                                           style: TextStyle(
-                                                            color: Colors.white.withOpacity(0.9),
+                                                            color: Colors.white.withValues(alpha: 0.5),
                                                             fontSize: 14,
                                                             fontWeight: FontWeight.w500,
                                                             shadows: const [
@@ -573,7 +573,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                     : (isDarkMode
                                         ? AppColors.darkTextSecondary
                                         : AppColors.textSecondary)
-                                        .withOpacity(0.3),
+                                        .withValues(alpha: 0.5),
                               ),
                             ),
                           ),
@@ -624,7 +624,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                       : AppColors.cardBackground,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
+                                      color: Colors.black.withValues(alpha: 0.5),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -647,7 +647,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                           errorBuilder: (_, __, ___) => Container(
                                             width: 100,
                                             height: 120,
-                                            color: AppColors.primary.withOpacity(0.2),
+                                            color: AppColors.primary.withValues(alpha: 0.5),
                                             child: const Icon(
                                               Icons.image_not_supported,
                                               color: AppColors.primary,

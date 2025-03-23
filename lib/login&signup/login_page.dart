@@ -240,8 +240,8 @@ class _LoginPageState extends State<LoginPage>
                     decoration: BoxDecoration(
                       gradient: RadialGradient(
                         colors: [
-                          primaryColor.withOpacity(0.7),
-                          primaryColor.withOpacity(0.0)
+                          primaryColor.withValues(alpha: 0.7),
+                          primaryColor.withValues(alpha: 0.0)
                         ],
                         stops: const [0.0, 1.0],
                       ),
@@ -277,13 +277,13 @@ class _LoginPageState extends State<LoginPage>
                             colors: isDarkMode
                                 ? [
                                     primaryColor,
-                                    secondaryColor.withOpacity(0.8)
+                                    secondaryColor.withValues(alpha: 0.8)
                                   ]
                                 : [secondaryColor, const Color(0xFF4285F4)],
                           ),
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
+                                color: Colors.black.withValues(alpha: 0.2),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10)),
                           ],
@@ -366,18 +366,18 @@ class _LoginPageState extends State<LoginPage>
                             margin: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
                               color: isDarkMode
-                                  ? Colors.white.withOpacity(0.08)
+                                  ? Colors.white.withValues(alpha: 0.08)
                                   : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: !_isEmailValid
-                                    ? Colors.red.withOpacity(0.8)
+                                    ? Colors.red.withValues(alpha: 0.8)
                                     : Colors.transparent,
                                 width: 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2))
                               ],
@@ -410,7 +410,7 @@ class _LoginPageState extends State<LoginPage>
                                   border: InputBorder.none,
                                   prefixIcon: Icon(Icons.email_outlined,
                                       color: isDarkMode
-                                          ? primaryColor.withOpacity(0.9)
+                                          ? primaryColor.withValues(alpha: 0.9)
                                           : primaryColor,
                                       size: 22),
                                   suffixIcon: !_isEmailValid
@@ -435,18 +435,18 @@ class _LoginPageState extends State<LoginPage>
                             margin: const EdgeInsets.symmetric(vertical: 10),
                             decoration: BoxDecoration(
                               color: isDarkMode
-                                  ? Colors.white.withOpacity(0.08)
+                                  ? Colors.white.withValues(alpha: 0.08)
                                   : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: !_isPasswordValid
-                                    ? Colors.red.withOpacity(0.8)
+                                    ? Colors.red.withValues(alpha: 0.8)
                                     : Colors.transparent,
                                 width: 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2))
                               ],
@@ -479,7 +479,7 @@ class _LoginPageState extends State<LoginPage>
                                   border: InputBorder.none,
                                   prefixIcon: Icon(Icons.lock_outline,
                                       color: isDarkMode
-                                          ? primaryColor.withOpacity(0.9)
+                                          ? primaryColor.withValues(alpha: 0.9)
                                           : primaryColor,
                                       size: 22),
                                   suffixIcon: Row(
@@ -599,14 +599,14 @@ class _LoginPageState extends State<LoginPage>
                                 end: Alignment.bottomRight,
                                 colors: _isLoading
                                     ? [
-                                        primaryColor.withOpacity(0.7),
-                                        secondaryColor.withOpacity(0.7)
+                                        primaryColor.withValues(alpha: 0.7),
+                                        secondaryColor.withValues(alpha: 0.7)
                                       ]
                                     : [primaryColor, secondaryColor],
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                    color: primaryColor.withOpacity(0.3),
+                                    color: primaryColor.withValues(alpha: 0.3),
                                     blurRadius: 12,
                                     offset: const Offset(0, 4))
                               ],

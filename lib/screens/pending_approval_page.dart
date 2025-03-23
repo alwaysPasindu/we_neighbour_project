@@ -242,7 +242,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.grey.withOpacity(0.3),
+                                      color: Colors.grey.withValues(alpha: 0.3),
                                       blurRadius: 10,
                                       spreadRadius: 2,
                                     ),

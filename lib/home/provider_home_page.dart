@@ -319,7 +319,7 @@ class _HomePageState extends State<ProviderHomePage> {
                                 : (isDarkMode
                                         ? Colors.grey[400]
                                         : Colors.grey[600])
-                                    ?.withOpacity(0.3),
+                                    ?.withValues(alpha: 0.5),
                           ),
                         ),
                       ),
