@@ -8,8 +8,8 @@ import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui' as ui;
-
 import 'package:we_neighbour/main.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class VisitorManagementScreen extends StatefulWidget {
   const VisitorManagementScreen({super.key});
@@ -23,13 +23,14 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
   bool isLoading = false;
   final _numOfVisitorsController = TextEditingController();
   final GlobalKey _qrKey = GlobalKey();
+  final Logger logger = Logger(); // Added logger instance
 
   Future<String?> getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    print('Retrieved token: $token');
+    logger.d('Retrieved token: $token'); // Replaced print
     if (token == null || token.isEmpty) {
-      print('No valid token found, redirecting to login');
+      logger.d('No valid token found, redirecting to login'); // Replaced print
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/login');
       }
@@ -122,9 +123,9 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
         }),
       ).timeout(const Duration(seconds: 10));
 
-      print('Request: ${response.request}');
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      logger.d('Request: ${response.request}'); // Replaced print
+      logger.d('Response status: ${response.statusCode}'); // Replaced print
+      logger.d('Response body: ${response.body}'); // Replaced print
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -141,12 +142,12 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
             queryParameters: {'apartment': apartmentName},
           ).toString();
         });
-        print('Generated QR data: $qrData');
+        logger.d('Generated QR data: $qrData'); // Replaced print
       } else {
         throw Exception('Failed to generate QR code: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error generating QR code: $e');
+      logger.d('Error generating QR code: $e'); // Replaced print
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -183,7 +184,7 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
         subject: 'Visitor QR Code',
       );
     } catch (e) {
-      print('Error downloading QR code: $e');
+      logger.d('Error downloading QR code: $e'); // Replaced print
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error downloading QR code: $e')),
       );
