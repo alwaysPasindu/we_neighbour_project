@@ -1,18 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 
 class ShareAppScreen extends StatelessWidget {
-  const ShareAppScreen({super.key});
+  ShareAppScreen({super.key});
 
-  void _shareApp() {
-    Share.share(
-      'Check out We-Neighbour, the ultimate community management app for apartment residents! Download now: https://weneighbour.com/app',
-      subject: 'Join your community on We-Neighbour!',
-    );
+  final Logger logger = Logger();
+
+  void _shareApp(BuildContext context) {
+    logger.d('Sharing app via general share');
+    try {
+      Share.share(
+        'Check out We-Neighbour, the ultimate community management app for apartment residents! Download now: https://weneighbour.com/app',
+        subject: 'Join your community on We-Neighbour!',
+      );
+    } catch (e) {
+      logger.e('Error sharing app: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to share: $e')),
+      );
+    }
   }
 
   void _copyLink(BuildContext context) {
+    logger.d('Copying app link to clipboard');
     Clipboard.setData(const ClipboardData(
       text: 'https://weneighbour.com/app',
     )).then((_) {
@@ -22,6 +34,11 @@ class ShareAppScreen extends StatelessWidget {
           duration: Duration(seconds: 2),
         ),
       );
+    }).catchError((e) {
+      logger.e('Error copying link: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to copy link: $e')),
+      );
     });
   }
 
@@ -30,7 +47,7 @@ class ShareAppScreen extends StatelessWidget {
     final List<Map<String, dynamic>> platforms = [
       {
         'name': 'WhatsApp',
-        'icon': Icons.message, // Changed from WhatsApp to message
+        'icon': Icons.chat, // Changed to a more generic chat icon
         'color': const Color(0xFF25D366),
       },
       {
@@ -40,7 +57,7 @@ class ShareAppScreen extends StatelessWidget {
       },
       {
         'name': 'Twitter',
-        'icon': Icons.flutter_dash,
+        'icon': Icons.share, // Changed from flutter_dash to a generic share icon
         'color': const Color(0xFF1DA1F2),
       },
       {
@@ -132,7 +149,7 @@ class ShareAppScreen extends StatelessWidget {
                       if (platforms[index]['name'] == 'Copy Link') {
                         _copyLink(context);
                       } else {
-                        _shareApp();
+                        _shareApp(context);
                       }
                     },
                     borderRadius: BorderRadius.circular(16),
@@ -169,7 +186,7 @@ class ShareAppScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: _shareApp,
+              onPressed: () => _shareApp(context),
               icon: const Icon(Icons.share, color: Colors.white),
               label: const Text(
                 'Share Now',
