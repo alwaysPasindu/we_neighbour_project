@@ -350,7 +350,7 @@ class _SafetyAlertCardState extends State<SafetyAlertCard> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: widget.isDarkMode ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.1),
+              color: widget.isDarkMode ? Colors.black.withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.5),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

@@ -269,7 +269,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
-                            color: _currentImageIndex == index ? AppColors.primary : Colors.white.withOpacity(0.5),
+                            color: _currentImageIndex == index ? AppColors.primary : Colors.white.withValues(alpha: 0.5),
                           ),
                         ),
                       ),

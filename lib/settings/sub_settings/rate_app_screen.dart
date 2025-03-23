@@ -62,7 +62,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Icon(
@@ -147,7 +147,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
                   'Maybe Later',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                    color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                   ),
                 ),
               ),

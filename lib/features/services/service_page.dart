@@ -765,7 +765,7 @@ void _addNewService() {
                     top: 8,
                     right: 8,
                     child: Container(
-                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.7), borderRadius: BorderRadius.circular(20)),
+                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(20)),
                       child: Row(
                         children: [
                           IconButton(icon: const Icon(Icons.edit, color: Colors.white, size: 20), onPressed: () => _editService(service)),
