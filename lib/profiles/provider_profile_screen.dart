@@ -289,31 +289,31 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
               : Text(_nameController.text,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
           const SizedBox(height: 8),
-          _isEditing
-              ? TextFormField(
-                  controller: _usernameController,
-                  style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary),
-                  decoration: InputDecoration(
-                      labelText: 'Username',
-                      labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
-                  validator: (value) => value?.isEmpty ?? true ? 'Username is required' : null,
-                )
-              : Text(_usernameController.text,
-                  style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
-          const SizedBox(height: 16),
-          _isEditing
-              ? TextFormField(
-                  controller: _descriptionController,
-                  maxLines: 3,
-                  style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary),
-                  decoration: InputDecoration(
-                      labelText: 'Description',
-                      labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
-                  validator: (value) => value?.isEmpty ?? true ? 'Description is required' : null,
-                )
-              : Text(_descriptionController.text,
-                  style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
-          const SizedBox(height: 24),
+          // _isEditing
+          //     ? TextFormField(
+          //         controller: _usernameController,
+          //         style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary),
+          //         decoration: InputDecoration(
+          //             labelText: 'Username',
+          //             labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
+          //         validator: (value) => value?.isEmpty ?? true ? 'Username is required' : null,
+          //       )
+          //     : Text(_usernameController.text,
+          //         style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
+          // const SizedBox(height: 16),
+          // _isEditing
+          //     ? TextFormField(
+          //         controller: _descriptionController,
+          //         maxLines: 3,
+          //         style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary),
+          //         decoration: InputDecoration(
+          //             labelText: 'Description',
+          //             labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
+          //         validator: (value) => value?.isEmpty ?? true ? 'Description is required' : null,
+          //       )
+          //     : Text(_descriptionController.text,
+          //         style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
+          // const SizedBox(height: 24),
           // _buildStatistics(),
           const SizedBox(height: 24),
           _buildContactInfo(isDarkMode),
@@ -352,7 +352,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         const SizedBox(height: 12),
         _buildContactItem(Icons.email, _emailController, 'Email', isDarkMode),
         _buildContactItem(Icons.phone, _phoneController, 'Phone', isDarkMode),
-        _buildContactItem(Icons.location_on, _addressController, 'Address', isDarkMode),
+        // _buildContactItem(Icons.location_on, _addressController, 'Address', isDarkMode),
       ],
     );
   }
