@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
+import 'package:we_neighbour/widgets/share_dialog.dart';
+import '../models/resource.dart';
 
 class ResourceCard extends StatelessWidget {
   final String title;
@@ -21,7 +24,8 @@ class ResourceCard extends StatelessWidget {
     required this.userId,
     required this.currentUserId,
     required this.isDarkMode,
-    this.onShare, this.onDelete,
+    this.onShare,
+    this.onDelete,
   });
 
   @override
@@ -51,7 +55,7 @@ class ResourceCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '⚙️', // Gear icon for resources
+                  '🔄', //  icon for resources
                   style: TextStyle(fontSize: 24),
                 ),
                 const SizedBox(width: 12),
