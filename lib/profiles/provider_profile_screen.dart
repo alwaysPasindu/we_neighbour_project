@@ -333,15 +333,6 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   //   );
   // }
 
-  Widget _buildStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-      ],
-    );
-  }
 
   Widget _buildContactInfo(bool isDarkMode) {
     return Column(
