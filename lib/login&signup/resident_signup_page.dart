@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:we_neighbour/main.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class ResidentSignUpPage extends StatefulWidget {
   const ResidentSignUpPage({super.key});
@@ -23,6 +24,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
   List<String> _apartments = [];
   bool _isLoading = false;
   bool _isFetchingApartments = true;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -55,7 +57,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
         throw 'Failed to fetch apartments: ${response.statusCode}';
       }
     } catch (e) {
-      print('Error fetching apartments: $e');
+      logger.d('Error fetching apartments: $e'); // Replaced print
       setState(() => _isFetchingApartments = false);
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load apartments: $e')));
@@ -112,13 +114,13 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                 content: Text(responseData['message'] ??
                     'Failed to sign up: ${response.body}')),
           );
-          print('Failed to sign up. Error: ${response.body}');
+          logger.d('Failed to sign up. Error: ${response.body}'); // Replaced print
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Network error: $e')),
         );
-        print('Error occurred: $e');
+        logger.d('Error occurred: $e'); // Replaced print
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }

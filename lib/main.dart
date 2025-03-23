@@ -26,6 +26,7 @@ import 'package:we_neighbour/screens/reports_screen.dart';
 import 'package:we_neighbour/screens/residents_requests_screen.dart';
 import 'package:we_neighbour/settings/settings_screen.dart';
 import 'package:we_neighbour/splashScreen/splash_screen.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 enum UserType { resident, manager, serviceProvider }
 
@@ -34,6 +35,7 @@ const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(); // Still initialize Firebase for Firestore
+  final Logger logger = Logger(); // Logger instance for main function
   try {
     final prefs = await SharedPreferences.getInstance();
     final isDarkMode = prefs.getBool('isDarkMode') ?? false;
@@ -47,7 +49,7 @@ void main() async {
       ),
     );
   } catch (e) {
-    print('Error initializing app: $e');
+    logger.d('Error initializing app: $e'); // Replaced print
     runApp(
       MultiProvider(
         providers: [
@@ -72,6 +74,7 @@ class _MyAppState extends State<MyApp> {
   UserType _userType = UserType.resident;
   String? _token;
   bool _isLoading = true;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -121,7 +124,7 @@ class _MyAppState extends State<MyApp> {
         });
       }
     } catch (e) {
-      print('Error checking login status: $e');
+      logger.d('Error checking login status: $e'); // Replaced print
       setState(() {
         _isLoggedIn = false;
         _isLoading = false;

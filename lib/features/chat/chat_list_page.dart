@@ -7,6 +7,7 @@ import 'package:we_neighbour/constants/text_styles.dart';
 import 'package:we_neighbour/models/chat.dart';
 import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
+import 'package:logger/logger.dart'; // Logger package is already imported
 import 'chat_screen.dart';
 
 class ChatListPage extends StatefulWidget {
@@ -17,6 +18,9 @@ class ChatListPage extends StatefulWidget {
 }
 
 class _ChatListPageState extends State<ChatListPage> {
+  // Initialize the Logger instance
+  final logger = Logger();
+
   @override
   void initState() {
     super.initState();
@@ -176,7 +180,7 @@ class _ChatListPageState extends State<ChatListPage> {
             .get();
         return otherUserDoc.data()?['name'] ?? 'Unknown User';
       } catch (e) {
-        print('Error fetching user name: $e');
+        logger.d('Error fetching user name: $e'); // Now this will work with the initialized logger
         return 'Unknown User';
       }
     }

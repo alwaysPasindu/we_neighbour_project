@@ -15,6 +15,7 @@ import 'package:we_neighbour/widgets/resource_card.dart';
 import 'package:we_neighbour/features/chat/chat_screen.dart';
 import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class ResourceSharingPage extends StatefulWidget {
   const ResourceSharingPage({super.key});
@@ -28,6 +29,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   bool _isLoading = true;
   String? userId;
   String? authToken;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -46,7 +48,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     final apartmentName = prefs.getString('userApartment') ?? 'UnknownApartment';
     if (userId != null && userId!.isNotEmpty && chatProvider.currentUserId != userId) {
       chatProvider.setUser(userId!, apartmentName);
-      print('ResourceSharingPage: User data loaded - userId: $userId, apartmentName: $apartmentName');
+      logger.d('ResourceSharingPage: User data loaded - userId: $userId, apartmentName: $apartmentName'); // Replaced print
     }
   }
 
@@ -77,7 +79,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           resources = data.map((r) => model.Resource.fromJson(r)).toList();
           _isLoading = false;
         });
-        print('ResourceSharingPage: Resources fetched successfully - count: ${resources.length}');
+        logger.d('ResourceSharingPage: Resources fetched successfully - count: ${resources.length}'); // Replaced print
       } else {
         throw Exception('Failed to load resources: ${response.statusCode}');
       }
@@ -86,7 +88,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching resources: $e')),
       );
-      print('ResourceSharingPage: Error fetching resources: $e');
+      logger.d('ResourceSharingPage: Error fetching resources: $e'); // Replaced print
     }
   }
 
@@ -122,7 +124,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Resource request created successfully')),
         );
-        print('ResourceSharingPage: Resource created - id: ${newResource.id}');
+        logger.d('ResourceSharingPage: Resource created - id: ${newResource.id}'); // Replaced print
       } else {
         throw Exception('Failed to create resource: ${response.statusCode} - ${response.body}');
       }
@@ -130,7 +132,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error creating resource: $e')),
       );
-      print('ResourceSharingPage: Error creating resource: $e');
+
+      logger.d('ResourceSharingPage: Error creating resource: $e'); // Replaced print
 
     }
   }
@@ -155,7 +158,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Resource request deleted successfully')),
         );
-        print('ResourceSharingPage: Resource deleted - id: $id');
+        logger.d('ResourceSharingPage: Resource deleted - id: $id'); // Replaced print
       } else {
         throw Exception('Failed to delete resource: ${response.statusCode}');
       }
@@ -164,7 +167,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error deleting resource: $e')),
       );
-      print('ResourceSharingPage: Error deleting resource: $e');
+
+      logger.d('ResourceSharingPage: Error deleting resource: $e'); // Replaced print
 
     }
   }
@@ -175,14 +179,14 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User not authenticated. Please log in again.')),
       );
-      print('ResourceSharingPage: User not authenticated - currentUserId: ${chatProvider.currentUserId}');
+      logger.d('ResourceSharingPage: User not authenticated - currentUserId: ${chatProvider.currentUserId}'); // Replaced print
       return;
     }
     try {
       final chatId = await chatProvider.getOrCreateChat(resourceUserId);
       final resourceMessage = "[Resource Share] $message";
       await chatProvider.sendResourceMessage(chatId, resourceMessage, resourceUserId); // Add resourceUserId
-      print('ResourceSharingPage: Chat initiated - chatId: $chatId, resourceUserId: $resourceUserId');
+      logger.d('ResourceSharingPage: Chat initiated - chatId: $chatId, resourceUserId: $resourceUserId'); // Replaced print
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -190,7 +194,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         ),
       );
     } catch (e) {
-      print('ResourceSharingPage: Chat initiation error: $e');
+      logger.d('ResourceSharingPage: Chat initiation error: $e'); // Replaced print
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error initiating chat: $e')),
       );

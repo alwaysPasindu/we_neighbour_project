@@ -7,6 +7,7 @@ import 'package:we_neighbour/models/message.dart';
 import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart'; // Add this import
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -23,6 +24,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _canReply = true; // Default to true
   bool _isLoading = true;
+  final logger = Logger(); // Initialize Logger instance
 
   @override
   void initState() {
@@ -31,15 +33,15 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _initializeChat() async {
-    print('Initializing chat for chatId: ${widget.chatId}');
+    logger.d('Initializing chat for chatId: ${widget.chatId}'); // Replaced print
     await _checkReplyPermission();
-    print('After permission check - _canReply: $_canReply, _isLoading: $_isLoading');
+    logger.d('After permission check - _canReply: $_canReply, _isLoading: $_isLoading'); // Replaced print
     _scrollToBottom();
     if (mounted) {
       setState(() {
         _isLoading = false;
       });
-      print('Set _isLoading to false');
+      logger.d('Set _isLoading to false'); // Replaced print
     }
   }
 
@@ -48,19 +50,19 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final chatDoc = await FirebaseFirestore.instance.collection('chats').doc(widget.chatId).get();
       if (!chatDoc.exists) {
-        print('Chat document does not exist for chatId: ${widget.chatId}');
+        logger.d('Chat document does not exist for chatId: ${widget.chatId}'); // Replaced print
         _canReply = true; // Default to true if chat doesn't exist yet
         return;
       }
       final isResourceChat = chatDoc.data()?['isResourceChat'] ?? false;
       final participants = List<String>.from(chatDoc.data()?['participants'] ?? []);
-      print('isResourceChat: $isResourceChat, participants: $participants, currentUserId: ${chatProvider.currentUserId}');
+      logger.d('isResourceChat: $isResourceChat, participants: $participants, currentUserId: ${chatProvider.currentUserId}'); // Replaced print
 
       // Allow both sender and receiver to reply in all chats (resource or not)
       _canReply = true;
-      print('Setting _canReply to true for all users');
+      logger.d('Setting _canReply to true for all users'); // Replaced print
     } catch (e) {
-      print('Error checking reply permission: $e');
+      logger.d('Error checking reply permission: $e'); // Replaced print
       _canReply = true; // Default to true on error
     }
   }
@@ -268,7 +270,7 @@ class _ChatScreenState extends State<ChatScreen> {
             .get();
         return userDoc.data()?['name'] ?? 'Unknown User';
       } catch (e) {
-        print('Error fetching user name: $e');
+        logger.d('Error fetching user name: $e'); // Replaced print
         return 'Unknown User';
       }
     }

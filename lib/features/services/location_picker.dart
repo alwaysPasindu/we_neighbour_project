@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart'; // For geocoding functionality
 import 'package:geolocator/geolocator.dart'; // For location permissions
 import 'dart:async';
+import 'package:logger/logger.dart'; // Added logger import
 
 class LocationPicker extends StatefulWidget {
   final double initialLatitude;
@@ -23,6 +24,7 @@ class _LocationPickerState extends State<LocationPicker> {
   late LatLng _currentPosition;
   final TextEditingController _searchController = TextEditingController();
   List<Placemark> _placemarks = []; // Store Placemark objects from geocoding
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -88,7 +90,7 @@ class _LocationPickerState extends State<LocationPicker> {
         });
       }
     } catch (e) {
-      print('Error fetching address: $e');
+      logger.d('Error fetching address: $e'); // Replaced print
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error fetching address')));
     }
   }
@@ -125,7 +127,7 @@ class _LocationPickerState extends State<LocationPicker> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location not found')));
       }
     } catch (e) {
-      print('Error searching location: $e');
+      logger.d('Error searching location: $e'); // Replaced print
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error searching location')));
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -17,6 +18,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final _addressController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _selectedApartment;
+  final Logger logger = Logger(); // Added logger instance
 
   final List<String> _apartments = [
     'Green Valley Apartments',
@@ -76,22 +78,21 @@ class _SignUpPageState extends State<SignUpPage> {
     return RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
   }
 
-    bool _isStrongPassword(String password) {
-  return password.length >= 6 && 
-         password.contains(RegExp(r'[0-9]')) && 
-         password.contains(RegExp(r'[a-zA-Z]'));
-}
-
+  bool _isStrongPassword(String password) {
+    return password.length >= 6 &&
+        password.contains(RegExp(r'[0-9]')) &&
+        password.contains(RegExp(r'[a-zA-Z]'));
+  }
 
   void _handleSignUp() {
     if (_formKey.currentState!.validate()) {
-      print('Name: ${_nameController.text}');
-      print('NIC: ${_nicController.text}');
-      print('Email: ${_emailController.text}');
-      print('Contact: ${_contactController.text}');
-      print('Address: ${_addressController.text}');
-      print('Apartment: $_selectedApartment');
-      
+      logger.d('Name: ${_nameController.text}'); // Replaced print
+      logger.d('NIC: ${_nicController.text}'); // Replaced print
+      logger.d('Email: ${_emailController.text}'); // Replaced print
+      logger.d('Contact: ${_contactController.text}'); // Replaced print
+      logger.d('Address: ${_addressController.text}'); // Replaced print
+      logger.d('Apartment: $_selectedApartment'); // Replaced print
+
       Navigator.pop(context);
     }
   }
@@ -123,7 +124,8 @@ class _SignUpPageState extends State<SignUpPage> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[600]),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
           errorStyle: const TextStyle(
             color: Colors.red,
@@ -156,7 +158,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   Text(
                     _getTitle,
                     style: const TextStyle(
@@ -166,7 +167,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
                   _buildTextField(
                     hint: 'Name',
                     controller: _nameController,
@@ -185,7 +185,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'NIC',
                     controller: _nicController,
@@ -204,7 +203,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Email',
                     controller: _emailController,
@@ -220,7 +218,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Contact No',
                     controller: _contactController,
@@ -239,7 +236,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Address',
                     controller: _addressController,
@@ -255,7 +251,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
@@ -268,7 +263,8 @@ class _SignUpPageState extends State<SignUpPage> {
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                         border: InputBorder.none,
                         errorStyle: TextStyle(
                           color: Colors.red,
@@ -295,7 +291,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   _buildTextField(
                     hint: 'Password',
                     controller: _passwordController,
@@ -312,7 +307,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   const SizedBox(height: 32),
-
                   ElevatedButton(
                     onPressed: _handleSignUp,
                     style: ElevatedButton.styleFrom(
@@ -332,7 +326,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

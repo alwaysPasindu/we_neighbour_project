@@ -9,6 +9,7 @@ import 'dart:io';
 import '../constants/colors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:logger/logger.dart'; // Added logger import
 
 class CompanyProfileScreen extends StatefulWidget {
   const CompanyProfileScreen({super.key});
@@ -23,6 +24,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   String? _profileImagePath;
   String? _token;
   bool _isLoading = true;
+  final Logger logger = Logger(); // Added logger instance
 
   final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -42,7 +44,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('token');
     if (_token == null) {
-      print('No token found, navigating to login');
+      logger.d('No token found, navigating to login'); // Replaced print
       if (mounted) Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       return;
     }
@@ -66,7 +68,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         setState(() => _profileImagePath = imagePath);
       }
     } catch (e) {
-      print('Error loading profile image: $e');
+      logger.d('Error loading profile image: $e'); // Replaced print
     }
   }
 
@@ -90,7 +92,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile photo updated')));
       }
     } catch (e) {
-      print('Error picking image: $e');
+      logger.d('Error picking image: $e'); // Replaced print
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
@@ -122,11 +124,11 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         await prefs.setString('username', _usernameController.text);
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
       } else {
-        print('Failed to update profile: ${response.statusCode} - ${response.body}');
+        logger.d('Failed to update profile: ${response.statusCode} - ${response.body}'); // Replaced print
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to update profile on server')));
       }
     } catch (e) {
-      print('Error saving profile data: $e');
+      logger.d('Error saving profile data: $e'); // Replaced print
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }

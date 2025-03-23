@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:we_neighbour/utils/auth_utils.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final Logger logger = Logger(); // Added logger instance
 
   // Helper to get the current user ID
   Future<String?> _getCurrentUserId() async {
@@ -36,9 +38,9 @@ class FirebaseService {
         'creatorId': userId,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      print('Event added successfully: $title on $date');
+      logger.d('Event added successfully: $title on $date'); // Replaced print
     } catch (e) {
-      print('Error adding event: $e');
+      logger.d('Error adding event: $e'); // Replaced print
       rethrow;
     }
   }
@@ -63,9 +65,9 @@ class FirebaseService {
         'creatorId': userId,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      print('Amenity booked successfully: $amenityName');
+      logger.d('Amenity booked successfully: $amenityName'); // Replaced print
     } catch (e) {
-      print('Error booking amenity: $e');
+      logger.d('Error booking amenity: $e'); // Replaced print
       rethrow;
     }
   }
@@ -90,9 +92,9 @@ class FirebaseService {
         'creatorId': userId,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      print('Health activity booked successfully: $activityName');
+      logger.d('Health activity booked successfully: $activityName'); // Replaced print
     } catch (e) {
-      print('Error booking health activity: $e');
+      logger.d('Error booking health activity: $e'); // Replaced print
       rethrow;
     }
   }
@@ -100,10 +102,10 @@ class FirebaseService {
   // Get events stream
   Stream<QuerySnapshot> getEvents() {
     try {
-      print('Getting events from Firestore');
+      logger.d('Getting events from Firestore'); // Replaced print
       return _firestore.collection('events').orderBy('date').snapshots();
     } catch (e) {
-      print('Error getting events: $e');
+      logger.d('Error getting events: $e'); // Replaced print
       rethrow;
     }
   }
@@ -111,7 +113,7 @@ class FirebaseService {
   // Get events once
   Future<List<Map<String, dynamic>>> getEventsOnce() async {
     try {
-      print('Getting events once from Firestore');
+      logger.d('Getting events once from Firestore'); // Replaced print
       final snapshot = await _firestore.collection('events').orderBy('date').get();
 
       return snapshot.docs.map((doc) {
@@ -120,7 +122,7 @@ class FirebaseService {
         return data;
       }).toList();
     } catch (e) {
-      print('Error getting events once: $e');
+      logger.d('Error getting events once: $e'); // Replaced print
       return [];
     }
   }
@@ -133,9 +135,9 @@ class FirebaseService {
         'date': date,
         'updatedAt': FieldValue.serverTimestamp(),
       });
-      print('Event updated successfully: $docId');
+      logger.d('Event updated successfully: $docId'); // Replaced print
     } catch (e) {
-      print('Error updating event: $e');
+      logger.d('Error updating event: $e'); // Replaced print
       rethrow;
     }
   }
@@ -144,9 +146,9 @@ class FirebaseService {
   Future<void> deleteEvent(String docId) async {
     try {
       await _firestore.collection('events').doc(docId).delete();
-      print('Event deleted successfully: $docId');
+      logger.d('Event deleted successfully: $docId'); // Replaced print
     } catch (e) {
-      print('Error deleting event: $e');
+      logger.d('Error deleting event: $e'); // Replaced print
       rethrow;
     }
   }

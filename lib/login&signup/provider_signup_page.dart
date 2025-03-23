@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/main.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class ServiceProviderSignUpPage extends StatefulWidget {
   const ServiceProviderSignUpPage({super.key});
@@ -20,6 +21,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
   final _contactController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void dispose() {
@@ -81,13 +83,13 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                 content: Text(responseData['message'] ??
                     'Sign-up failed: ${response.body}')),
           );
-          print('Failed to sign up: ${response.body}');
+          logger.d('Failed to sign up: ${response.body}'); // Replaced print
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Network error: $e')),
         );
-        print('Network error: $e');
+        logger.d('Network error: $e'); // Replaced print
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }

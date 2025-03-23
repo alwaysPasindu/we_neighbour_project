@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/main.dart';
 import 'dart:convert';
+import 'package:logger/logger.dart'; // Added logger import
 
 class CreateMaintenanceRequestScreen extends StatefulWidget {
   final String authToken;
@@ -24,6 +25,7 @@ class _CreateMaintenanceRequestScreenState
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   bool _isLoading = false;
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void dispose() {
@@ -47,8 +49,8 @@ class _CreateMaintenanceRequestScreenState
           'status': 'pending',
           // No need to send apartmentCode here; it’s fetched from Resident on the backend
         });
-        print('Submitting request with headers: $headers');
-        print('Request body: $body');
+        logger.d('Submitting request with headers: $headers'); // Replaced print
+        logger.d('Request body: $body'); // Replaced print
         final response = await http
             .post(
               Uri.parse('$baseUrl/api/maintenance/create-request'),
@@ -57,7 +59,7 @@ class _CreateMaintenanceRequestScreenState
             )
             .timeout(const Duration(seconds: 15));
 
-        print('Create response: ${response.statusCode} - ${response.body}');
+        logger.d('Create response: ${response.statusCode} - ${response.body}'); // Replaced print
 
         if (response.statusCode == 201) {
           if (mounted) {
@@ -74,10 +76,10 @@ class _CreateMaintenanceRequestScreenState
           throw Exception(data['message'] ?? 'Failed to create request');
         }
       } on TimeoutException {
-        print('Create request timed out');
+        logger.d('Create request timed out'); // Replaced print
         throw Exception('Request timed out. Please check your network.');
       } catch (e) {
-        print('Error creating request: $e');
+        logger.d('Error creating request: $e'); // Replaced print
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

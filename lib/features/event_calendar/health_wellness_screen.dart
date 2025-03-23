@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:we_neighbour/features/event_calendar/firebase_service.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class HealthWellnessScreen extends StatefulWidget {
   const HealthWellnessScreen({super.key});
@@ -11,6 +12,7 @@ class HealthWellnessScreen extends StatefulWidget {
 
 class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
   final FirebaseService _firebaseService = FirebaseService();
+  final Logger logger = Logger(); // Added logger instance
   final List<Map<String, dynamic>> _activities = [
     {'name': 'Spa', 'icon': Icons.spa},
     {'name': 'Yoga', 'icon': Icons.self_improvement},
@@ -222,7 +224,7 @@ class _HealthWellnessScreenState extends State<HealthWellnessScreen> {
                       Navigator.of(context).pop();
                       Navigator.of(context).pop(); // Go back to calendar screen
                     } catch (e) {
-                      print('Error booking activity: $e');
+                      logger.d('Error booking activity: $e'); // Replaced print
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Failed to book activity: $e')),
                       );
