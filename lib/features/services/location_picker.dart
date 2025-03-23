@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geocoding/geocoding.dart'; // For geocoding functionality
-import 'package:geolocator/geolocator.dart'; // For location permissions
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:async';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class LocationPicker extends StatefulWidget {
   final double initialLatitude;
@@ -16,15 +16,15 @@ class LocationPicker extends StatefulWidget {
   });
 
   @override
-  _LocationPickerState createState() => _LocationPickerState();
+  State<LocationPicker> createState() => _LocationPickerState();
 }
 
 class _LocationPickerState extends State<LocationPicker> {
   late GoogleMapController _mapController;
   late LatLng _currentPosition;
   final TextEditingController _searchController = TextEditingController();
-  List<Placemark> _placemarks = []; // Store Placemark objects from geocoding
-  final Logger logger = Logger(); // Added logger instance
+  List<Placemark> _placemarks = [];
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -46,6 +46,7 @@ class _LocationPickerState extends State<LocationPicker> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location services are disabled.')));
       return;
     }
@@ -54,18 +55,21 @@ class _LocationPickerState extends State<LocationPicker> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions are denied.')));
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions are permanently denied, we cannot request permissions.')));
       return;
     }
 
-    // Get current location if needed (optional, since we have initial coordinates)
+    // Get current location if needed
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    if (!mounted) return; // Check if still mounted before setState
     setState(() {
       _currentPosition = LatLng(position.latitude, position.longitude);
     });
@@ -84,13 +88,15 @@ class _LocationPickerState extends State<LocationPicker> {
       final placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _searchController.text = '${placemark.street ?? ''}, ${placemark.locality ?? ''}, ${placemark.country ?? ''}'.trim();
           _placemarks = placemarks;
         });
       }
     } catch (e) {
-      logger.d('Error fetching address: $e'); // Replaced print
+      logger.d('Error fetching address: $e');
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error fetching address')));
     }
   }
@@ -104,6 +110,7 @@ class _LocationPickerState extends State<LocationPicker> {
           final latitude = double.tryParse(coords[0]) ?? 0.0;
           final longitude = double.tryParse(coords[1]) ?? 0.0;
           if (latitude != 0.0 && longitude != 0.0) {
+            if (!mounted) return; // Check if still mounted before setState
             setState(() {
               _currentPosition = LatLng(latitude, longitude);
             });
@@ -118,16 +125,19 @@ class _LocationPickerState extends State<LocationPicker> {
       final locations = await locationFromAddress(query);
       if (locations.isNotEmpty) {
         final location = locations.first;
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _currentPosition = LatLng(location.latitude, location.longitude);
         });
         _mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition));
         await _fetchAddress(location.latitude, location.longitude);
       } else {
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location not found')));
       }
     } catch (e) {
-      logger.d('Error searching location: $e'); // Replaced print
+      logger.d('Error searching location: $e');
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error searching location')));
     }
   }
@@ -183,6 +193,7 @@ class _LocationPickerState extends State<LocationPicker> {
             padding: const EdgeInsets.all(16),
             child: ElevatedButton(
               onPressed: () {
+                if (!mounted) return; // Check if still mounted before popping
                 Navigator.pop(context, _currentPosition);
               },
               child: const Text('Select Location'),
