@@ -21,8 +21,7 @@ class ResourceCard extends StatelessWidget {
     required this.userId,
     required this.currentUserId,
     required this.isDarkMode,
-    this.onShare,
-    this.onDelete,
+    this.onShare, this.onDelete,
   });
 
   @override
