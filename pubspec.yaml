@@ -35,6 +35,7 @@ dependencies:
   permission_handler: ^11.4.0
   http: ^1.2.2
   barcode_scan2: ^4.2.0
+  logger: ^2.5.0
   # qr_code_scanner: ^1.0.0
 
   table_calendar: ^3.0.9
