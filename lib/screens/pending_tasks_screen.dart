@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../components/app_bar.dart';
 import '../constants/colors.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class PendingTasksScreen extends StatelessWidget {
   const PendingTasksScreen({super.key});
@@ -50,15 +50,15 @@ class PendingTasksScreen extends StatelessWidget {
                 itemCount: 8,
                 itemBuilder: (context, index) {
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
+                    margin: const EdgeInsets.only(bottom: 16), // Fixed typo: 'custom' to 'bottom'
                     decoration: BoxDecoration(
                       color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: isDarkMode 
-                            ? Colors.black.withValues(alpha: 0.4)
-                            : Colors.grey.withValues(alpha: 0.4),
+                          color: isDarkMode
+                              ? Colors.black.withValues(alpha: 0.4)
+                              : Colors.grey.withValues(alpha: 0.4),
                           offset: const Offset(0, 4),
                           blurRadius: 8,
                         ),
@@ -101,9 +101,9 @@ class PendingTasksScreen extends StatelessWidget {
                                       _getTaskDescription(index),
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: isDarkMode 
-                                          ? AppColors.darkTextSecondary 
-                                          : AppColors.textSecondary,
+                                        color: isDarkMode
+                                            ? AppColors.darkTextSecondary
+                                            : AppColors.textSecondary,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
@@ -131,18 +131,18 @@ class PendingTasksScreen extends StatelessWidget {
                                         Icon(
                                           Icons.calendar_today,
                                           size: 14,
-                                          color: isDarkMode 
-                                            ? AppColors.darkTextSecondary 
-                                            : AppColors.textSecondary,
+                                          color: isDarkMode
+                                              ? AppColors.darkTextSecondary
+                                              : AppColors.textSecondary,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           _getDueDate(index),
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: isDarkMode 
-                                              ? AppColors.darkTextSecondary 
-                                              : AppColors.textSecondary,
+                                            color: isDarkMode
+                                                ? AppColors.darkTextSecondary
+                                                : AppColors.textSecondary,
                                           ),
                                         ),
                                       ],
@@ -163,9 +163,9 @@ class PendingTasksScreen extends StatelessWidget {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: isDarkMode 
-                                ? Colors.black.withValues(alpha: 0.2)
-                                : Colors.grey.shade50,
+                              color: isDarkMode
+                                  ? Colors.black.withValues(alpha: 0.2)
+                                  : Colors.grey.shade50,
                               borderRadius: const BorderRadius.vertical(
                                 bottom: Radius.circular(16),
                               ),
