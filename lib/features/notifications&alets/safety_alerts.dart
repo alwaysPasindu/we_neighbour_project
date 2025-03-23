@@ -6,7 +6,7 @@ import '../../constants/text_styles.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class SafetyAlert {
   final String id;
@@ -27,7 +27,7 @@ class SafetyAlert {
     return SafetyAlert(
       id: json['_id'],
       title: json['title'],
-      description: json['description'] ?? json['message'], // Fallback to 'message' if 'description' not used
+      description: json['description'] ?? json['message'],
       createdByName: json['createdBy']['name'] ?? 'Unknown',
       createdAt: DateTime.parse(json['createdAt']),
     );
@@ -38,14 +38,14 @@ class SafetyAlertsScreen extends StatefulWidget {
   const SafetyAlertsScreen({super.key});
 
   @override
-  _SafetyAlertsScreenState createState() => _SafetyAlertsScreenState();
+  State<SafetyAlertsScreen> createState() => _SafetyAlertsScreenState();
 }
 
 class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
   List<SafetyAlert> alerts = [];
   bool _isLoading = true;
   String? userRole;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -58,14 +58,14 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userRole = prefs.getString('userRole')?.toLowerCase();
-      logger.d('Loaded User Role: $userRole'); // Replaced print
+      logger.d('Loaded User Role: $userRole');
     });
   }
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    logger.d('Retrieved token: $token'); // Replaced print
+    logger.d('Retrieved token: $token');
     return token;
   }
 
@@ -73,19 +73,19 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
     final token = await _getToken();
     if (token == null) {
       setState(() => _isLoading = false);
-      logger.d('No token available'); // Replaced print
+      logger.d('No token available');
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      logger.d('Fetching alerts from: $baseUrl/api/safety-alerts/get-alerts'); // Replaced print
+      logger.d('Fetching alerts from: $baseUrl/api/safety-alerts/get-alerts');
       final response = await http.get(
         Uri.parse('$baseUrl/api/safety-alerts/get-alerts'),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 30));
 
-      logger.d('Fetch response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Fetch response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
@@ -96,31 +96,30 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
         throw Exception('Failed to fetch alerts: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Fetch error: $e'); // Replaced print
+      logger.d('Fetch error: $e');
       setState(() => _isLoading = false);
-      if (mounted) {
-        String errorMessage = 'Failed to load alerts: $e';
-        if (e.toString().contains('Connection refused')) {
-          errorMessage = 'Cannot reach server. Check your network or server status.';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+      if (!mounted) return; // Check if still mounted
+      String errorMessage = 'Failed to load alerts: $e';
+      if (e.toString().contains('Connection refused')) {
+        errorMessage = 'Cannot reach server. Check your network or server status.';
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
   }
 
   Future<void> _createAlert(String title, String description) async {
     final token = await _getToken();
     if (token == null) {
-      logger.d('No token available for create'); // Replaced print
+      logger.d('No token available for create');
       return;
     }
 
     try {
       final requestBody = jsonEncode({'title': title, 'description': description});
-      logger.d('Create request: $baseUrl/api/safety-alerts/create-alerts'); // Replaced print
-      logger.d('Create request body: $requestBody'); // Replaced print
+      logger.d('Create request: $baseUrl/api/safety-alerts/create-alerts');
+      logger.d('Create request body: $requestBody');
       final response = await http.post(
         Uri.parse('$baseUrl/api/safety-alerts/create-alerts'),
         headers: {
@@ -130,14 +129,13 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
         body: requestBody,
       ).timeout(const Duration(seconds: 15));
 
-      logger.d('Create response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Create response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 201) {
-        _fetchAlerts();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Alert created successfully')),
-          );
-        }
+        await _fetchAlerts();
+        if (!mounted) return; // Check if still mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Alert created successfully')),
+        );
       } else if (response.statusCode == 403) {
         throw Exception('Unauthorized: You may not have permission to create alerts');
       } else if (response.statusCode == 500) {
@@ -146,16 +144,15 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
         throw Exception('Failed to create: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Create error: $e'); // Replaced print
-      if (mounted) {
-        String errorMessage = 'Error creating alert: $e';
-        if (e.toString().contains('Connection refused')) {
-          errorMessage = 'Cannot reach server. Check your network or server status.';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+      logger.d('Create error: $e');
+      if (!mounted) return; // Check if still mounted
+      String errorMessage = 'Error creating alert: $e';
+      if (e.toString().contains('Connection refused')) {
+        errorMessage = 'Cannot reach server. Check your network or server status.';
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
   }
 
@@ -164,30 +161,28 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
     if (token == null) return;
 
     try {
-      logger.d('Delete request: $baseUrl/api/safety-alerts/delete-alerts/$id'); // Replaced print
+      logger.d('Delete request: $baseUrl/api/safety-alerts/delete-alerts/$id');
       final response = await http.delete(
         Uri.parse('$baseUrl/api/safety-alerts/delete-alerts/$id'),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 15));
 
-      logger.d('Delete response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Delete response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
-        _fetchAlerts();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Alert deleted')),
-          );
-        }
+        await _fetchAlerts();
+        if (!mounted) return; // Check if still mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Alert deleted')),
+        );
       } else {
         throw Exception('Failed to delete: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Delete error: $e'); // Replaced print
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting alert: $e')),
-        );
-      }
+      logger.d('Delete error: $e');
+      if (!mounted) return; // Check if still mounted
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting alert: $e')),
+      );
     }
   }
 
@@ -198,7 +193,7 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text('New Safety Alert', style: AppTextStyles.getGreetingStyle(isDarkMode)),
@@ -223,19 +218,19 @@ class _SafetyAlertsScreenState extends State<SafetyAlertsScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text('Cancel', style: AppTextStyles.getBodyTextStyle(isDarkMode)),
           ),
           ElevatedButton(
             onPressed: () {
               if (titleController.text.isEmpty || descriptionController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
                   const SnackBar(content: Text('Please fill in both fields')),
                 );
                 return;
               }
               _createAlert(titleController.text, descriptionController.text);
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isDarkMode ? AppColors.primary : const Color.fromARGB(255, 0, 18, 255),

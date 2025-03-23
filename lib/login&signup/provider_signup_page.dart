@@ -3,14 +3,13 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/main.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class ServiceProviderSignUpPage extends StatefulWidget {
   const ServiceProviderSignUpPage({super.key});
 
   @override
-  State<ServiceProviderSignUpPage> createState() =>
-      _ServiceProviderSignUpPageState();
+  State<ServiceProviderSignUpPage> createState() => _ServiceProviderSignUpPageState();
 }
 
 class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
@@ -21,7 +20,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
   final _contactController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void dispose() {
@@ -67,31 +66,32 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
 
         final responseData = json.decode(response.body);
         if (response.statusCode == 201) {
+          if (!mounted) return; // Check if still mounted
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(responseData['message'] ??
-                    'Service provider registered successfully!')),
+                content: Text(responseData['message'] ?? 'Service provider registered successfully!')),
           );
           await Future.delayed(const Duration(seconds: 3));
-          if (mounted) {
-            Navigator.pushNamedAndRemoveUntil(
-                context, '/login', (route) => false);
-          }
+          if (!mounted) return; // Check if still mounted
+          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
         } else {
+          if (!mounted) return; // Check if still mounted
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(responseData['message'] ??
-                    'Sign-up failed: ${response.body}')),
+                content: Text(responseData['message'] ?? 'Sign-up failed: ${response.body}')),
           );
-          logger.d('Failed to sign up: ${response.body}'); // Replaced print
+          logger.d('Failed to sign up: ${response.body}');
         }
       } catch (e) {
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Network error: $e')),
         );
-        logger.d('Network error: $e'); // Replaced print
+        logger.d('Network error: $e');
       } finally {
-        if (mounted) setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     }
   }
@@ -123,8 +123,7 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[600]),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
           errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
         ),
@@ -156,19 +155,14 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                   const SizedBox(height: 24),
                   const Text(
                     'Service Provider Sign Up',
-                    style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black),
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
                   ),
                   const SizedBox(height: 32),
                   _buildTextField(
                     hint: 'Company Name/Your Name',
                     controller: _companyNameController,
                     keyboardType: TextInputType.name,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
                     validator: (value) => value == null || value.isEmpty
                         ? 'Company name is required'
                         : value.length < 2
@@ -227,17 +221,14 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A237E),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                             'Sign Up',
                             style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
+                                fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                   ),
                   const SizedBox(height: 24),
@@ -247,12 +238,10 @@ class _ServiceProviderSignUpPageState extends State<ServiceProviderSignUpPage> {
                       const Text('Already have an account? ',
                           style: TextStyle(color: Colors.black87)),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamedAndRemoveUntil(
-                            context, '/login', (route) => false),
+                        onTap: () =>
+                            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false),
                         child: const Text('Sign in',
-                            style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold)),
+                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),

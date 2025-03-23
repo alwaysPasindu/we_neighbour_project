@@ -21,10 +21,11 @@ class _RateAppScreenState extends State<RateAppScreen> {
 
   Future<void> _launchAppStore() async {
     // Replace with your app's store URL
-    const url = 'https://play.google.com/store/apps/details?id=com.weneighbour.app';
-    if (await canLaunch(url)) {
-      await launch(url);
+    final url = Uri.parse('https://play.google.com/store/apps/details?id=com.weneighbour.app');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
     } else {
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Could not open app store')),
       );

@@ -7,94 +7,91 @@ import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/main.dart'; // Ensure this provides `baseUrl`
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class ImageService {
   static final ImagePicker _picker = ImagePicker();
-  static final Logger logger = Logger(); // Added logger instance
+  static final Logger logger = Logger();
 
-  // Pick multiple images from gallery
+  /// Pick multiple images from gallery
   static Future<List<XFile>> pickMultipleImages() async {
     try {
-      final List<XFile> images = await _picker.pickMultiImage(
-        imageQuality: 80, // Added quality to reduce size
-      );
+      final List<XFile> images = await _picker.pickMultiImage(imageQuality: 80);
       if (images.isEmpty) {
-        logger.d('No images selected'); // Replaced print
+        logger.d('No images selected');
       }
       return images;
     } catch (e) {
-      logger.d('Error picking multiple images: $e'); // Replaced print
+      logger.e('Error picking multiple images: $e'); // Use error level for exceptions
       return [];
     }
   }
 
-  // Pick single image from gallery or camera
+  /// Pick single image from gallery or camera
   static Future<XFile?> pickImage({ImageSource source = ImageSource.gallery}) async {
     try {
-      final XFile? image = await _picker.pickImage(
-        source: source,
-        imageQuality: 80, // Consistent quality setting
-      );
+      final XFile? image = await _picker.pickImage(source: source, imageQuality: 80);
       if (image == null) {
-        logger.d('No image selected'); // Replaced print
+        logger.d('No image selected');
       }
       return image;
     } catch (e) {
-      logger.d('Error picking image: $e'); // Replaced print
+      logger.e('Error picking image: $e'); // Use error level for exceptions
       return null;
     }
   }
 
-  // Upload image to server and return the URL
+  /// Upload image to server and return the URL
   static Future<String?> uploadImage(XFile image) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
       if (token == null) {
-        logger.d('No auth token available. Please log in.'); // Replaced print
+        logger.w('No auth token available. Please log in.'); // Warning level for auth issues
         return null;
       }
 
-      // Use baseUrl from main.dart
       final String uploadUrl = baseUrl.isNotEmpty ? '$baseUrl/api/upload' : '';
+      if (uploadUrl.isEmpty) {
+        logger.e('Base URL is empty. Cannot upload image.');
+        return null;
+      }
       final uri = Uri.parse(uploadUrl);
 
-      // Prepare multipart request
       final request = http.MultipartRequest('POST', uri)
         ..headers['x-auth-token'] = token
         ..files.add(await http.MultipartFile.fromPath(
-          'image', // Field name expected by server
+          'image',
           image.path,
-          filename: path.basename(image.path), // Preserve original filename
+          filename: path.basename(image.path),
         ));
 
-      // Send request and handle response
       final response = await request.send().timeout(const Duration(seconds: 30));
-      logger.d('Upload response status: ${response.statusCode}'); // Replaced print
+      logger.d('Upload response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
-        logger.d('Response body: $responseBody'); // Replaced print
+        logger.d('Response body: $responseBody');
         final json = jsonDecode(responseBody);
-        if (json['imageUrl'] != null) {
-          return json['imageUrl'] as String;
+        final imageUrl = json['imageUrl'] as String?;
+        if (imageUrl != null) {
+          return imageUrl;
         } else {
-          logger.d('Invalid response format: missing imageUrl'); // Replaced print
+          logger.w('Invalid response format: missing imageUrl');
           return null;
         }
       } else {
         final errorBody = await response.stream.bytesToString();
-        logger.d('Failed to upload image: ${response.statusCode} - $errorBody'); // Replaced print
+        logger.w('Failed to upload image: ${response.statusCode} - $errorBody');
         return null;
       }
     } catch (e) {
-      logger.d('Error uploading image: $e'); // Replaced print
+      logger.e('Error uploading image: $e');
       return null;
     }
   }
 
-  // Upload multiple images and return a list of URLs
+  /// Upload multiple images and return a list of URLs
   static Future<List<String>> uploadMultipleImages(List<XFile> images) async {
     final List<String> uploadedUrls = [];
     for (final image in images) {
@@ -102,13 +99,13 @@ class ImageService {
       if (url != null) {
         uploadedUrls.add(url);
       } else {
-        logger.d('Failed to upload one of the images'); // Replaced print
+        logger.w('Failed to upload one of the images');
       }
     }
     return uploadedUrls;
   }
 
-  // Save image to app directory (for local caching or fallback)
+  /// Save image to app directory (for local caching or fallback)
   static Future<String?> saveImageToAppDirectory(XFile file) async {
     try {
       final appDir = await getApplicationDocumentsDirectory();
@@ -116,40 +113,40 @@ class ImageService {
       final savedImage = File('${appDir.path}/$fileName');
       await file.saveTo(savedImage.path);
       if (await savedImage.exists()) {
-        logger.d('Image saved locally: ${savedImage.path}'); // Replaced print
+        logger.d('Image saved locally: ${savedImage.path}');
         return savedImage.path;
       } else {
-        throw Exception('Failed to save image');
+        throw Exception('Failed to save image to ${savedImage.path}');
       }
     } catch (e) {
-      logger.d('Error saving image: $e'); // Replaced print
+      logger.e('Error saving image: $e');
       return null;
     }
   }
 
-  // Delete image from app directory
+  /// Delete image from app directory
   static Future<bool> deleteImage(String imagePath) async {
     try {
       final file = File(imagePath);
       if (await file.exists()) {
         await file.delete();
-        logger.d('Image deleted: $imagePath'); // Replaced print
+        logger.d('Image deleted: $imagePath');
         return true;
       }
-      logger.d('Image not found: $imagePath'); // Replaced print
+      logger.w('Image not found: $imagePath');
       return false;
     } catch (e) {
-      logger.d('Error deleting image: $e'); // Replaced print
+      logger.e('Error deleting image: $e');
       return false;
     }
   }
 
-  // Show image picker dialog
+  /// Show image picker dialog
   static Future<XFile?> showImagePickerDialog(BuildContext context) async {
     XFile? pickedFile;
     await showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Select Image Source'),
           content: SingleChildScrollView(
@@ -160,7 +157,7 @@ class ImageService {
                   title: const Text('Gallery'),
                   onTap: () async {
                     pickedFile = await pickImage(source: ImageSource.gallery);
-                    Navigator.of(context).pop();
+                    Navigator.of(dialogContext).pop();
                   },
                 ),
                 ListTile(
@@ -168,7 +165,7 @@ class ImageService {
                   title: const Text('Camera'),
                   onTap: () async {
                     pickedFile = await pickImage(source: ImageSource.camera);
-                    Navigator.of(context).pop();
+                    Navigator.of(dialogContext).pop();
                   },
                 ),
               ],
@@ -180,27 +177,33 @@ class ImageService {
     return pickedFile;
   }
 
-  // Check if file exists
+  /// Check if file exists
   static Future<bool> checkImageExists(String imagePath) async {
     try {
       final file = File(imagePath);
-      return await file.exists();
+      final exists = await file.exists();
+      logger.d('Image exists check: $imagePath - $exists');
+      return exists;
     } catch (e) {
-      logger.d('Error checking image existence: $e'); // Replaced print
+      logger.e('Error checking image existence: $e');
       return false;
     }
   }
 
-  // Get file size in MB
+  /// Get file size in MB
   static Future<double> getImageSize(String imagePath) async {
     try {
       final file = File(imagePath);
-      final bytes = await file.length();
-      final sizeInMb = bytes / (1024 * 1024);
-      logger.d('Image size: $sizeInMb MB'); // Replaced print
-      return sizeInMb;
+      if (await file.exists()) {
+        final bytes = await file.length();
+        final sizeInMb = bytes / (1024 * 1024);
+        logger.d('Image size: $sizeInMb MB for $imagePath');
+        return sizeInMb;
+      }
+      logger.w('Image not found for size check: $imagePath');
+      return 0.0;
     } catch (e) {
-      logger.d('Error getting image size: $e'); // Replaced print
+      logger.e('Error getting image size: $e');
       return 0.0;
     }
   }

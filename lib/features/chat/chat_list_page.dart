@@ -7,7 +7,7 @@ import 'package:we_neighbour/constants/text_styles.dart';
 import 'package:we_neighbour/models/chat.dart';
 import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
-import 'package:logger/logger.dart'; // Logger package is already imported
+import 'package:logger/logger.dart';
 import 'chat_screen.dart';
 
 class ChatListPage extends StatefulWidget {
@@ -18,7 +18,6 @@ class ChatListPage extends StatefulWidget {
 }
 
 class _ChatListPageState extends State<ChatListPage> {
-  // Initialize the Logger instance
   final logger = Logger();
 
   @override
@@ -31,6 +30,10 @@ class _ChatListPageState extends State<ChatListPage> {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('userId') ?? '';
     final apartmentName = prefs.getString('userApartment') ?? 'UnknownApartment';
+    
+    // Check if the widget is still mounted before using context
+    if (!mounted) return;
+    
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
     if (userId.isNotEmpty && chatProvider.currentUserId != userId) {
       chatProvider.setUser(userId, apartmentName);
@@ -180,7 +183,7 @@ class _ChatListPageState extends State<ChatListPage> {
             .get();
         return otherUserDoc.data()?['name'] ?? 'Unknown User';
       } catch (e) {
-        logger.d('Error fetching user name: $e'); // Now this will work with the initialized logger
+        logger.d('Error fetching user name: $e');
         return 'Unknown User';
       }
     }

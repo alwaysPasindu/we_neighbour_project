@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:we_neighbour/main.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class ResidentSignUpPage extends StatefulWidget {
   const ResidentSignUpPage({super.key});
@@ -24,7 +24,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
   List<String> _apartments = [];
   bool _isLoading = false;
   bool _isFetchingApartments = true;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -45,10 +45,10 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
 
   Future<void> _fetchApartments() async {
     try {
-      final response =
-          await http.get(Uri.parse('$baseUrl/api/apartments/get-names'));
+      final response = await http.get(Uri.parse('$baseUrl/api/apartments/get-names'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        if (!mounted) return; // Check if still mounted
         setState(() {
           _apartments = List<String>.from(data['apartmentNames']);
           _isFetchingApartments = false;
@@ -57,7 +57,8 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
         throw 'Failed to fetch apartments: ${response.statusCode}';
       }
     } catch (e) {
-      logger.d('Error fetching apartments: $e'); // Replaced print
+      logger.d('Error fetching apartments: $e');
+      if (!mounted) return; // Check if still mounted
       setState(() => _isFetchingApartments = false);
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load apartments: $e')));
@@ -66,14 +67,10 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
 
   bool _isValidName(String name) => RegExp(r'^[a-zA-Z\s]+$').hasMatch(name);
   bool _isValidNIC(String nic) => RegExp(r'^\d{9}[Vv]$|^\d{12}$').hasMatch(nic);
-  bool _isValidEmail(String email) =>
-      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-  bool _isValidContact(String contact) =>
-      RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
+  bool _isValidEmail(String email) => RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  bool _isValidContact(String contact) => RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
   bool _isStrongPassword(String password) =>
-      password.length >= 6 &&
-      RegExp(r'[0-9]').hasMatch(password) &&
-      RegExp(r'[a-zA-Z]').hasMatch(password);
+      password.length >= 6 && RegExp(r'[0-9]').hasMatch(password) && RegExp(r'[a-zA-Z]').hasMatch(password);
 
   Future<void> _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
@@ -98,31 +95,33 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
 
         final responseData = json.decode(response.body);
         if (response.statusCode == 201) {
+          if (!mounted) return; // Check if still mounted
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(responseData['message'] ??
                     'Resident registered successfully! Awaiting approval')),
           );
           await Future.delayed(const Duration(seconds: 3));
-          if (mounted) {
-            Navigator.pushNamedAndRemoveUntil(
-                context, '/login', (route) => false);
-          }
+          if (!mounted) return; // Check if still mounted
+          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
         } else {
+          if (!mounted) return; // Check if still mounted
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(responseData['message'] ??
-                    'Failed to sign up: ${response.body}')),
+                content: Text(responseData['message'] ?? 'Failed to sign up: ${response.body}')),
           );
-          logger.d('Failed to sign up. Error: ${response.body}'); // Replaced print
+          logger.d('Failed to sign up. Error: ${response.body}');
         }
       } catch (e) {
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Network error: $e')),
         );
-        logger.d('Error occurred: $e'); // Replaced print
+        logger.d('Error occurred: $e');
       } finally {
-        if (mounted) setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     }
   }
@@ -136,8 +135,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
     List<TextInputFormatter>? inputFormatters,
   }) {
     return Container(
-      decoration: BoxDecoration(
-          color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
@@ -152,8 +150,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[600]),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
           errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
         ),
@@ -178,23 +175,17 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Center(
-                            child: Image.asset('assets/images/logo.png',
-                                height: 80, fit: BoxFit.contain)),
+                            child: Image.asset('assets/images/logo.png', height: 80, fit: BoxFit.contain)),
                         const SizedBox(height: 24),
                         const Text('Resident Sign Up',
-                            style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black)),
+                            style:
+                                TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black)),
                         const SizedBox(height: 24),
                         _buildTextField(
                           hint: 'Name',
                           controller: _nameController,
                           keyboardType: TextInputType.name,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'[a-zA-Z\s]'))
-                          ],
+                          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
                           validator: (value) => value == null || value.isEmpty
                               ? 'Name is required'
                               : !_isValidName(value)
@@ -206,10 +197,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                           hint: 'NIC',
                           controller: _nicController,
                           keyboardType: TextInputType.text,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'[0-9Vv]'))
-                          ],
+                          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9Vv]'))],
                           validator: (value) => value == null || value.isEmpty
                               ? 'NIC is required'
                               : !_isValidNIC(value)
@@ -232,9 +220,7 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                           hint: 'Contact No',
                           controller: _contactController,
                           keyboardType: TextInputType.phone,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly
-                          ],
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                           validator: (value) => value == null || value.isEmpty
                               ? 'Contact number is required'
                               : !_isValidContact(value)
@@ -254,27 +240,20 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                         ),
                         const SizedBox(height: 16),
                         Container(
-                          decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(12)),
+                          decoration:
+                              BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
                           child: DropdownButtonFormField<String>(
                             value: _selectedApartment,
-                            hint: Text('Select Apartment Complex',
-                                style: TextStyle(color: Colors.grey[600])),
+                            hint: Text('Select Apartment Complex', style: TextStyle(color: Colors.grey[600])),
                             decoration: const InputDecoration(
-                                contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 8),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                                 border: InputBorder.none,
-                                errorStyle:
-                                    TextStyle(color: Colors.red, fontSize: 12)),
+                                errorStyle: TextStyle(color: Colors.red, fontSize: 12)),
                             items: _apartments
                                 .map((String apartment) =>
-                                    DropdownMenuItem<String>(
-                                        value: apartment,
-                                        child: Text(apartment)))
+                                    DropdownMenuItem<String>(value: apartment, child: Text(apartment)))
                                 .toList(),
-                            onChanged: (String? newValue) =>
-                                setState(() => _selectedApartment = newValue),
+                            onChanged: (String? newValue) => setState(() => _selectedApartment = newValue),
                             validator: (value) => value == null || value.isEmpty
                                 ? 'Please select an apartment complex'
                                 : null,
@@ -298,17 +277,13 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1A237E),
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white)
+                              ? const CircularProgressIndicator(color: Colors.white)
                               : const Text('Sign Up',
                                   style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold)),
+                                      fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -317,12 +292,10 @@ class _ResidentSignUpPageState extends State<ResidentSignUpPage> {
                             const Text('Already have an account? ',
                                 style: TextStyle(color: Colors.black87)),
                             GestureDetector(
-                              onTap: () => Navigator.pushNamedAndRemoveUntil(
-                                  context, '/login', (route) => false),
+                              onTap: () =>
+                                  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false),
                               child: const Text('Sign in',
-                                  style: TextStyle(
-                                      color: Colors.blue,
-                                      fontWeight: FontWeight.bold)),
+                                  style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),

@@ -12,7 +12,7 @@ import '../features/services/service_detailsPage.dart';
 import '../widgets/provider_bottom_navigation.dart';
 import '../main.dart';
 import '../models/service.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class Advertisement {
   final String title;
@@ -32,10 +32,10 @@ class ProviderHomePage extends StatefulWidget {
   const ProviderHomePage({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<ProviderHomePage> createState() => _ProviderHomePageState();
 }
 
-class _HomePageState extends State<ProviderHomePage> {
+class _ProviderHomePageState extends State<ProviderHomePage> {
   List<Service> _featuredServices = [];
   final PageController _pageController = PageController(viewportFraction: 0.8);
   int _currentPage = 0;
@@ -44,7 +44,7 @@ class _HomePageState extends State<ProviderHomePage> {
   String? _token;
   late SharedPreferences prefs;
   bool _isLoading = true;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   final List<Advertisement> generalAds = [
     Advertisement(
@@ -87,15 +87,16 @@ class _HomePageState extends State<ProviderHomePage> {
   Future<void> _initializePrefs() async {
     prefs = await SharedPreferences.getInstance();
     await _loadUserData();
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadUserData() async {
     _token = prefs.getString('token');
     if (_token == null) {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
+      if (!mounted) return; // Check if still mounted
+      Navigator.pushReplacementNamed(context, '/login');
       return;
     }
     await _loadServices();
@@ -112,39 +113,34 @@ class _HomePageState extends State<ProviderHomePage> {
       ).timeout(const Duration(seconds: 30));
 
       logger.d(
-          'ProviderHomePage load services response: ${response.statusCode} - ${response.body}'); // Replaced print
+          'ProviderHomePage load services response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> servicesJson = jsonDecode(response.body);
-        final services =
-            servicesJson.map((json) => Service.fromJson(json)).toList();
+        final services = servicesJson.map((json) => Service.fromJson(json)).toList();
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _featuredServices = services;
         });
-        await prefs.setString(
-            'services', jsonEncode(services.map((s) => s.toJson()).toList()));
+        await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
       } else if (response.statusCode == 401) {
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/login');
-        }
+        if (!mounted) return; // Check if still mounted
+        Navigator.pushReplacementNamed(context, '/login');
         throw Exception('Unauthorized: Invalid or expired token');
       } else {
-        throw Exception(
-            'Failed to load services: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Error loading services: $e'); // Replaced print
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error loading services: $e')));
-      }
+      logger.d('Error loading services: $e');
+      if (!mounted) return; // Check if still mounted
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading services: $e')));
       final String? servicesJson = prefs.getString('services');
       if (servicesJson != null) {
         final List<dynamic> decodedServices = jsonDecode(servicesJson);
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
-          _featuredServices = decodedServices
-              .map((service) => Service.fromJson(service))
-              .toList();
+          _featuredServices = decodedServices.map((service) => Service.fromJson(service)).toList();
         });
       }
     }
@@ -152,9 +148,8 @@ class _HomePageState extends State<ProviderHomePage> {
 
   Future<void> _signOut() async {
     await prefs.clear();
-    if (mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-    }
+    if (!mounted) return; // Check if still mounted
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
   void _startAutoSlide() {
@@ -179,8 +174,7 @@ class _HomePageState extends State<ProviderHomePage> {
     setState(() => _currentIndex = index);
 
     if (index == 1) {
-      Navigator.pushNamed(context, '/service',
-          arguments: UserType.serviceProvider);
+      Navigator.pushNamed(context, '/service', arguments: UserType.serviceProvider);
     } else if (index == 2) {
       Navigator.pushNamed(context, '/provider-profile');
     }
@@ -236,8 +230,7 @@ class _HomePageState extends State<ProviderHomePage> {
                       child: PageView.builder(
                         controller: _pageController,
                         itemCount: _featuredServices.length,
-                        onPageChanged: (int page) =>
-                            setState(() => _currentPage = page),
+                        onPageChanged: (int page) => setState(() => _currentPage = page),
                         itemBuilder: (context, index) {
                           final service = _featuredServices[index];
                           return GestureDetector(
@@ -245,15 +238,12 @@ class _HomePageState extends State<ProviderHomePage> {
                             child: Container(
                               margin: const EdgeInsets.symmetric(horizontal: 8),
                               child: Card(
-                                color: isDarkMode
-                                    ? Colors.grey[850]
-                                    : Colors.white,
+                                color: isDarkMode ? Colors.grey[850] : Colors.white,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(
-                                          top: Radius.circular(12)),
+                                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                                       child: Image.file(
                                         File(service.imagePaths.first),
                                         height: 120,
@@ -262,34 +252,27 @@ class _HomePageState extends State<ProviderHomePage> {
                                         errorBuilder: (_, __, ___) => Container(
                                           height: 120,
                                           color: Colors.grey,
-                                          child: const Icon(
-                                              Icons.image_not_supported,
-                                              color: Colors.white),
+                                          child: const Icon(Icons.image_not_supported, color: Colors.white),
                                         ),
                                       ),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.all(8),
                                       child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             service.title,
                                             style: TextStyle(
                                                 fontWeight: FontWeight.bold,
-                                                color: isDarkMode
-                                                    ? Colors.white
-                                                    : Colors.black),
+                                                color: isDarkMode ? Colors.white : Colors.black),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           Text(
                                             service.description,
                                             style: TextStyle(
-                                                color: isDarkMode
-                                                    ? Colors.grey[400]
-                                                    : Colors.grey[600],
+                                                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                                                 fontSize: 12),
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
@@ -319,10 +302,7 @@ class _HomePageState extends State<ProviderHomePage> {
                             borderRadius: BorderRadius.circular(4),
                             color: _currentPage == index
                                 ? AppColors.primary
-                                : (isDarkMode
-                                        ? Colors.grey[400]
-                                        : Colors.grey[600])
-                                    ?.withValues(alpha: 0.5),
+                                : (isDarkMode ? Colors.grey[400] : Colors.grey[600])?.withValues(alpha: 0.5),
                           ),
                         ),
                       ),
@@ -351,16 +331,13 @@ class _HomePageState extends State<ProviderHomePage> {
                       itemBuilder: (context, index) {
                         final ad = generalAds[index];
                         return Card(
-                          color: isDarkMode
-                              ? const Color.fromARGB(255, 67, 67, 67)
-                              : Colors.white,
+                          color: isDarkMode ? const Color.fromARGB(255, 67, 67, 67) : Colors.white,
                           margin: const EdgeInsets.only(bottom: 16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(12)),
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                                 child: Image.network(
                                   ad.imageUrl,
                                   height: 150,
@@ -369,8 +346,7 @@ class _HomePageState extends State<ProviderHomePage> {
                                   errorBuilder: (_, __, ___) => Container(
                                     height: 150,
                                     color: Colors.grey,
-                                    child: const Icon(Icons.image_not_supported,
-                                        color: Colors.white),
+                                    child: const Icon(Icons.image_not_supported, color: Colors.white),
                                   ),
                                 ),
                               ),
@@ -383,22 +359,16 @@ class _HomePageState extends State<ProviderHomePage> {
                                         style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
-                                            color: isDarkMode
-                                                ? Colors.white
-                                                : Colors.black)),
+                                            color: isDarkMode ? Colors.white : Colors.black)),
                                     const SizedBox(height: 8),
                                     Text(ad.description,
                                         style: TextStyle(
-                                            color: isDarkMode
-                                                ? Colors.grey[400]
-                                                : Colors.grey[600])),
+                                            color: isDarkMode ? Colors.grey[400] : Colors.grey[600])),
                                     const SizedBox(height: 8),
                                     Text(ad.companyName,
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: isDarkMode
-                                                ? Colors.white
-                                                : Colors.black)),
+                                            color: isDarkMode ? Colors.white : Colors.black)),
                                   ],
                                 ),
                               ),

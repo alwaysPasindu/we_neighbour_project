@@ -9,13 +9,13 @@ import 'dart:io';
 import '../constants/colors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class CompanyProfileScreen extends StatefulWidget {
   const CompanyProfileScreen({super.key});
 
   @override
-  _CompanyProfileScreenState createState() => _CompanyProfileScreenState();
+  State<CompanyProfileScreen> createState() => _CompanyProfileScreenState();
 }
 
 class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
@@ -24,7 +24,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   String? _profileImagePath;
   String? _token;
   bool _isLoading = true;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -44,11 +44,13 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('token');
     if (_token == null) {
-      logger.d('No token found, navigating to login'); // Replaced print
-      if (mounted) Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      logger.d('No token found, navigating to login');
+      if (!mounted) return; // Check if still mounted
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       return;
     }
 
+    if (!mounted) return; // Check if still mounted
     setState(() {
       _nameController.text = prefs.getString('userName') ?? 'Company Name';
       _emailController.text = prefs.getString('userEmail') ?? 'company@email.com';
@@ -65,17 +67,19 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       final prefs = await SharedPreferences.getInstance();
       final imagePath = prefs.getString('profile_image');
       if (imagePath != null && await File(imagePath).exists()) {
+        if (!mounted) return; // Check if still mounted
         setState(() => _profileImagePath = imagePath);
       }
     } catch (e) {
-      logger.d('Error loading profile image: $e'); // Replaced print
+      logger.d('Error loading profile image: $e');
     }
   }
 
   Future<void> _pickAndSaveProfileImage() async {
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1000, maxHeight: 1000, imageQuality: 85);
+      final XFile? image = await picker.pickImage(
+          source: ImageSource.gallery, maxWidth: 1000, maxHeight: 1000, imageQuality: 85);
       if (image != null) {
         final directory = await getApplicationDocumentsDirectory();
         final fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}${path.extension(image.path)}';
@@ -86,14 +90,17 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
           await File(_profileImagePath!).delete();
         }
 
+        if (!mounted) return; // Check if still mounted
         setState(() => _profileImagePath = savedImage.path);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('profile_image', savedImage.path);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile photo updated')));
+        if (!mounted) return; // Check if still mounted
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile photo updated')));
       }
     } catch (e) {
-      logger.d('Error picking image: $e'); // Replaced print
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      logger.d('Error picking image: $e');
+      if (!mounted) return; // Check if still mounted
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -122,14 +129,19 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         await prefs.setString('userAddress', _addressController.text);
         await prefs.setString('userDescription', _descriptionController.text);
         await prefs.setString('username', _usernameController.text);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
+        if (!mounted) return; // Check if still mounted
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
       } else {
-        logger.d('Failed to update profile: ${response.statusCode} - ${response.body}'); // Replaced print
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to update profile on server')));
+        logger.d('Failed to update profile: ${response.statusCode} - ${response.body}');
+        if (!mounted) return; // Check if still mounted
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Failed to update profile on server')));
       }
     } catch (e) {
-      logger.d('Error saving profile data: $e'); // Replaced print
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      logger.d('Error saving profile data: $e');
+      if (!mounted) return; // Check if still mounted
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -148,7 +160,10 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     setState(() {
       if (_isEditing) {
         if (_formKey.currentState?.validate() ?? false) {
-          _saveProfileData().then((_) => setState(() => _isEditing = false));
+          _saveProfileData().then((_) {
+            if (!mounted) return; // Check if still mounted
+            setState(() => _isEditing = false);
+          });
         }
       } else {
         _isEditing = true;
@@ -184,7 +199,10 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       children: [
         Column(
           children: [
-            Container(height: 150, width: double.infinity, decoration: BoxDecoration(color: isDarkMode ? AppColors.darkBackground : AppColors.primary)),
+            Container(
+                height: 150,
+                width: double.infinity,
+                decoration: BoxDecoration(color: isDarkMode ? AppColors.darkBackground : AppColors.primary)),
             const SizedBox(height: 60),
           ],
         ),
@@ -195,13 +213,17 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Profile', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+              const Text('Profile',
+                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
               Row(
                 children: [
-                  IconButton(icon: Icon(_isEditing ? Icons.save : Icons.edit, color: Colors.white), onPressed: _toggleEdit),
+                  IconButton(
+                      icon: Icon(_isEditing ? Icons.save : Icons.edit, color: Colors.white),
+                      onPressed: _toggleEdit),
                   IconButton(
                     icon: const Icon(Icons.settings, color: Colors.white),
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                    onPressed: () =>
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
                   ),
                 ],
               ),
@@ -217,12 +239,15 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     return Stack(
       children: [
         Container(
-          decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 4), borderRadius: BorderRadius.circular(60)),
+          decoration:
+              BoxDecoration(border: Border.all(color: Colors.white, width: 4), borderRadius: BorderRadius.circular(60)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(60),
             child: _profileImagePath != null
-                ? Image.file(File(_profileImagePath!), width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (_, e, __) => _buildPlaceholderImage())
-                : Image.asset('assets/profile_placeholder.png', width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (_, e, __) => _buildPlaceholderImage()),
+                ? Image.file(File(_profileImagePath!),
+                    width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (_, e, __) => _buildPlaceholderImage())
+                : Image.asset('assets/profile_placeholder.png',
+                    width: 100, height: 100, fit: BoxFit.cover, errorBuilder: (_, e, __) => _buildPlaceholderImage()),
           ),
         ),
         if (_isEditing)
@@ -243,7 +268,8 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     );
   }
 
-  Widget _buildPlaceholderImage() => Container(width: 100, height: 100, color: Colors.grey[300], child: const Icon(Icons.person, size: 50, color: Colors.grey));
+  Widget _buildPlaceholderImage() =>
+      Container(width: 100, height: 100, color: Colors.grey[300], child: const Icon(Icons.person, size: 50, color: Colors.grey));
 
   Widget _buildProfileDetails(bool isDarkMode) {
     return Padding(
@@ -255,29 +281,38 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
               ? TextFormField(
                   controller: _nameController,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : AppColors.textPrimary),
-                  decoration: InputDecoration(labelText: 'Company Name', labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
+                  decoration: InputDecoration(
+                      labelText: 'Company Name',
+                      labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
                   validator: (value) => value?.isEmpty ?? true ? 'Company name is required' : null,
                 )
-              : Text(_nameController.text, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
+              : Text(_nameController.text,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
           const SizedBox(height: 8),
           _isEditing
               ? TextFormField(
                   controller: _usernameController,
                   style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary),
-                  decoration: InputDecoration(labelText: 'Username', labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
+                  decoration: InputDecoration(
+                      labelText: 'Username',
+                      labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
                   validator: (value) => value?.isEmpty ?? true ? 'Username is required' : null,
                 )
-              : Text(_usernameController.text, style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
+              : Text(_usernameController.text,
+                  style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
           const SizedBox(height: 16),
           _isEditing
               ? TextFormField(
                   controller: _descriptionController,
                   maxLines: 3,
                   style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary),
-                  decoration: InputDecoration(labelText: 'Description', labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
+                  decoration: InputDecoration(
+                      labelText: 'Description',
+                      labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
                   validator: (value) => value?.isEmpty ?? true ? 'Description is required' : null,
                 )
-              : Text(_descriptionController.text, style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
+              : Text(_descriptionController.text,
+                  style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
           const SizedBox(height: 24),
           // _buildStatistics(),
           const SizedBox(height: 24),
@@ -288,14 +323,14 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   }
 
   // Widget _buildStatistics() {
-    // return Row(
-    //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-    //   children: [
-    //     _buildStatItem('Services', '3'),
-    //     _buildStatItem('Reviews', '150'),
-    //     _buildStatItem('Rating', '4.8'),
-    //   ],
-    // );
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+  //     children: [
+  //       _buildStatItem('Services', '3'),
+  //       _buildStatItem('Reviews', '150'),
+  //       _buildStatItem('Rating', '4.8'),
+  //     ],
+  //   );
   // }
 
   Widget _buildStatItem(String label, String value) {
@@ -312,7 +347,8 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Contact Information', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
+        Text('Contact Information',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
         const SizedBox(height: 12),
         _buildContactItem(Icons.email, _emailController, 'Email', isDarkMode),
         _buildContactItem(Icons.phone, _phoneController, 'Phone', isDarkMode),
@@ -333,10 +369,13 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                 ? TextFormField(
                     controller: controller,
                     style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary),
-                    decoration: InputDecoration(labelText: label, labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
+                    decoration: InputDecoration(
+                        labelText: label,
+                        labelStyle: TextStyle(color: isDarkMode ? Colors.grey[400] : AppColors.textSecondary)),
                     validator: (value) => value?.isEmpty ?? true ? '$label is required' : null,
                   )
-                : Text(controller.text, style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
+                : Text(controller.text,
+                    style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white : AppColors.textPrimary)),
           ),
         ],
       ),
