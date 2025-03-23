@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../components/app_bar.dart';
 import '../constants/colors.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -8,6 +9,7 @@ class ReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Logger logger = Logger(); // Added logger instance (not used yet)
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
