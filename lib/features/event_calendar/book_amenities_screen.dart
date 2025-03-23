@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:we_neighbour/features/event_calendar/firebase_service.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class BookAmenitiesScreen extends StatefulWidget {
   const BookAmenitiesScreen({super.key});
 
   @override
-  _BookAmenitiesScreenState createState() => _BookAmenitiesScreenState();
+  State<BookAmenitiesScreen> createState() => _BookAmenitiesScreenState(); // Made public by using State<BookAmenitiesScreen>
 }
 
 class _BookAmenitiesScreenState extends State<BookAmenitiesScreen> {
   final FirebaseService _firebaseService = FirebaseService();
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
   final List<Map<String, dynamic>> _amenities = [
     {'name': 'Gym', 'icon': Icons.fitness_center},
     {'name': 'Ground', 'icon': Icons.sports_soccer},
@@ -36,7 +36,7 @@ class _BookAmenitiesScreenState extends State<BookAmenitiesScreen> {
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) { // Renamed context to dialogContext for clarity
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
@@ -173,7 +173,7 @@ class _BookAmenitiesScreenState extends State<BookAmenitiesScreen> {
                 TextButton(
                   child: const Text('Cancel'),
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    Navigator.of(dialogContext).pop();
                   },
                 ),
                 TextButton(
@@ -183,7 +183,7 @@ class _BookAmenitiesScreenState extends State<BookAmenitiesScreen> {
                         amenityName == 'Other' ? customAmenity : amenityName;
 
                     if (amenityName == 'Other' && customAmenity.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
                         const SnackBar(
                             content:
                                 Text('Please enter a custom amenity name')),
@@ -216,16 +216,19 @@ class _BookAmenitiesScreenState extends State<BookAmenitiesScreen> {
                         notes,
                       );
 
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      if (!dialogContext.mounted) return; // Check if dialog is still mounted
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
                         SnackBar(
                             content:
                                 Text('$finalAmenityName booked successfully')),
                       );
-                      Navigator.of(context).pop();
+                      Navigator.of(dialogContext).pop();
+                      if (!mounted) return; // Check if widget is still mounted
                       Navigator.of(context).pop(); // Go back to calendar screen
                     } catch (e) {
-                      logger.d('Error booking amenity: $e'); // Replaced print with logger.d
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      logger.d('Error booking amenity: $e');
+                      if (!dialogContext.mounted) return; // Check if dialog is still mounted
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
                         SnackBar(content: Text('Failed to book amenity: $e')),
                       );
                     }

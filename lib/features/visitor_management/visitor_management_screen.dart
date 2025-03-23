@@ -9,7 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui' as ui;
 import 'package:we_neighbour/main.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class VisitorManagementScreen extends StatefulWidget {
   const VisitorManagementScreen({super.key});
@@ -23,17 +23,16 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
   bool isLoading = false;
   final _numOfVisitorsController = TextEditingController();
   final GlobalKey _qrKey = GlobalKey();
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   Future<String?> getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    logger.d('Retrieved token: $token'); // Replaced print
+    logger.d('Retrieved token: $token');
     if (token == null || token.isEmpty) {
-      logger.d('No valid token found, redirecting to login'); // Replaced print
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
+      logger.d('No valid token found, redirecting to login');
+      if (!mounted) return null; // Check if still mounted
+      Navigator.pushReplacementNamed(context, '/login');
       return null;
     }
     return token;
@@ -42,7 +41,7 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
   Future<void> generateQRCode() async {
     final result = await showDialog<int>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: Colors.white,
         title: const Text(
@@ -68,22 +67,24 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () {
               if (_numOfVisitorsController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                if (!mounted) return; // Check if still mounted
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
                   const SnackBar(content: Text('Please enter the number of visitors')),
                 );
                 return;
               }
               try {
                 final numOfVisitors = int.parse(_numOfVisitorsController.text);
-                Navigator.pop(context, numOfVisitors);
+                Navigator.pop(dialogContext, numOfVisitors);
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                if (!mounted) return; // Check if still mounted
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
                   const SnackBar(content: Text('Please enter a valid number')),
                 );
               }
@@ -123,17 +124,16 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
         }),
       ).timeout(const Duration(seconds: 10));
 
-      logger.d('Request: ${response.request}'); // Replaced print
-      logger.d('Response status: ${response.statusCode}'); // Replaced print
-      logger.d('Response body: ${response.body}'); // Replaced print
+      logger.d('Request: ${response.request}');
+      logger.d('Response status: ${response.statusCode}');
+      logger.d('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final visitorId = data['visitorId'];
-        // Assuming the apartment name might come from the API or is hardcoded
-        final apartmentName = data['apartment'] ?? 'Negombo-Dreams'; // Fallback to hardcoded value if not in response
+        final apartmentName = data['apartment'] ?? 'Negombo-Dreams';
 
-        // Construct the QR data with query parameters
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           qrData = Uri(
             scheme: 'https',
@@ -142,24 +142,29 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
             queryParameters: {'apartment': apartmentName},
           ).toString();
         });
-        logger.d('Generated QR data: $qrData'); // Replaced print
+        logger.d('Generated QR data: $qrData');
       } else {
         throw Exception('Failed to generate QR code: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Error generating QR code: $e'); // Replaced print
+      logger.d('Error generating QR code: $e');
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
+      if (!mounted) return; // Check if still mounted before setState
       setState(() => qrData = null);
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
       _numOfVisitorsController.clear();
     }
   }
 
   Future<void> downloadQRCode() async {
     if (qrData == null) {
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No QR code to download')),
       );
@@ -184,7 +189,8 @@ class _VisitorManagementScreenState extends State<VisitorManagementScreen> {
         subject: 'Visitor QR Code',
       );
     } catch (e) {
-      logger.d('Error downloading QR code: $e'); // Replaced print
+      logger.d('Error downloading QR code: $e');
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error downloading QR code: $e')),
       );

@@ -16,7 +16,7 @@ import 'package:we_neighbour/models/service.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class ServicesPage extends StatefulWidget {
   final UserType userType;
@@ -27,7 +27,7 @@ class ServicesPage extends StatefulWidget {
   });
 
   @override
-  _ServicesPageState createState() => _ServicesPageState();
+  State<ServicesPage> createState() => _ServicesPageState();
 }
 
 class _ServicesPageState extends State<ServicesPage> {
@@ -40,7 +40,7 @@ class _ServicesPageState extends State<ServicesPage> {
   double? _userLatitude;
   double? _userLongitude;
   String _locationAddress = 'Unknown Location';
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -79,7 +79,7 @@ class _ServicesPageState extends State<ServicesPage> {
         });
       }
     } catch (e) {
-      logger.d('Error fetching location address: $e'); // Replaced print
+      logger.d('Error fetching location address: $e');
       if (mounted) {
         setState(() {
           _locationAddress = 'Unknown Location';
@@ -91,25 +91,22 @@ class _ServicesPageState extends State<ServicesPage> {
   Future<void> _loadUserData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (mounted) {
-        setState(() {
-          _currentUserId = prefs.getString('userId') ?? '';
-          _token = prefs.getString('token');
-        });
-      }
-      logger.d('Token loaded: $_token'); // Replaced print
+      if (!mounted) return; // Check if still mounted before setState
+      setState(() {
+        _currentUserId = prefs.getString('userId') ?? '';
+        _token = prefs.getString('token');
+      });
+      logger.d('Token loaded: $_token');
       if (_token == null || _token!.isEmpty) {
-        logger.d('No token found in SharedPreferences'); // Replaced print
-        if (mounted && ModalRoute.of(context)?.settings.name != '/login') {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in again')));
-          Navigator.pushReplacementNamed(context, '/login');
-        }
+        logger.d('No token found in SharedPreferences');
+        if (!mounted || ModalRoute.of(context)?.settings.name == '/login') return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in again')));
+        Navigator.pushReplacementNamed(context, '/login');
       }
     } catch (e) {
-      logger.d('Error loading user data: $e'); // Replaced print
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
-      }
+      logger.d('Error loading user data: $e');
+      if (!mounted) return; // Check if still mounted
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
     }
   }
 
@@ -123,7 +120,7 @@ class _ServicesPageState extends State<ServicesPage> {
         'latitude': (_userLatitude ?? 6.9271).toString(),
         'longitude': (_userLongitude ?? 79.8612).toString(),
       };
-      final uri = Uri.parse('$baseUrl/api/service').replace(queryParameters: queryParams); // Updated endpoint
+      final uri = Uri.parse('$baseUrl/api/service').replace(queryParameters: queryParams);
       final response = await http.get(
         uri,
         headers: {
@@ -132,11 +129,12 @@ class _ServicesPageState extends State<ServicesPage> {
         },
       ).timeout(const Duration(seconds: 30));
 
-      logger.d('Load services response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Load services response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> servicesJson = jsonDecode(response.body);
         final services = servicesJson.map((json) => Service.fromJson(json as Map<String, dynamic>)).toList();
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _allServices = services;
           _filteredServices = List.from(_allServices);
@@ -144,35 +142,36 @@ class _ServicesPageState extends State<ServicesPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
       } else if (response.statusCode == 401) {
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/login');
-        }
+        if (!mounted) return; // Check if still mounted
+        Navigator.pushReplacementNamed(context, '/login');
         throw Exception('Unauthorized: Invalid or expired token');
       } else {
         throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Error loading services: $e'); // Replaced print
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e')));
-      }
+      logger.d('Error loading services: $e');
+      if (!mounted) return; // Check if still mounted
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e')));
       final prefs = await SharedPreferences.getInstance();
       final String? servicesJson = prefs.getString('services');
       if (servicesJson != null) {
         final List<dynamic> decodedServices = jsonDecode(servicesJson);
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _allServices = decodedServices.map((json) => Service.fromJson(json)).toList();
           _filteredServices = List.from(_allServices);
         });
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   Future<void> _deleteService(Service service) async {
     if (_token == null) {
-      logger.d('No authentication token found'); // Replaced print
+      logger.d('No authentication token found');
       return;
     }
 
@@ -185,40 +184,37 @@ class _ServicesPageState extends State<ServicesPage> {
         },
       );
 
-      logger.d('Delete service response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Delete service response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
-        if (mounted) {
-          setState(() {
-            _allServices.removeWhere((s) => s.id == service.id);
-            _filteredServices = List.from(_allServices);
-          });
-        }
+        if (!mounted) return; // Check if still mounted before setState
+        setState(() {
+          _allServices.removeWhere((s) => s.id == service.id);
+          _filteredServices = List.from(_allServices);
+        });
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service deleted successfully')));
-          if (ModalRoute.of(context)?.settings.name == '/provider-home') {
-            await _loadServices(); // Refresh if on ProviderHomePage
-          }
+        if (!mounted) return; // Check if still mounted
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service deleted successfully')));
+        if (ModalRoute.of(context)?.settings.name == '/provider-home') {
+          await _loadServices(); // Refresh if on ProviderHomePage
         }
       } else {
         throw Exception('Failed to delete service: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Error deleting service: $e'); // Replaced print
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting service: $e')));
-      }
+      logger.d('Error deleting service: $e');
+      if (!mounted) return; // Check if still mounted
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting service: $e')));
     }
   }
 
   void _showDeleteDialog(Service service) {
-    final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).themeMode == ThemeMode.dark;
+    final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (dialogContext) {
         return AlertDialog(
           backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
           title: Text('Delete Service', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
@@ -226,14 +222,14 @@ class _ServicesPageState extends State<ServicesPage> {
           actions: [
             TextButton(
               child: Text('Cancel', style: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey[600])),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
               child: const Text('Delete'),
-              onPressed: () {
-                Navigator.pop(context);
-                _deleteService(service);
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                await _deleteService(service);
               },
             ),
           ],
@@ -250,9 +246,9 @@ class _ServicesPageState extends State<ServicesPage> {
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (dialogContext, setDialogState) {
             return Dialog(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -306,23 +302,21 @@ class _ServicesPageState extends State<ServicesPage> {
                           );
 
                           if (response.statusCode == 200) {
-                            Navigator.pop(context);
+                            Navigator.pop(dialogContext);
                             await _loadServices();
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service updated successfully')));
-                              if (ModalRoute.of(context)?.settings.name == '/provider-home') {
-                                await _loadServices(); // Refresh if on ProviderHomePage
-                              }
+                            if (!mounted) return; // Check if still mounted
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service updated successfully')));
+                            if (ModalRoute.of(context)?.settings.name == '/provider-home') {
+                              await _loadServices(); // Refresh if on ProviderHomePage
                             }
                           } else {
                             throw Exception('Failed to update service: ${response.statusCode}');
                           }
                         } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                          }
+                          if (!mounted) return; // Check if still mounted
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                         }
                       },
                       child: const Text('Save'),
@@ -338,21 +332,21 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   void _addNewService() {
-    final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).themeMode == ThemeMode.dark;
+    final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (dialogContext) {
         String title = '';
         String description = '';
-        double latitude = _userLatitude ?? 6.9271; // Default to Colombo coordinates
+        double latitude = _userLatitude ?? 6.9271;
         double longitude = _userLongitude ?? 79.8612;
         String availableHours = '';
         List<XFile> imageFiles = [];
         bool isLoading = false;
 
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (dialogContext, setDialogState) {
             return Dialog(
               backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
               child: Container(
@@ -409,7 +403,7 @@ class _ServicesPageState extends State<ServicesPage> {
                       GestureDetector(
                         onTap: () async {
                           final gmaps.LatLng? selectedLocation = await Navigator.push(
-                            context,
+                            dialogContext,
                             MaterialPageRoute(
                               builder: (context) => LocationPicker(
                                 initialLatitude: latitude,
@@ -455,7 +449,7 @@ class _ServicesPageState extends State<ServicesPage> {
                       GestureDetector(
                         onTap: () async {
                           final TimeOfDay? pickedStart = await showTimePicker(
-                            context: context,
+                            context: dialogContext,
                             initialTime: TimeOfDay.now(),
                             builder: (context, child) => Theme(
                               data: isDarkMode ? ThemeData.dark() : ThemeData.light(),
@@ -464,7 +458,7 @@ class _ServicesPageState extends State<ServicesPage> {
                           );
                           if (pickedStart != null) {
                             final TimeOfDay? pickedEnd = await showTimePicker(
-                              context: context,
+                              context: dialogContext,
                               initialTime: pickedStart,
                               builder: (context, child) => Theme(
                                 data: isDarkMode ? ThemeData.dark() : ThemeData.light(),
@@ -604,7 +598,7 @@ class _ServicesPageState extends State<ServicesPage> {
                               'Cancel',
                               style: TextStyle(color: isDarkMode ? Colors.grey[400] : Colors.grey[600]),
                             ),
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () => Navigator.pop(dialogContext),
                           ),
                           const SizedBox(width: 8),
                           ElevatedButton(
@@ -616,14 +610,14 @@ class _ServicesPageState extends State<ServicesPage> {
                             ),
                             onPressed: () async {
                               if (_token == null) {
-                                if (mounted && ModalRoute.of(context)?.settings.name != '/login') {
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
-                                  Navigator.pushReplacementNamed(context, '/login');
-                                }
+                                if (!mounted || ModalRoute.of(context)?.settings.name == '/login') return;
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
+                                Navigator.pushReplacementNamed(context, '/login');
                                 return;
                               }
 
                               if (title.isEmpty || description.isEmpty || imageFiles.isEmpty) {
+                                if (!mounted) return; // Check if still mounted
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
                                 return;
                               }
@@ -652,8 +646,8 @@ class _ServicesPageState extends State<ServicesPage> {
                                   'availableHours': availableHours,
                                 };
 
-                                logger.d('Adding service with body: $requestBody'); // Replaced print
-                                logger.d('Using token: $_token'); // Replaced print
+                                logger.d('Adding service with body: $requestBody');
+                                logger.d('Using token: $_token');
 
                                 final response = await http.post(
                                   Uri.parse('$baseUrl/api/service'),
@@ -664,18 +658,17 @@ class _ServicesPageState extends State<ServicesPage> {
                                   body: jsonEncode(requestBody),
                                 ).timeout(const Duration(seconds: 15));
 
-                                logger.d('Add service response: ${response.statusCode} - ${response.body}'); // Replaced print
+                                logger.d('Add service response: ${response.statusCode} - ${response.body}');
 
                                 if (response.statusCode == 201) {
                                   await _loadServices();
                                   final prefs = await SharedPreferences.getInstance();
                                   await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-                                  if (mounted) {
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service added successfully')));
-                                    if (ModalRoute.of(context)?.settings.name == '/provider-home') {
-                                      await _loadServices();
-                                    }
+                                  if (!mounted) return; // Check if still mounted
+                                  Navigator.pop(dialogContext);
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service added successfully')));
+                                  if (ModalRoute.of(context)?.settings.name == '/provider-home') {
+                                    await _loadServices();
                                   }
                                 } else {
                                   try {
@@ -686,12 +679,11 @@ class _ServicesPageState extends State<ServicesPage> {
                                   }
                                 }
                               } catch (e) {
-                                logger.d('Error adding service: $e'); // Replaced print
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                                  );
-                                }
+                                logger.d('Error adding service: $e');
+                                if (!mounted) return; // Check if still mounted
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                                );
                               } finally {
                                 if (mounted) {
                                   setDialogState(() => isLoading = false);
@@ -812,7 +804,7 @@ class _ServicesPageState extends State<ServicesPage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+    final isDarkMode = themeProvider.isDarkMode;
 
     return Scaffold(
       appBar: AppBar(

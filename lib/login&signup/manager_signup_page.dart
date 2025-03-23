@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:we_neighbour/main.dart'; // Assuming baseUrl is defined here
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:we_neighbour/main.dart';
+import 'package:logger/logger.dart';
 
 class ManagerSignUpPage extends StatefulWidget {
   const ManagerSignUpPage({super.key});
@@ -22,7 +22,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
   final _apartmentNameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void dispose() {
@@ -38,14 +38,10 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
 
   bool _isValidName(String name) => RegExp(r'^[a-zA-Z\s]+$').hasMatch(name);
   bool _isValidNIC(String nic) => RegExp(r'^\d{9}[Vv]$|^\d{12}$').hasMatch(nic);
-  bool _isValidEmail(String email) =>
-      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-  bool _isValidContact(String contact) =>
-      RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
+  bool _isValidEmail(String email) => RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  bool _isValidContact(String contact) => RegExp(r'^(?:\+94|0)?[0-9]{9}$').hasMatch(contact);
   bool _isStrongPassword(String password) =>
-      password.length >= 6 &&
-      RegExp(r'[0-9]').hasMatch(password) &&
-      RegExp(r'[a-zA-Z]').hasMatch(password);
+      password.length >= 6 && RegExp(r'[0-9]').hasMatch(password) && RegExp(r'[a-zA-Z]').hasMatch(password);
 
   Future<void> _handleSignUp() async {
     if (_formKey.currentState!.validate()) {
@@ -69,31 +65,32 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
 
         final responseData = json.decode(response.body);
         if (response.statusCode == 201) {
+          if (!mounted) return; // Check if still mounted
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(responseData['message'] ??
-                    'Manager registered successfully!')),
+                content: Text(responseData['message'] ?? 'Manager registered successfully!')),
           );
           await Future.delayed(const Duration(seconds: 3));
-          if (mounted) {
-            Navigator.pushNamedAndRemoveUntil(
-                context, '/login', (route) => false);
-          }
+          if (!mounted) return; // Check if still mounted
+          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
         } else {
+          if (!mounted) return; // Check if still mounted
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(responseData['message'] ??
-                    'Failed to sign up: ${response.body}')),
+                content: Text(responseData['message'] ?? 'Failed to sign up: ${response.body}')),
           );
-          logger.d('Failed to sign up. Error: ${response.body}'); // Replaced print
+          logger.d('Failed to sign up. Error: ${response.body}');
         }
       } catch (e) {
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Network error: $e')),
         );
-        logger.d('Network error: $e'); // Replaced print
+        logger.d('Network error: $e');
       } finally {
-        if (mounted) setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     }
   }
@@ -125,8 +122,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[600]),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           border: InputBorder.none,
           errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
         ),
@@ -158,19 +154,14 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                   const SizedBox(height: 24),
                   const Text(
                     'Manager Sign Up',
-                    style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black),
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
                   ),
                   const SizedBox(height: 10),
                   _buildTextField(
                     hint: 'Name',
                     controller: _nameController,
                     keyboardType: TextInputType.name,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
                     validator: (value) => value == null || value.isEmpty
                         ? 'Name is required'
                         : !_isValidName(value)
@@ -182,9 +173,7 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                     hint: 'NIC',
                     controller: _nicController,
                     keyboardType: TextInputType.text,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9Vv]'))
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9Vv]'))],
                     validator: (value) => value == null || value.isEmpty
                         ? 'NIC is required'
                         : !_isValidNIC(value)
@@ -254,16 +243,13 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A237E),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text('Sign Up',
                             style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold)),
+                                fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -272,12 +258,10 @@ class _ManagerSignUpPageState extends State<ManagerSignUpPage> {
                       const Text('Already have an account? ',
                           style: TextStyle(color: Colors.black87)),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamedAndRemoveUntil(
-                            context, '/login', (route) => false),
+                        onTap: () =>
+                            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false),
                         child: const Text('Sign in',
-                            style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold)),
+                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),

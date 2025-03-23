@@ -9,18 +9,18 @@ import 'package:we_neighbour/features/event_calendar/firebase_service.dart';
 import 'package:we_neighbour/features/event_calendar/health_wellness_screen.dart';
 import 'package:we_neighbour/widgets/calendar_custom_button.dart';
 import 'package:we_neighbour/widgets/calendar_feature_column.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class EventCalendarScreen extends StatefulWidget {
   const EventCalendarScreen({super.key});
 
   @override
-  _EventCalendarScreenState createState() => _EventCalendarScreenState();
+  State<EventCalendarScreen> createState() => _EventCalendarScreenState(); // Made public by using State<EventCalendarScreen>
 }
 
 class _EventCalendarScreenState extends State<EventCalendarScreen> {
   final FirebaseService _firebaseService = FirebaseService();
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
   String _activeView = 'calendar'; // 'calendar' or 'list'
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
@@ -52,12 +52,11 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
         (QuerySnapshot snapshot) {
           final Map<DateTime, List<dynamic>> newEvents = {};
 
-          logger.d('Received ${snapshot.docs.length} events from Firestore'); // Replaced print
+          logger.d('Received ${snapshot.docs.length} events from Firestore');
 
           for (var doc in snapshot.docs) {
             final data = doc.data() as Map<String, dynamic>;
             final DateTime date = (data['date'] as Timestamp).toDate();
-            // Normalize date to remove time component for proper comparison
             final DateTime normalizedDate =
                 DateTime(date.year, date.month, date.day);
 
@@ -66,11 +65,11 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                 'id': doc.id,
                 'title': data['title'],
                 'date': date,
-                'type': data['type'] ?? 'event', // Add event type with default
+                'type': data['type'] ?? 'event',
                 'endTime': data['endTime'] != null
                     ? (data['endTime'] as Timestamp).toDate()
-                    : null, // Add endTime
-                'notes': data['notes'], // Add notes
+                    : null,
+                'notes': data['notes'],
               });
             } else {
               newEvents[normalizedDate] = [
@@ -78,12 +77,11 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                   'id': doc.id,
                   'title': data['title'],
                   'date': date,
-                  'type':
-                      data['type'] ?? 'event', // Add event type with default
+                  'type': data['type'] ?? 'event',
                   'endTime': data['endTime'] != null
                       ? (data['endTime'] as Timestamp).toDate()
-                      : null, // Add endTime
-                  'notes': data['notes'], // Add notes
+                      : null,
+                  'notes': data['notes'],
                 }
               ];
             }
@@ -97,7 +95,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
           }
         },
         onError: (error) {
-          logger.d('Error loading events: $error'); // Replaced print
+          logger.d('Error loading events: $error');
           if (mounted) {
             setState(() {
               _isLoading = false;
@@ -106,7 +104,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
         },
       );
     } catch (e) {
-      logger.d('Exception in _loadEvents: $e'); // Replaced print
+      logger.d('Exception in _loadEvents: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -116,7 +114,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   }
 
   List<dynamic> _getEventsForDay(DateTime day) {
-    // Normalize date to remove time component
     final normalizedDate = DateTime(day.year, day.month, day.day);
     return _events[normalizedDate] ?? [];
   }
@@ -131,12 +128,12 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   void _addEvent(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) { // Renamed for clarity
         String newEventTitle = "";
         DateTime selectedDate = DateTime.now();
         TimeOfDay selectedTime = TimeOfDay.now();
-        TimeOfDay? selectedEndTime; // Added for endTime
-        String? eventNotes; // Added for notes
+        TimeOfDay? selectedEndTime;
+        String? eventNotes;
 
         return StatefulBuilder(builder: (context, setState) {
           return AlertDialog(
@@ -219,7 +216,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               TextButton(
                 child: const Text('Cancel'),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(dialogContext).pop();
                 },
               ),
               TextButton(
@@ -234,13 +231,14 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                       selectedTime.minute,
                     );
 
-                    // Create eventEndTime only if selectedEndTime is not null
                     DateTime? eventEndTime;
                     if (selectedEndTime != null) {
                       eventEndTime = DateTime(
                         selectedDate.year,
                         selectedDate.month,
                         selectedDate.day,
+                        selectedEndTime!.hour,
+                        selectedEndTime!.minute,
                       );
                     }
 
@@ -248,24 +246,25 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                       await _firebaseService.addEvent(newEventTitle,
                           eventDateTime, eventEndTime, eventNotes, 'event');
 
-                      // After adding the event, refresh the calendar view
+                      if (!mounted) return; // Check widget mounted state
                       setState(() {
                         _selectedDay = selectedDate;
                         _focusedDay = selectedDate;
                       });
 
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      if (!dialogContext.mounted) return; // Check dialog mounted state
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
                         const SnackBar(
                             content: Text('Event added successfully')),
                       );
+                      Navigator.of(dialogContext).pop();
                     } catch (e) {
-                      logger.d('Error adding event: $e'); // Replaced print
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      logger.d('Error adding event: $e');
+                      if (!dialogContext.mounted) return; // Check dialog mounted state
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
                         SnackBar(content: Text('Failed to add event: $e')),
                       );
                     }
-
-                    Navigator.of(context).pop();
                   }
                 },
               ),
@@ -279,7 +278,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   void _deleteEvent(BuildContext context, String eventId, String eventTitle) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) { // Renamed for clarity
         return AlertDialog(
           title: const Text('Delete Event'),
           content: Text('Are you sure you want to delete "$eventTitle"?'),
@@ -287,7 +286,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
             TextButton(
               child: const Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
               },
             ),
             TextButton(
@@ -298,16 +297,18 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               onPressed: () async {
                 try {
                   await _firebaseService.deleteEvent(eventId);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  if (!dialogContext.mounted) return; // Check dialog mounted state
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
                     const SnackBar(content: Text('Event deleted successfully')),
                   );
+                  Navigator.of(dialogContext).pop();
                 } catch (e) {
-                  logger.d('Error deleting event: $e'); // Replaced print
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  logger.d('Error deleting event: $e');
+                  if (!dialogContext.mounted) return; // Check dialog mounted state
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
                     SnackBar(content: Text('Failed to delete event: $e')),
                   );
                 }
-                Navigator.of(context).pop();
               },
             ),
           ],
@@ -365,7 +366,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                 style: const TextStyle(fontSize: 16),
               ),
 
-              // Show additional details for amenity or health bookings
               if ((isAmenity || isHealth) && event['endTime'] != null) ...[
                 Text(
                   'End Time: ${DateFormat('h:mm a').format(event['endTime'])}',
@@ -415,7 +415,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
     );
   }
 
-  // Navigate to BookAmenitiesScreen
   void _openAmenitiesBooking() {
     Navigator.push(
       context,
@@ -423,7 +422,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
     );
   }
 
-  // Navigate to HealthWellnessScreen
   void _openHealthWellness() {
     Navigator.push(
       context,
@@ -439,7 +437,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Back button and logo
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -457,14 +454,13 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                       fit: BoxFit.contain,
                     ),
                     const Spacer(),
-                    const SizedBox(width: 48), // Balance for back button
+                    const SizedBox(width: 48),
                   ],
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              // Event Calendar Text
               const Text(
                 'Event Calendar',
                 style: TextStyle(
@@ -476,7 +472,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
 
               const SizedBox(height: 20),
 
-              // Toggle buttons
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Align(
@@ -499,7 +494,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
 
               const SizedBox(height: 16),
 
-              // Main content
               if (_isLoading)
                 const Expanded(
                   child: Center(
@@ -558,7 +552,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
             calendarStyle: CalendarStyle(
               markersMaxCount: 3,
               markerDecoration: BoxDecoration(
-                color: Colors.blue.shade700,
+                color: Colors.blue[700], // Fixed deprecated use
                 shape: BoxShape.circle,
               ),
               todayDecoration: const BoxDecoration(
@@ -586,13 +580,12 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
           ),
         ),
 
-        // Show events for selected day
         if (_selectedDay != null && _getEventsForDay(_selectedDay!).isNotEmpty)
           Expanded(
             child: Container(
               margin: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1), // Fixed deprecated withOpacity
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListView.builder(
@@ -620,10 +613,10 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                         height: 40,
                         decoration: BoxDecoration(
                           color: isHealth
-                              ? Colors.purple.shade700
+                              ? Colors.purple[700]
                               : isAmenity
-                                  ? Colors.green.shade700
-                                  : Colors.blue.shade700,
+                                  ? Colors.green[700]
+                                  : Colors.blue[700],
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -663,7 +656,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icons Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -680,7 +672,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                 CalendarFeatureColumn(
                   iconPath: 'assets/images/health_icon.png',
                   label: 'Health &\nWellness',
-                  onTap: _openHealthWellness, // Updated to use the new method
+                  onTap: _openHealthWellness,
                 ),
               ],
             ),
@@ -699,7 +691,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               backgroundColor: const Color(0xFF0A1A3B),
             ),
 
-            // Show upcoming events in list view
             const SizedBox(height: 30),
             const Align(
               alignment: Alignment.centerLeft,
@@ -744,9 +735,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: events.length > 5
-              ? 5
-              : events.length, // Show only 5 upcoming events
+          itemCount: events.length > 5 ? 5 : events.length,
           itemBuilder: (context, index) {
             final doc = events[index];
             final data = doc.data() as Map<String, dynamic>;
@@ -808,9 +797,9 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                     height: 50,
                     decoration: BoxDecoration(
                       color: eventType == 'health'
-                          ? Colors.purple.shade700
+                          ? Colors.purple[700]
                           : eventType == 'amenity'
-                              ? Colors.green.shade700
+                              ? Colors.green[700]
                               : const Color(0xFF0A1A3B),
                       borderRadius: BorderRadius.circular(8),
                     ),

@@ -3,6 +3,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:we_neighbour/features/event_calendar/firebase_service.dart';
+import 'package:logger/logger.dart';
 
 class EventCalendar extends StatefulWidget {
   final FirebaseService firebaseService;
@@ -13,7 +14,7 @@ class EventCalendar extends StatefulWidget {
   });
 
   @override
-  _EventCalendarState createState() => _EventCalendarState();
+  State<EventCalendar> createState() => _EventCalendarState();
 }
 
 class _EventCalendarState extends State<EventCalendar> {
@@ -21,6 +22,7 @@ class _EventCalendarState extends State<EventCalendar> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Map<DateTime, List<dynamic>> _events = {};
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -30,37 +32,48 @@ class _EventCalendarState extends State<EventCalendar> {
   }
 
   void _loadEvents() {
-    widget.firebaseService.getEvents().listen((QuerySnapshot snapshot) {
-      final Map<DateTime, List<dynamic>> newEvents = {};
+    widget.firebaseService.getEvents().listen(
+      (QuerySnapshot snapshot) {
+        final Map<DateTime, List<dynamic>> newEvents = {};
 
-      for (var doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final DateTime date = (data['date'] as Timestamp).toDate();
-        // Normalize date to remove time component for proper comparison
-        final DateTime normalizedDate =
-            DateTime(date.year, date.month, date.day);
+        for (var doc in snapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final DateTime date = (data['date'] as Timestamp).toDate();
+          // Normalize date to remove time component for proper comparison
+          final DateTime normalizedDate = DateTime(date.year, date.month, date.day);
 
-        if (newEvents[normalizedDate] != null) {
-          newEvents[normalizedDate]!.add({
-            'id': doc.id,
-            'title': data['title'],
-            'date': date,
-          });
-        } else {
-          newEvents[normalizedDate] = [
-            {
+          if (newEvents[normalizedDate] != null) {
+            newEvents[normalizedDate]!.add({
               'id': doc.id,
               'title': data['title'],
               'date': date,
-            }
-          ];
+            });
+          } else {
+            newEvents[normalizedDate] = [
+              {
+                'id': doc.id,
+                'title': data['title'],
+                'date': date,
+              }
+            ];
+          }
         }
-      }
 
-      setState(() {
-        _events = newEvents;
-      });
-    });
+        if (mounted) {
+          setState(() {
+            _events = newEvents;
+          });
+        }
+      },
+      onError: (e) {
+        logger.e('Error loading events from Firestore: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to load events: $e')),
+          );
+        }
+      },
+    );
   }
 
   List<dynamic> _getEventsForDay(DateTime day) {
@@ -144,7 +157,7 @@ class _EventCalendarState extends State<EventCalendar> {
   }
 
   Widget _buildEventList() {
-    final events = _getEventsForDay(_selectedDay!);
+    final events = _getEventsForDay(_selectedDay ?? _focusedDay);
 
     if (events.isEmpty) {
       return Container(

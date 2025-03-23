@@ -6,7 +6,7 @@ import '../../constants/text_styles.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class CommunityNotification {
   final String id;
@@ -41,14 +41,14 @@ class CommunityNotificationsScreen extends StatefulWidget {
   const CommunityNotificationsScreen({super.key});
 
   @override
-  _CommunityNotificationsScreenState createState() => _CommunityNotificationsScreenState();
+  State<CommunityNotificationsScreen> createState() => _CommunityNotificationsScreenState();
 }
 
 class _CommunityNotificationsScreenState extends State<CommunityNotificationsScreen> {
   List<CommunityNotification> notifications = [];
   String? userRole;
   String? currentUserId;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -62,32 +62,32 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
     setState(() {
       userRole = prefs.getString('userRole')?.toLowerCase();
       currentUserId = prefs.getString('userId');
-      logger.d('Loaded User Role: $userRole, User ID: $currentUserId'); // Replaced print
+      logger.d('Loaded User Role: $userRole, User ID: $currentUserId');
     });
   }
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    logger.d('Retrieved token: $token'); // Replaced print
+    logger.d('Retrieved token: $token');
     return token;
   }
 
   Future<void> _fetchNotifications() async {
     final token = await _getToken();
     if (token == null) {
-      logger.d('No token available'); // Replaced print
+      logger.d('No token available');
       return;
     }
 
     try {
-      logger.d('Fetching notifications from: $baseUrl/api/notifications/community'); // Replaced print
+      logger.d('Fetching notifications from: $baseUrl/api/notifications/community');
       final response = await http.get(
         Uri.parse('$baseUrl/api/notifications/community'),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 15));
 
-      logger.d('Fetch response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Fetch response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         setState(() {
@@ -97,30 +97,29 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         throw Exception('Failed to fetch notifications: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Fetch error: $e'); // Replaced print
-      if (mounted) {
-        String errorMessage = 'Failed to load notifications: $e';
-        if (e.toString().contains('Connection refused')) {
-          errorMessage = 'Cannot reach server. Check your network or server status.';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+      logger.d('Fetch error: $e');
+      if (!mounted) return; // Check if still mounted
+      String errorMessage = 'Failed to load notifications: $e';
+      if (e.toString().contains('Connection refused')) {
+        errorMessage = 'Cannot reach server. Check your network or server status.';
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
   }
 
   Future<void> _createNotification(String title, String message) async {
     final token = await _getToken();
     if (token == null) {
-      logger.d('No token available for create'); // Replaced print
+      logger.d('No token available for create');
       return;
     }
 
     try {
       final requestBody = jsonEncode({'title': title, 'message': message});
-      logger.d('Create request: $baseUrl/api/notifications/community'); // Replaced print
-      logger.d('Create request body: $requestBody'); // Replaced print
+      logger.d('Create request: $baseUrl/api/notifications/community');
+      logger.d('Create request body: $requestBody');
       final response = await http.post(
         Uri.parse('$baseUrl/api/notifications/community'),
         headers: {
@@ -130,14 +129,13 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         body: requestBody,
       ).timeout(const Duration(seconds: 15));
 
-      logger.d('Create response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Create response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 201) {
-        _fetchNotifications();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Notification created successfully')),
-          );
-        }
+        await _fetchNotifications();
+        if (!mounted) return; // Check if still mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notification created successfully')),
+        );
       } else if (response.statusCode == 403) {
         throw Exception('Unauthorized: You may not have permission to create notifications');
       } else if (response.statusCode == 500) {
@@ -146,16 +144,15 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         throw Exception('Failed to create: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Create error: $e'); // Replaced print
-      if (mounted) {
-        String errorMessage = 'Error creating notification: $e';
-        if (e.toString().contains('Connection refused')) {
-          errorMessage = 'Cannot reach server. Check your network or server status.';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+      logger.d('Create error: $e');
+      if (!mounted) return; // Check if still mounted
+      String errorMessage = 'Error creating notification: $e';
+      if (e.toString().contains('Connection refused')) {
+        errorMessage = 'Cannot reach server. Check your network or server status.';
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
   }
 
@@ -167,30 +164,28 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
       final url = userRole == 'manager'
           ? '$baseUrl/api/notifications/community/remove-by-manager/$id'
           : '$baseUrl/api/notifications/community/$id';
-      logger.d('Delete request: $url'); // Replaced print
+      logger.d('Delete request: $url');
       final response = await http.delete(
         Uri.parse(url),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 15));
 
-      logger.d('Delete response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Delete response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
-        _fetchNotifications();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Notification deleted')),
-          );
-        }
+        await _fetchNotifications();
+        if (!mounted) return; // Check if still mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notification deleted')),
+        );
       } else {
         throw Exception('Failed to delete: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Delete error: $e'); // Replaced print
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting notification: $e')),
-        );
-      }
+      logger.d('Delete error: $e');
+      if (!mounted) return; // Check if still mounted
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting notification: $e')),
+      );
     }
   }
 
@@ -199,30 +194,28 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
     if (token == null) return;
 
     try {
-      logger.d('Remove request: $baseUrl/api/notifications/community/$id/remove-for-user'); // Replaced print
+      logger.d('Remove request: $baseUrl/api/notifications/community/$id/remove-for-user');
       final response = await http.delete(
         Uri.parse('$baseUrl/api/notifications/community/$id/remove-for-user'),
         headers: {'x-auth-token': token},
       ).timeout(const Duration(seconds: 15));
 
-      logger.d('Remove response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Remove response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
-        _fetchNotifications();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Notification removed for you')),
-          );
-        }
+        await _fetchNotifications();
+        if (!mounted) return; // Check if still mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notification removed for you')),
+        );
       } else {
         throw Exception('Failed to remove: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Remove error: $e'); // Replaced print
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error removing notification: $e')),
-        );
-      }
+      logger.d('Remove error: $e');
+      if (!mounted) return; // Check if still mounted
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error removing notification: $e')),
+      );
     }
   }
 
@@ -232,8 +225,8 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
 
     try {
       final requestBody = jsonEncode({'title': title, 'message': message});
-      logger.d('Edit request: $baseUrl/api/notifications/community/$id'); // Replaced print
-      logger.d('Edit request body: $requestBody'); // Replaced print
+      logger.d('Edit request: $baseUrl/api/notifications/community/$id');
+      logger.d('Edit request body: $requestBody');
       final response = await http.put(
         Uri.parse('$baseUrl/api/notifications/community/$id'),
         headers: {
@@ -243,24 +236,22 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         body: requestBody,
       ).timeout(const Duration(seconds: 15));
 
-      logger.d('Edit response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Edit response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
-        _fetchNotifications();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Notification updated')),
-          );
-        }
+        await _fetchNotifications();
+        if (!mounted) return; // Check if still mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notification updated')),
+        );
       } else {
         throw Exception('Failed to edit: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Edit error: $e'); // Replaced print
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error editing notification: $e')),
-        );
-      }
+      logger.d('Edit error: $e');
+      if (!mounted) return; // Check if still mounted
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error editing notification: $e')),
+      );
     }
   }
 
@@ -271,7 +262,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text('New Community Notification', style: AppTextStyles.getGreetingStyle(isDarkMode)),
@@ -296,19 +287,19 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text('Cancel', style: AppTextStyles.getBodyTextStyle(isDarkMode)),
           ),
           ElevatedButton(
             onPressed: () {
               if (titleController.text.isEmpty || messageController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
                   const SnackBar(content: Text('Please fill in both fields')),
                 );
                 return;
               }
               _createNotification(titleController.text, messageController.text);
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isDarkMode ? AppColors.primary : const Color.fromARGB(255, 0, 18, 255),
@@ -328,7 +319,7 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text('Edit Community Notification', style: AppTextStyles.getGreetingStyle(isDarkMode)),
@@ -353,19 +344,19 @@ class _CommunityNotificationsScreenState extends State<CommunityNotificationsScr
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text('Cancel', style: AppTextStyles.getBodyTextStyle(isDarkMode)),
           ),
           ElevatedButton(
             onPressed: () {
               if (titleController.text.isEmpty || messageController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
                   const SnackBar(content: Text('Please fill in both fields')),
                 );
                 return;
               }
               _editNotification(notification.id, titleController.text, messageController.text);
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: isDarkMode ? AppColors.primary : const Color.fromARGB(255, 0, 18, 255),

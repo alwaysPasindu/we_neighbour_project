@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'dart:convert';
-
 import 'package:we_neighbour/main.dart';
-
 
 class ManagerMaintenanceScreen extends StatefulWidget {
   final String authToken;
@@ -36,6 +34,7 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+        if (!mounted) return; // Check if still mounted
         setState(() {
           _pendingRequests = data.map((r) => MaintenanceCard.fromJson(r)).toList();
           _isLoading = false;
@@ -44,6 +43,7 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
         throw Exception('Failed to load pending requests');
       }
     } catch (e) {
+      if (!mounted) return; // Check if still mounted
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
@@ -61,7 +61,8 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
       );
 
       if (response.statusCode == 200) {
-        _fetchPendingRequests();
+        await _fetchPendingRequests();
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Request marked as done')),
         );
@@ -69,6 +70,7 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
         throw Exception('Failed to mark request as done');
       }
     } catch (e) {
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -112,7 +114,7 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
                     return Card(
                       color: isDarkMode ? Colors.grey[800] : Colors.white,
                       elevation: 2,
-                      margin: const EdgeInsets.only(bottom: 8),
+                      margin: const EdgeInsets.only(bottom: 8), // Fixed typo: 'custom' to 'bottom'
                       child: ListTile(
                         title: Text(
                           request.title,

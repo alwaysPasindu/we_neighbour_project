@@ -142,7 +142,7 @@ class SettingsScreen extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const ShareAppScreen(),
+                builder: (context) => ShareAppScreen(),
               ),
             );
             break;

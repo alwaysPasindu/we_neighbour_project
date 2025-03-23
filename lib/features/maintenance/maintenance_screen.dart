@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:we_neighbour/main.dart';
 import 'dart:convert';
 import 'create_maintenance_request_screen.dart';
-import 'package:we_neighbour/utils/auth_utils.dart'; // Import AuthUtils
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:we_neighbour/utils/auth_utils.dart';
+import 'package:logger/logger.dart';
 
 class MaintenanceCard {
   final String id;
@@ -12,7 +12,7 @@ class MaintenanceCard {
   final String description;
   final String status;
   double? averageRating;
-  List<Map<String, dynamic>>? ratings; // Add ratings list to track individual ratings
+  List<Map<String, dynamic>>? ratings;
 
   MaintenanceCard({
     required this.id,
@@ -57,20 +57,20 @@ class MaintenanceScreen extends StatefulWidget {
 class _MaintenanceScreenState extends State<MaintenanceScreen> {
   List<MaintenanceCard> _requests = [];
   bool _isLoading = true;
-  String? _userId; // Store user ID
-  final Logger logger = Logger(); // Added logger instance
+  String? _userId;
+  final Logger logger = Logger();
 
   @override
   void initState() {
     super.initState();
-    _loadUserId(); // Load user ID first
+    _loadUserId();
     _fetchRequests();
   }
 
   Future<void> _loadUserId() async {
-    _userId = await AuthUtils.getUserId(); // Use AuthUtils to get user ID
-    logger.d('Loaded User ID: $_userId'); // Replaced print
-    if (mounted) setState(() {}); // Force rebuild after loading user ID
+    _userId = await AuthUtils.getUserId();
+    logger.d('Loaded User ID: $_userId');
+    if (mounted) setState(() {});
   }
 
   Future<void> _fetchRequests() async {
@@ -78,10 +78,10 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
       final url = widget.isManager
           ? '$baseUrl/api/maintenance/get-pending-request'
           : '$baseUrl/api/maintenance/get-completed-request';
-      
-      logger.d('Fetching requests for ${widget.isManager ? "Manager" : "Resident"} with URL: $url'); // Replaced print
-      logger.d('Fetching requests with token: ${widget.authToken}'); // Replaced print
-      logger.d('Authorization header: x-auth-token: ${widget.authToken}'); // Replaced print
+
+      logger.d('Fetching requests for ${widget.isManager ? "Manager" : "Resident"} with URL: $url');
+      logger.d('Fetching requests with token: ${widget.authToken}');
+      logger.d('Authorization header: x-auth-token: ${widget.authToken}');
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -89,8 +89,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         },
       );
 
-      logger.d('Fetch requests status code: ${response.statusCode}'); // Replaced print
-      logger.d('Fetch requests response body: ${response.body}'); // Replaced print
+      logger.d('Fetch requests status code: ${response.statusCode}');
+      logger.d('Fetch requests response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -103,12 +103,11 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load requests: ${e.toString()}')),
-        );
-        logger.d('Fetch requests error: $e'); // Replaced print
-      }
+      if (!mounted) return; // Check if still mounted before using context
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load requests: ${e.toString()}')),
+      );
+      logger.d('Fetch requests error: $e');
     }
   }
 
@@ -123,11 +122,12 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         },
       );
 
-      logger.d('Mark as done status code: ${response.statusCode}'); // Replaced print
-      logger.d('Mark as done response body: ${response.body}'); // Replaced print
+      logger.d('Mark as done status code: ${response.statusCode}');
+      logger.d('Mark as done response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        _fetchRequests();
+        await _fetchRequests();
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Request marked as done')),
         );
@@ -135,6 +135,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         throw Exception('Failed to mark as done: ${response.body}');
       }
     } catch (e) {
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -154,16 +155,18 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         body: jsonEncode({'stars': rating}),
       );
 
-      logger.d('Rate request status code: ${response.statusCode}'); // Replaced print
-      logger.d('Rate request response body: ${response.body}'); // Replaced print
+      logger.d('Rate request status code: ${response.statusCode}');
+      logger.d('Rate request response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        _fetchRequests(); // Refresh requests to update ratings
+        await _fetchRequests();
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Rating submitted')),
         );
       } else if (response.statusCode == 400) {
         final data = jsonDecode(response.body);
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data['message'] ?? 'Rating failed')),
         );
@@ -171,6 +174,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         throw Exception('Failed to submit rating: ${response.body}');
       }
     } catch (e) {
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -241,13 +245,11 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
   }
 
   Widget _buildMaintenanceCard(MaintenanceCard card, bool isDarkMode) {
-    // Get user's rating (if any) based on their ID
     final userRating = card.ratings?.firstWhere(
-      (rating) => rating['resident']['_id'] == _userId, // Use actual user ID
+      (rating) => rating['resident']['_id'] == _userId,
       orElse: () => {'stars': 0},
     )['stars'];
 
-    // Count total reviews
     final totalReviews = card.ratings?.length ?? 0;
 
     return Container(
@@ -296,7 +298,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
           else ...[
             if (card.averageRating != null)
               Text(
-                'Avg: ${card.averageRating} ($totalReviews reviews)', // Show total reviews
+                'Avg: ${card.averageRating} ($totalReviews reviews)',
                 style: const TextStyle(color: Colors.white),
               ),
             Row(
@@ -307,8 +309,8 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
                   child: Icon(
                     Icons.star,
                     color: starIndex < (userRating ?? 0)
-                        ? Colors.amber // Filled star if rated
-                        : Colors.white, // Empty star if not rated
+                        ? Colors.amber
+                        : Colors.white,
                     size: 20,
                   ),
                 );

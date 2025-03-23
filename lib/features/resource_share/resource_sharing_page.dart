@@ -15,7 +15,7 @@ import 'package:we_neighbour/widgets/resource_card.dart';
 import 'package:we_neighbour/features/chat/chat_screen.dart';
 import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class ResourceSharingPage extends StatefulWidget {
   const ResourceSharingPage({super.key});
@@ -29,7 +29,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   bool _isLoading = true;
   String? userId;
   String? authToken;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -48,7 +48,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     final apartmentName = prefs.getString('userApartment') ?? 'UnknownApartment';
     if (userId != null && userId!.isNotEmpty && chatProvider.currentUserId != userId) {
       chatProvider.setUser(userId!, apartmentName);
-      logger.d('ResourceSharingPage: User data loaded - userId: $userId, apartmentName: $apartmentName'); // Replaced print
+      logger.d('ResourceSharingPage: User data loaded - userId: $userId, apartmentName: $apartmentName');
     }
   }
 
@@ -60,6 +60,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   Future<void> _fetchResources() async {
     final token = await _getToken();
     if (token == null) {
+      if (!mounted) return; // Check before using context
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No authentication token available')),
@@ -79,16 +80,17 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           resources = data.map((r) => model.Resource.fromJson(r)).toList();
           _isLoading = false;
         });
-        logger.d('ResourceSharingPage: Resources fetched successfully - count: ${resources.length}'); // Replaced print
+        logger.d('ResourceSharingPage: Resources fetched successfully - count: ${resources.length}');
       } else {
         throw Exception('Failed to load resources: ${response.statusCode}');
       }
     } catch (e) {
+      if (!mounted) return; // Check if still mounted
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching resources: $e')),
       );
-      logger.d('ResourceSharingPage: Error fetching resources: $e'); // Replaced print
+      logger.d('ResourceSharingPage: Error fetching resources: $e');
     }
   }
 
@@ -121,20 +123,20 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         setState(() {
           resources.insert(0, newResource);
         });
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Resource request created successfully')),
         );
-        logger.d('ResourceSharingPage: Resource created - id: ${newResource.id}'); // Replaced print
+        logger.d('ResourceSharingPage: Resource created - id: ${newResource.id}');
       } else {
         throw Exception('Failed to create resource: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error creating resource: $e')),
       );
-
-      logger.d('ResourceSharingPage: Error creating resource: $e'); // Replaced print
-
+      logger.d('ResourceSharingPage: Error creating resource: $e');
     }
   }
 
@@ -155,38 +157,39 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         setState(() {
           resources.removeWhere((resource) => resource.id == id);
         });
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Resource request deleted successfully')),
         );
-        logger.d('ResourceSharingPage: Resource deleted - id: $id'); // Replaced print
+        logger.d('ResourceSharingPage: Resource deleted - id: $id');
       } else {
         throw Exception('Failed to delete resource: ${response.statusCode}');
       }
     } catch (e) {
-
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error deleting resource: $e')),
       );
-
-      logger.d('ResourceSharingPage: Error deleting resource: $e'); // Replaced print
-
+      logger.d('ResourceSharingPage: Error deleting resource: $e');
     }
   }
 
-  void _initiateChat(String resourceUserId, String message) async {
+  Future<void> _initiateChat(String resourceUserId, String message) async {
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
     if (chatProvider.currentUserId == null || chatProvider.currentUserId!.isEmpty) {
+      if (!mounted) return; // Check before using context
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User not authenticated. Please log in again.')),
       );
-      logger.d('ResourceSharingPage: User not authenticated - currentUserId: ${chatProvider.currentUserId}'); // Replaced print
+      logger.d('ResourceSharingPage: User not authenticated - currentUserId: ${chatProvider.currentUserId}');
       return;
     }
     try {
       final chatId = await chatProvider.getOrCreateChat(resourceUserId);
       final resourceMessage = "[Resource Share] $message";
-      await chatProvider.sendResourceMessage(chatId, resourceMessage, resourceUserId); // Add resourceUserId
-      logger.d('ResourceSharingPage: Chat initiated - chatId: $chatId, resourceUserId: $resourceUserId'); // Replaced print
+      await chatProvider.sendResourceMessage(chatId, resourceMessage, resourceUserId);
+      logger.d('ResourceSharingPage: Chat initiated - chatId: $chatId, resourceUserId: $resourceUserId');
+      if (!mounted) return; // Check if still mounted before navigation
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -194,7 +197,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         ),
       );
     } catch (e) {
-      logger.d('ResourceSharingPage: Chat initiation error: $e'); // Replaced print
+      if (!mounted) return; // Check if still mounted
+      logger.d('ResourceSharingPage: Chat initiation error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error initiating chat: $e')),
       );
@@ -212,8 +216,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setState) => AlertDialog(
           backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           title: Text(
@@ -259,7 +263,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: Text('Cancel', style: AppTextStyles.getBodyTextStyle(isDarkMode)),
             ),
             ElevatedButton(
@@ -267,7 +271,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                 if (titleController.text.isEmpty ||
                     descriptionController.text.isEmpty ||
                     quantityController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
                     const SnackBar(content: Text('Please fill in all fields')),
                   );
                   return;
@@ -288,7 +292,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                   quantityController.text,
                   imageUrls,
                 );
-                Navigator.pop(context);
+                if (!mounted) return; // Check if still mounted before popping
+                Navigator.pop(dialogContext);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -308,7 +313,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text(
@@ -321,13 +326,14 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text('Cancel', style: AppTextStyles.getBodyTextStyle(isDarkMode)),
           ),
           ElevatedButton(
-            onPressed: () {
-              _deleteResource(id);
-              Navigator.pop(context);
+            onPressed: () async {
+              await _deleteResource(id);
+              if (!mounted) return; // Check if still mounted before popping
+              Navigator.pop(dialogContext);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -383,7 +389,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                             builder: (context) => ShareDialog(resource: resource),
                           );
                           if (message != null && message.isNotEmpty) {
-                            _initiateChat(resource.userId, message);
+                            await _initiateChat(resource.userId, message);
                           }
                         }
                       : null,

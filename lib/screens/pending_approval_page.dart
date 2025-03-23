@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class PendingApprovalPage extends StatefulWidget {
   const PendingApprovalPage({super.key});
@@ -13,8 +13,7 @@ class PendingApprovalPage extends StatefulWidget {
   State<PendingApprovalPage> createState() => _PendingApprovalPageState();
 }
 
-class _PendingApprovalPageState extends State<PendingApprovalPage>
-    with SingleTickerProviderStateMixin {
+class _PendingApprovalPageState extends State<PendingApprovalPage> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _rotationAnimation;
   late Animation<double> _pulseAnimation;
@@ -23,24 +22,20 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
   Timer? _statusCheckTimer;
   static const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
   bool _isLoadingToken = true;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat(reverse: false);
+    _animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat(reverse: false);
 
-    _rotationAnimation = Tween<double>(begin: 0, end: 2 * math.pi).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.linear),
-    );
+    _rotationAnimation = Tween<double>(begin: 0, end: 2 * math.pi)
+        .animate(CurvedAnimation(parent: _animationController, curve: Curves.linear));
 
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1)
+        .animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
 
     _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -74,9 +69,11 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
 
   Future<void> _checkInitialToken() async {
     final token = await _getToken();
+    if (!mounted) return; // Check if still mounted
     setState(() => _isLoadingToken = false);
     if (token == null) {
-      logger.d('No token found on init, prompting re-login'); // Replaced print
+      logger.d('No token found on init, prompting re-login');
+      if (!mounted) return; // Check if still mounted
       _showReloginDialog();
     } else {
       _startStatusCheck();
@@ -86,16 +83,17 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
   Future<void> _checkApprovalStatus() async {
     final token = await _getToken();
     if (token == null) {
-      logger.d('No token found, cannot check status'); // Replaced print
+      logger.d('No token found, cannot check status');
+      if (!mounted) return; // Check if still mounted
       _showReloginDialog();
       return;
     }
-    logger.d('Token being sent: $token'); // Replaced print
+    logger.d('Token being sent: $token');
 
     final prefs = await SharedPreferences.getInstance();
     final role = prefs.getString('userRole');
     if (role != 'Resident') {
-      logger.d('Invalid role for this page: $role'); // Replaced print
+      logger.d('Invalid role for this page: $role');
       await _signOut();
       return;
     }
@@ -109,33 +107,33 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
         },
       ).timeout(const Duration(seconds: 10));
 
-      logger.d('Status check response: ${response.statusCode} - ${response.body}'); // Replaced print
+      logger.d('Status check response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final status = data['status']?.toString().toLowerCase();
         if (status == 'approved' && mounted) {
-          logger.d('Resident approved, navigating to /home'); // Replaced print
+          logger.d('Resident approved, navigating to /home');
           _statusCheckTimer?.cancel();
           Navigator.pushReplacementNamed(context, '/home');
         } else if (status == 'rejected' && mounted) {
-          logger.d('Resident rejected'); // Replaced print
+          logger.d('Resident rejected');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Your request was rejected. Please contact the manager.')),
           );
         } else if (status == 'pending') {
-          logger.d('Resident still pending'); // Replaced print
+          logger.d('Resident still pending');
         } else {
-          logger.d('Unknown status: $status'); // Replaced print
+          logger.d('Unknown status: $status');
         }
       } else if (response.statusCode == 401) {
-        logger.d('Token expired or invalid, signing out'); // Replaced print
+        logger.d('Token expired or invalid, signing out');
         await _signOut();
       } else {
-        logger.d('Status check failed: ${response.statusCode} - ${response.body}'); // Replaced print
+        logger.d('Status check failed: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.d('Error checking approval status: $e'); // Replaced print
+      logger.d('Error checking approval status: $e');
     }
   }
 
@@ -151,40 +149,37 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
       await prefs.remove('token');
       await prefs.remove('userRole');
       await prefs.remove('userId');
-      if (mounted) {
-        logger.d('Signing out, navigating to login'); // Replaced print
-        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-      }
+      if (!mounted) return; // Check if still mounted
+      logger.d('Signing out, navigating to login');
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     } catch (e) {
-      if (mounted) {
-        logger.d('Error signing out: $e'); // Replaced print
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error signing out: $e')),
-        );
-      }
+      if (!mounted) return; // Check if still mounted
+      logger.d('Error signing out: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error signing out: $e')),
+      );
     }
   }
 
   void _showReloginDialog() {
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          title: const Text('Session Expired'),
-          content: const Text('Please log in again to continue.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _signOut();
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    }
+    if (!mounted) return; // Check if still mounted
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Session Expired'),
+        content: const Text('Please log in again to continue.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _signOut();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
