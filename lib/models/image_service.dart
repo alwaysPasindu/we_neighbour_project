@@ -7,9 +7,11 @@ import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/main.dart'; // Ensure this provides `baseUrl`
+import 'package:logger/logger.dart'; // Added logger import
 
 class ImageService {
   static final ImagePicker _picker = ImagePicker();
+  static final Logger logger = Logger(); // Added logger instance
 
   // Pick multiple images from gallery
   static Future<List<XFile>> pickMultipleImages() async {
@@ -18,11 +20,11 @@ class ImageService {
         imageQuality: 80, // Added quality to reduce size
       );
       if (images.isEmpty) {
-        print('No images selected');
+        logger.d('No images selected'); // Replaced print
       }
       return images;
     } catch (e) {
-      print('Error picking multiple images: $e');
+      logger.d('Error picking multiple images: $e'); // Replaced print
       return [];
     }
   }
@@ -35,11 +37,11 @@ class ImageService {
         imageQuality: 80, // Consistent quality setting
       );
       if (image == null) {
-        print('No image selected');
+        logger.d('No image selected'); // Replaced print
       }
       return image;
     } catch (e) {
-      print('Error picking image: $e');
+      logger.d('Error picking image: $e'); // Replaced print
       return null;
     }
   }
@@ -50,7 +52,7 @@ class ImageService {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
       if (token == null) {
-        print('No auth token available. Please log in.');
+        logger.d('No auth token available. Please log in.'); // Replaced print
         return null;
       }
 
@@ -69,25 +71,25 @@ class ImageService {
 
       // Send request and handle response
       final response = await request.send().timeout(const Duration(seconds: 30));
-      print('Upload response status: ${response.statusCode}');
+      logger.d('Upload response status: ${response.statusCode}'); // Replaced print
 
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
-        print('Response body: $responseBody');
+        logger.d('Response body: $responseBody'); // Replaced print
         final json = jsonDecode(responseBody);
         if (json['imageUrl'] != null) {
           return json['imageUrl'] as String;
         } else {
-          print('Invalid response format: missing imageUrl');
+          logger.d('Invalid response format: missing imageUrl'); // Replaced print
           return null;
         }
       } else {
         final errorBody = await response.stream.bytesToString();
-        print('Failed to upload image: ${response.statusCode} - $errorBody');
+        logger.d('Failed to upload image: ${response.statusCode} - $errorBody'); // Replaced print
         return null;
       }
     } catch (e) {
-      print('Error uploading image: $e');
+      logger.d('Error uploading image: $e'); // Replaced print
       return null;
     }
   }
@@ -100,7 +102,7 @@ class ImageService {
       if (url != null) {
         uploadedUrls.add(url);
       } else {
-        print('Failed to upload one of the images');
+        logger.d('Failed to upload one of the images'); // Replaced print
       }
     }
     return uploadedUrls;
@@ -114,13 +116,13 @@ class ImageService {
       final savedImage = File('${appDir.path}/$fileName');
       await file.saveTo(savedImage.path);
       if (await savedImage.exists()) {
-        print('Image saved locally: ${savedImage.path}');
+        logger.d('Image saved locally: ${savedImage.path}'); // Replaced print
         return savedImage.path;
       } else {
         throw Exception('Failed to save image');
       }
     } catch (e) {
-      print('Error saving image: $e');
+      logger.d('Error saving image: $e'); // Replaced print
       return null;
     }
   }
@@ -131,13 +133,13 @@ class ImageService {
       final file = File(imagePath);
       if (await file.exists()) {
         await file.delete();
-        print('Image deleted: $imagePath');
+        logger.d('Image deleted: $imagePath'); // Replaced print
         return true;
       }
-      print('Image not found: $imagePath');
+      logger.d('Image not found: $imagePath'); // Replaced print
       return false;
     } catch (e) {
-      print('Error deleting image: $e');
+      logger.d('Error deleting image: $e'); // Replaced print
       return false;
     }
   }
@@ -184,7 +186,7 @@ class ImageService {
       final file = File(imagePath);
       return await file.exists();
     } catch (e) {
-      print('Error checking image existence: $e');
+      logger.d('Error checking image existence: $e'); // Replaced print
       return false;
     }
   }
@@ -195,10 +197,10 @@ class ImageService {
       final file = File(imagePath);
       final bytes = await file.length();
       final sizeInMb = bytes / (1024 * 1024);
-      print('Image size: $sizeInMb MB');
+      logger.d('Image size: $sizeInMb MB'); // Replaced print
       return sizeInMb;
     } catch (e) {
-      print('Error getting image size: $e');
+      logger.d('Error getting image size: $e'); // Replaced print
       return 0.0;
     }
   }
