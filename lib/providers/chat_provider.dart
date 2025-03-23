@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:we_neighbour/models/chat.dart';
-import 'package:we_neighbour/models/message.dart';
 import 'package:logger/logger.dart';
 
 class ChatProvider with ChangeNotifier {
