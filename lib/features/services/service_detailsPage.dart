@@ -80,8 +80,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
       }
     } catch (e) {
       logger.d('Error fetching reviews: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching reviews: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching reviews: $e')));
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -89,16 +90,6 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
         });
       }
     }
-  }
-
-  Future<Map<String, String>> _getUserData() async {
-    final profileData = await AuthUtils.getUserProfileData();
-    final role = await AuthUtils.getUserType().then((userType) => userType.toString().split('.').last);
-    logger.d('Retrieved user data: name=${profileData['name']}, role=$role');
-    return {
-      'name': profileData['name'] ?? 'Anonymous',
-      'role': role,
-    };
   }
 
   Future<void> _submitReview(int rating, String comment, String token, BuildContext dialogContext) async {
@@ -118,17 +109,18 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
       logger.d('Add review response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 201) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('Review added successfully')));
+        if (dialogContext.mounted) {
+          ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('Review added successfully')));
+        }
         await _fetchReviews();
-        if (mounted) setState(() {});
       } else {
         final errorData = jsonDecode(response.body);
         throw Exception('Failed to add review: ${errorData['message'] ?? response.statusCode}');
       }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (dialogContext.mounted) {
+        ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -139,8 +131,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
     final token = await _getAuthToken();
 
     if (token == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to add a review')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to add a review')));
+      }
       return;
     }
 
@@ -186,7 +179,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                 ElevatedButton(
                   onPressed: () async {
                     Navigator.pop(dialogContext);
-                    await _submitReview(rating, commentController.text, token, context);
+                    await _submitReview(rating, commentController.text, token, dialogContext);
                   },
                   child: const Text('Submit'),
                 ),
@@ -204,8 +197,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open Google Maps')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open Google Maps')));
+      }
     }
   }
 
@@ -399,8 +393,9 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking functionality coming soon!')));
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking functionality coming soon!')));
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,

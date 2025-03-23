@@ -105,7 +105,7 @@ class _MyAppState extends State<MyApp> {
             userType = UserType.resident;
         }
 
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         setState(() {
           _isLoggedIn = true;
           _userType = userType;
@@ -114,11 +114,16 @@ class _MyAppState extends State<MyApp> {
         });
 
         if (userType == UserType.resident && userStatus == 'pending') {
-          if (!mounted) return; // Check if still mounted
-          Navigator.pushReplacementNamed(context, '/pending-approval');
+          if (!mounted) return;
+          // Store the navigation action to execute after build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              Navigator.pushReplacementNamed(context, '/pending-approval');
+            }
+          });
         }
       } else {
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         setState(() {
           _isLoggedIn = false;
           _isLoading = false;
@@ -126,7 +131,7 @@ class _MyAppState extends State<MyApp> {
       }
     } catch (e) {
       logger.d('Error checking login status: $e');
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       setState(() {
         _isLoggedIn = false;
         _isLoading = false;
@@ -224,4 +229,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
