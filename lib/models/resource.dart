@@ -2,6 +2,7 @@ class Resource {
   final String id;
   final String title;
   final String description;
+  final String quantity;
   final String userId;
   final String userName;
   final String apartmentCode;
@@ -10,6 +11,7 @@ class Resource {
     required this.id,
     required this.title,
     required this.description,
+    required this.quantity,
     required this.userId,
     required this.userName,
     required this.apartmentCode,
@@ -20,6 +22,7 @@ class Resource {
       id: json['_id'],
       title: json['resourceName'],
       description: json['description'],
+      quantity: json['quantity'],
       userId: json['resident']['_id'] ?? json['resident'],
       userName: json['residentName'],
       apartmentCode: json['apartmentCode'],
