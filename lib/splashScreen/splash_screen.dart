@@ -17,16 +17,12 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _rotationAnimation;
   late Animation<double> _slideAnimation;
 
-  // For animated particles
+  // For animated particles (currently empty, but kept for potential re-enabling)
   final List<Map<String, dynamic>> _particles = [];
-  // final int _particleCount = 20;
 
   @override
   void initState() {
     super.initState();
-
-    // Generate random particles
-    // _generateParticles();
 
     // Initialize animation controller
     _animationController = AnimationController(
@@ -68,22 +64,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Navigate to login page after delay
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/login');
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     });
   }
-
-  // void _generateParticles() {
-  //   final random = math.Random();
-  //   for (int i = 0; i < _particleCount; i++) {
-  //     _particles.add({
-  //       'x': random.nextDouble(),
-  //       'y': random.nextDouble(),
-  //       'size': random.nextDouble() * 10 + 2,
-  //       'speed': random.nextDouble() * 0.8 + 0.2,
-  //       'opacity': random.nextDouble() * 0.6 + 0.2,
-  //     });
-  //   }
-  // }
 
   @override
   void dispose() {
@@ -122,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          // Animated particles
+          // Animated particles (currently empty)
           ...List.generate(_particles.length, (index) {
             return AnimatedBuilder(
               animation: _animationController,
@@ -239,7 +224,6 @@ class _SplashScreenState extends State<SplashScreen>
                   },
                   child: Column(
                     children: [
-                      // Logo - Shadow removed
                       Container(
                         width: 180,
                         height: 180,
@@ -310,8 +294,6 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     children: [
                       const SizedBox(height: 15),
-
-                      // Tagline with animated typing effect
                       SizedBox(
                         height: 20,
                         child: AnimatedBuilder(
