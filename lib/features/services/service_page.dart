@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/features/services/service_detailsPage.dart';
+import 'package:we_neighbour/features/services/service_details_page.dart';
 import 'package:we_neighbour/features/services/location_picker.dart';
 import 'package:we_neighbour/main.dart';
 import 'package:we_neighbour/models/service.dart';
@@ -32,7 +33,6 @@ class ServicesPage extends StatefulWidget {
 
 class _ServicesPageState extends State<ServicesPage> {
   List<Service> _allServices = [];
-  List<Service> _filteredServices = [];
   final ScrollController _scrollController = ScrollController();
   String _currentUserId = '';
   bool _isLoading = false;
@@ -75,7 +75,10 @@ class _ServicesPageState extends State<ServicesPage> {
       if (placemarks.isNotEmpty && mounted) {
         final placemark = placemarks.first;
         setState(() {
-          _locationAddress = '${placemark.street}, ${placemark.locality}, ${placemark.country}' ?? 'Unknown Location';
+          _locationAddress = '${placemark.street ?? ''}, ${placemark.locality ?? ''}, ${placemark.country ?? ''}'.trim();
+          if (_locationAddress.isEmpty) {
+            _locationAddress = 'Unknown Location';
+          }
         });
       }
     } catch (e) {
@@ -91,7 +94,7 @@ class _ServicesPageState extends State<ServicesPage> {
   Future<void> _loadUserData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (!mounted) return; // Check if still mounted before setState
+      if (!mounted) return;
       setState(() {
         _currentUserId = prefs.getString('userId') ?? '';
         _token = prefs.getString('token');
@@ -105,7 +108,7 @@ class _ServicesPageState extends State<ServicesPage> {
       }
     } catch (e) {
       logger.d('Error loading user data: $e');
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
     }
   }
@@ -134,15 +137,14 @@ class _ServicesPageState extends State<ServicesPage> {
       if (response.statusCode == 200) {
         final List<dynamic> servicesJson = jsonDecode(response.body);
         final services = servicesJson.map((json) => Service.fromJson(json as Map<String, dynamic>)).toList();
-        if (!mounted) return; // Check if still mounted before setState
+        if (!mounted) return;
         setState(() {
           _allServices = services;
-          _filteredServices = List.from(_allServices);
         });
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
       } else if (response.statusCode == 401) {
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/login');
         throw Exception('Unauthorized: Invalid or expired token');
       } else {
@@ -150,16 +152,15 @@ class _ServicesPageState extends State<ServicesPage> {
       }
     } catch (e) {
       logger.d('Error loading services: $e');
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e')));
       final prefs = await SharedPreferences.getInstance();
       final String? servicesJson = prefs.getString('services');
       if (servicesJson != null) {
         final List<dynamic> decodedServices = jsonDecode(servicesJson);
-        if (!mounted) return; // Check if still mounted before setState
+        if (!mounted) return;
         setState(() {
           _allServices = decodedServices.map((json) => Service.fromJson(json)).toList();
-          _filteredServices = List.from(_allServices);
         });
       }
     } finally {
@@ -187,24 +188,23 @@ class _ServicesPageState extends State<ServicesPage> {
       logger.d('Delete service response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
-        if (!mounted) return; // Check if still mounted before setState
+        if (!mounted) return;
         setState(() {
           _allServices.removeWhere((s) => s.id == service.id);
-          _filteredServices = List.from(_allServices);
         });
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service deleted successfully')));
         if (ModalRoute.of(context)?.settings.name == '/provider-home') {
-          await _loadServices(); // Refresh if on ProviderHomePage
+          await _loadServices();
         }
       } else {
         throw Exception('Failed to delete service: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       logger.d('Error deleting service: $e');
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting service: $e')));
     }
   }
@@ -306,16 +306,16 @@ class _ServicesPageState extends State<ServicesPage> {
                             await _loadServices();
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-                            if (!mounted) return; // Check if still mounted
+                            if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service updated successfully')));
                             if (ModalRoute.of(context)?.settings.name == '/provider-home') {
-                              await _loadServices(); // Refresh if on ProviderHomePage
+                              await _loadServices();
                             }
                           } else {
                             throw Exception('Failed to update service: ${response.statusCode}');
                           }
                         } catch (e) {
-                          if (!mounted) return; // Check if still mounted
+                          if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                         }
                       },
@@ -416,7 +416,9 @@ class _ServicesPageState extends State<ServicesPage> {
                               latitude = selectedLocation.latitude;
                               longitude = selectedLocation.longitude;
                             });
-                            await _fetchLocationAddress(latitude, longitude);
+                            if (mounted) {
+                              await _fetchLocationAddress(latitude, longitude);
+                            }
                           }
                         },
                         child: Container(
@@ -617,7 +619,7 @@ class _ServicesPageState extends State<ServicesPage> {
                               }
 
                               if (title.isEmpty || description.isEmpty || imageFiles.isEmpty) {
-                                if (!mounted) return; // Check if still mounted
+                                if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
                                 return;
                               }
@@ -664,7 +666,7 @@ class _ServicesPageState extends State<ServicesPage> {
                                   await _loadServices();
                                   final prefs = await SharedPreferences.getInstance();
                                   await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-                                  if (!mounted) return; // Check if still mounted
+                                  if (!mounted) return;
                                   Navigator.pop(dialogContext);
                                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service added successfully')));
                                   if (ModalRoute.of(context)?.settings.name == '/provider-home') {
@@ -680,7 +682,7 @@ class _ServicesPageState extends State<ServicesPage> {
                                 }
                               } catch (e) {
                                 logger.d('Error adding service: $e');
-                                if (!mounted) return; // Check if still mounted
+                                if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
                                 );

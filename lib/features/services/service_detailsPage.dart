@@ -96,7 +96,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
     final role = await AuthUtils.getUserType().then((userType) => userType.toString().split('.').last);
     logger.d('Retrieved user data: name=${profileData['name']}, role=$role');
     return {
-      'name': profileData['name'],
+      'name': profileData['name'] ?? 'Anonymous',
       'role': role,
     };
   }
