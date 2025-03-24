@@ -112,7 +112,7 @@ class ShareAppScreen extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary.withOpacity(0.1), // Changed to withOpacity
+                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1), // Line 115:64
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
@@ -168,7 +168,7 @@ class ShareAppScreen extends StatelessWidget {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: platforms[index]['color'].withOpacity(0.1), // Changed to withOpacity
+                            color: platforms[index]['color'].withValues(alpha: 0.1), // Line 150:58
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Icon(

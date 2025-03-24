@@ -9,7 +9,6 @@ import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/constants/colors.dart';
-import 'package:we_neighbour/features/services/service_detailsPage.dart';
 import 'package:we_neighbour/main.dart';
 import 'package:we_neighbour/models/service.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
@@ -104,21 +103,22 @@ class _ServicesPageState extends State<ServicesPage> {
       if (_token == null || _token!.isEmpty) {
         logger.d('No token found in SharedPreferences');
         if (!mounted || ModalRoute.of(context)?.settings.name == '/login') return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in again')));
-        Navigator.pushReplacementNamed(context, '/login');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in again')));
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
       }
     } catch (e) {
       logger.d('Error loading user data: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
+      }
     }
   }
 
   Future<void> _loadServices() async {
     if (_token == null) return;
-
     setState(() => _isLoading = true);
-
     try {
       final queryParams = {
         'latitude': (_userLatitude ?? 6.9271).toString(),
@@ -145,21 +145,22 @@ class _ServicesPageState extends State<ServicesPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
       } else if (response.statusCode == 401) {
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/login');
-        throw Exception('Unauthorized: Invalid or expired token');
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/login');
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unauthorized: Invalid or expired token')));
+        }
       } else {
         throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       logger.d('Error loading services: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading services: $e')));
+      }
       final prefs = await SharedPreferences.getInstance();
       final String? servicesJson = prefs.getString('services');
-      if (servicesJson != null) {
+      if (servicesJson != null && mounted) {
         final List<dynamic> decodedServices = jsonDecode(servicesJson);
-        if (!mounted) return;
         setState(() {
           _allServices = decodedServices.map((json) => Service.fromJson(json)).toList();
         });
@@ -176,7 +177,6 @@ class _ServicesPageState extends State<ServicesPage> {
       logger.d('No authentication token found');
       return;
     }
-
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/api/service/${service.id}'),
@@ -195,9 +195,10 @@ class _ServicesPageState extends State<ServicesPage> {
         });
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service deleted successfully')));
-        if (ModalRoute.of(context)?.settings.name == '/provider-home') {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service deleted successfully')));
+        }
+        if (mounted && ModalRoute.of(context)?.settings.name == '/provider-home') {
           await _loadServices();
         }
       } else {
@@ -205,12 +206,14 @@ class _ServicesPageState extends State<ServicesPage> {
       }
     } catch (e) {
       logger.d('Error deleting service: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting service: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting service: $e')));
+      }
     }
   }
 
   void _showDeleteDialog(Service service) {
+    if (!mounted) return;
     final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
 
     showDialog(
@@ -240,6 +243,7 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   void _editService(Service service) {
+    if (!mounted) return;
     String title = service.title;
     String description = service.description;
     String address = service.location.address;
@@ -303,21 +307,24 @@ class _ServicesPageState extends State<ServicesPage> {
                           );
 
                           if (response.statusCode == 200) {
+                            // ignore: use_build_context_synchronously
                             Navigator.pop(dialogContext);
                             await _loadServices();
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service updated successfully')));
-                            if (ModalRoute.of(context)?.settings.name == '/provider-home') {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service updated successfully')));
+                            }
+                            if (mounted && ModalRoute.of(context)?.settings.name == '/provider-home') {
                               await _loadServices();
                             }
                           } else {
                             throw Exception('Failed to update service: ${response.statusCode}');
                           }
                         } catch (e) {
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                          }
                         }
                       },
                       child: const Text('Save'),
@@ -333,6 +340,7 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   void _addNewService() {
+    if (!mounted) return;
     final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
 
     showDialog(
@@ -417,9 +425,7 @@ class _ServicesPageState extends State<ServicesPage> {
                               latitude = selectedLocation.latitude;
                               longitude = selectedLocation.longitude;
                             });
-                            if (mounted) {
-                              await _fetchLocationAddress(latitude, longitude);
-                            }
+                            await _fetchLocationAddress(latitude, longitude);
                           }
                         },
                         child: Container(
@@ -461,6 +467,7 @@ class _ServicesPageState extends State<ServicesPage> {
                           );
                           if (pickedStart != null) {
                             final TimeOfDay? pickedEnd = await showTimePicker(
+                              // ignore: use_build_context_synchronously
                               context: dialogContext,
                               initialTime: pickedStart,
                               builder: (context, child) => Theme(
@@ -614,14 +621,17 @@ class _ServicesPageState extends State<ServicesPage> {
                             onPressed: () async {
                               if (_token == null) {
                                 if (!mounted || ModalRoute.of(context)?.settings.name == '/login') return;
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
-                                Navigator.pushReplacementNamed(context, '/login');
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
+                                  Navigator.of(context).pushReplacementNamed('/login');
+                                }
                                 return;
                               }
 
                               if (title.isEmpty || description.isEmpty || imageFiles.isEmpty) {
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
+                                }
                                 return;
                               }
 
@@ -667,10 +677,11 @@ class _ServicesPageState extends State<ServicesPage> {
                                   await _loadServices();
                                   final prefs = await SharedPreferences.getInstance();
                                   await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-                                  if (!mounted) return;
-                                  Navigator.pop(dialogContext);
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service added successfully')));
-                                  if (ModalRoute.of(context)?.settings.name == '/provider-home') {
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service added successfully')));
+                                  }
+                                  if (mounted && ModalRoute.of(context)?.settings.name == '/provider-home') {
                                     await _loadServices();
                                   }
                                 } else {
@@ -683,10 +694,11 @@ class _ServicesPageState extends State<ServicesPage> {
                                 }
                               } catch (e) {
                                 logger.d('Error adding service: $e');
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                                );
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                                  );
+                                }
                               } finally {
                                 if (mounted) {
                                   setDialogState(() => isLoading = false);

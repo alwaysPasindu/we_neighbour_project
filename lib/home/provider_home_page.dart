@@ -6,8 +6,8 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/constants/colors.dart';
-import 'package:we_neighbour/features/services/service_detailsPage.dart';
 import 'package:we_neighbour/features/services/service_details_page.dart';
+// import 'package:we_neighbour/features/services/service_details_page.dart';
 import '../widgets/provider_header_widget.dart';
 import '../../providers/theme_provider.dart';
 import '../widgets/provider_bottom_navigation.dart';
@@ -147,11 +147,6 @@ class _ProviderHomePageState extends State<ProviderHomePage> {
     }
   }
 
-  Future<void> _signOut() async {
-    await prefs.clear();
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-  }
 
   void _startAutoSlide() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {

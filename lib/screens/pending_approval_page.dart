@@ -102,7 +102,6 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
     final prefs = await SharedPreferences.getInstance();
     final role = prefs.getString('userRole');
     if (role?.toLowerCase() != 'resident') {
-      // Case-insensitive check
       logger.d('Invalid role for this page: $role');
       await _signOut();
       setState(() => _isCheckingStatus = false);
@@ -130,11 +129,12 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
           Navigator.pushReplacementNamed(context, '/home');
         } else if (status == 'rejected' && mounted) {
           logger.d('Resident rejected');
-          _statusCheckTimer?.cancel(); // Stop checking if rejected
+          _statusCheckTimer?.cancel();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text(
-                    'Your request was rejected. Please contact the manager.')),
+              content: Text(
+                  'Your request was rejected. Please contact the manager.'),
+            ),
           );
         } else if (status == 'pending') {
           logger.d('Resident still pending');
@@ -193,7 +193,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
         actions: [
           TextButton(
             onPressed: () {
-              if (!mounted) return; // Check mounted before popping
+              if (!mounted) return;
               Navigator.pop(context);
               _signOut();
             },
@@ -253,58 +253,58 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
                           animation: _animationController,
                           builder: (context, child) {
                             return Transform.scale(
-                                scale: _pulseAnimation.value,
-                                child: Container(
-                                  width: 150,
-                                  height: 150,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(
-                                            0.3), // Use withOpacity for alpha
-                                        blurRadius: 10,
-                                        spreadRadius: 2,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Container(
-                                      width: 120,
-                                      height: 120,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Center(
-                                        child: Transform.rotate(
-                                          angle: _rotationAnimation.value,
-                                          child: Container(
-                                            width: 80,
-                                            height: 80,
-                                            decoration: const BoxDecoration(
-                                              color: accentColor,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Center(
-                                              child: _isCheckingStatus
-                                                  ? const CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                      strokeWidth: 2,
-                                                    )
-                                                  : const Icon(
-                                                      Icons.hourglass_top,
-                                                      size: 40,
-                                                      color: Colors.white,
-                                                    ),
-                                            ),
+                              scale: _pulseAnimation.value,
+                              child: Container(
+                                width: 150,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withValues(alpha: 0.3),
+                                      blurRadius: 10,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade50,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Transform.rotate(
+                                        angle: _rotationAnimation.value,
+                                        child: Container(
+                                          width: 80,
+                                          height: 80,
+                                          decoration: const BoxDecoration(
+                                            color: accentColor,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Center(
+                                            child: _isCheckingStatus
+                                                ? const CircularProgressIndicator(
+                                                    color: Colors.white,
+                                                    strokeWidth: 2,
+                                                  )
+                                                : const Icon(
+                                                    Icons.hourglass_top,
+                                                    size: 40,
+                                                    color: Colors.white,
+                                                  ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ));
+                                ),
+                              ),
+                            );
                           },
                         ),
                         const SizedBox(height: 40),
@@ -399,7 +399,8 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
                                     width: size,
                                     height: size,
                                     decoration: BoxDecoration(
-                                      color: accentColor.withOpacity(opacity),
+                                      color: accentColor.withValues(
+                                          alpha: opacity),
                                       shape: BoxShape.circle,
                                     ),
                                   );
@@ -430,8 +431,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
                             ),
                           ),
                         ),
-                        const SizedBox(
-                            height: 40), // Extra padding at the bottom
+                        const SizedBox(height: 40), // Extra padding at the bottom
                       ],
                     ),
                   ),
