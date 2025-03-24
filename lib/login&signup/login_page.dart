@@ -97,21 +97,20 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   Future<void> _handleLogin() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
+
     try {
       HttpClient httpClient = HttpClient()
         ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
       final client = IOClient(httpClient);
 
-      final response = await client
-          .post(
+      final response = await client.post(
         Uri.parse('$baseUrl/api/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': _emailController.text,
           'password': _passwordController.text,
         }),
-      )
-          .timeout(const Duration(seconds: 50), onTimeout: () {
+      ).timeout(const Duration(seconds: 50), onTimeout: () {
         throw TimeoutException('Request timed out after 50 seconds');
       });
 
@@ -167,8 +166,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       logger.d('Stack trace: $stackTrace');
       if (!mounted) return;
       _showErrorDialog('Connection Error', 'Unable to connect to the server: $e');
-    } finally {
-      if (!mounted) return;
+    }
+
+    // Moved setState outside finally to avoid control_flow_in_finally issue
+    if (mounted) {
       setState(() => _isLoading = false);
     }
   }
@@ -324,7 +325,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                             child: const Text(
                               'WELCOME!',
                               style: TextStyle(
-                                fontSize: 34.0, // Default size for larger screens
+                                fontSize: 34.0,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                                 letterSpacing: 1.5,
@@ -569,13 +570,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                         children: const [
                                           Text('Login',
                                               style: TextStyle(
-                                                  fontSize: 18, // Default size for larger screens
+                                                  fontSize: 18,
                                                   fontWeight: FontWeight.bold,
                                                   color: Colors.white,
                                                   letterSpacing: 1.1)),
                                           SizedBox(width: 8),
                                           Icon(Icons.arrow_forward_rounded,
-                                              color: Colors.white, size: 20), // Default size
+                                              color: Colors.white, size: 20),
                                         ],
                                       ),
                               ),
