@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:we_neighbour/main.dart';
@@ -30,12 +32,17 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   @override
   void initState() {
     super.initState();
-    _loadUserData(context).then((_) => _fetchResources());
+    _initializeData();
   }
 
-  Future<void> _loadUserData(BuildContext context) async {
+  Future<void> _initializeData() async {
+    await _loadUserData();
+    await _fetchResources();
+  }
+
+  Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return; // Check if widget is still mounted
+    if (!mounted) return;
     setState(() {
       userId = prefs.getString('userId');
       authToken = prefs.getString('token');
@@ -57,13 +64,11 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   Future<void> _fetchResources() async {
     final token = await _getToken();
     if (token == null) {
-      if (!mounted) return; // Check if widget is still mounted
+      if (!mounted) return;
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No authentication token available')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No authentication token available')),
+      );
       return;
     }
 
@@ -75,24 +80,21 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        if (mounted) {
-          setState(() {
-            resources = data.map((r) => model.Resource.fromJson(r)).toList();
-            _isLoading = false;
-          });
-        }
+        if (!mounted) return;
+        setState(() {
+          resources = data.map((r) => model.Resource.fromJson(r)).toList();
+          _isLoading = false;
+        });
         logger.d('ResourceSharingPage: Resources fetched successfully - count: ${resources.length}');
       } else {
         throw Exception('Failed to load resources: ${response.statusCode}');
       }
     } catch (e) {
-      if (!mounted) return; // Check if widget is still mounted
+      if (!mounted) return;
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching resources: $e')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching resources: $e')),
+      );
       logger.d('ResourceSharingPage: Error fetching resources: $e');
     }
   }
@@ -129,26 +131,23 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
 
       if (response.statusCode == 201) {
         final newResource = model.Resource.fromJson(jsonDecode(response.body));
-        if (mounted) {
-          setState(() {
-            resources.insert(0, newResource);
-          });
-        }
-        if (dialogContext.mounted) {
-          ScaffoldMessenger.of(dialogContext).showSnackBar(
-            const SnackBar(content: Text('Resource request created successfully')),
-          );
-        }
+        if (!mounted) return;
+        setState(() {
+          resources.insert(0, newResource);
+        });
+        if (!dialogContext.mounted) return;
+        ScaffoldMessenger.of(dialogContext).showSnackBar(
+          const SnackBar(content: Text('Resource request created successfully')),
+        );
         logger.d('ResourceSharingPage: Resource created - id: ${newResource.id}');
       } else {
         throw Exception('Failed to create resource: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      if (dialogContext.mounted) {
-        ScaffoldMessenger.of(dialogContext).showSnackBar(
-          SnackBar(content: Text('Error creating resource: $e')),
-        );
-      }
+      if (!dialogContext.mounted) return;
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
+        SnackBar(content: Text('Error creating resource: $e')),
+      );
       logger.d('ResourceSharingPage: Error creating resource: $e');
     }
   }
@@ -167,32 +166,30 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
-        if (mounted) {
-          setState(() {
-            resources.removeWhere((resource) => resource.id == id);
-          });
-        }
-        if (dialogContext.mounted) {
-          ScaffoldMessenger.of(dialogContext).showSnackBar(
-            const SnackBar(content: Text('Resource request deleted successfully')),
-          );
-        }
+        if (!mounted) return;
+        setState(() {
+          resources.removeWhere((resource) => resource.id == id);
+        });
+        if (!dialogContext.mounted) return;
+        ScaffoldMessenger.of(dialogContext).showSnackBar(
+          const SnackBar(content: Text('Resource request deleted successfully')),
+        );
         logger.d('ResourceSharingPage: Resource deleted - id: $id');
       } else {
         throw Exception('Failed to delete resource: ${response.statusCode}');
       }
     } catch (e) {
-      if (dialogContext.mounted) {
-        ScaffoldMessenger.of(dialogContext).showSnackBar(
-          SnackBar(content: Text('Error deleting resource: $e')),
-        );
-      }
+      if (!dialogContext.mounted) return;
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
+        SnackBar(content: Text('Error deleting resource: $e')),
+      );
       logger.d('ResourceSharingPage: Error deleting resource: $e');
     }
   }
 
   Future<void> _showDeleteDialog(String resourceId) async {
-    return showDialog(
+    if (!mounted) return;
+    await showDialog(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
         title: const Text('Delete Resource'),
@@ -217,7 +214,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   Future<void> _initiateChat(String resourceUserId, String message) async {
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
     if (chatProvider.currentUserId == null || chatProvider.currentUserId!.isEmpty) {
-      if (!mounted) return; // Check if widget is still mounted
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('User not authenticated. Please log in again.')),
       );
@@ -229,16 +226,15 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       final resourceMessage = "[Resource Share] $message";
       await chatProvider.sendResourceMessage(chatId, resourceMessage, resourceUserId);
       logger.d('ResourceSharingPage: Chat initiated - chatId: $chatId, resourceUserId: $resourceUserId');
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatScreen(chatId: chatId, isGroup: false),
-          ),
-        );
-      }
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(chatId: chatId, isGroup: false),
+        ),
+      );
     } catch (e) {
-      if (!mounted) return; // Check if widget is still mounted
+      if (!mounted) return;
       logger.d('ResourceSharingPage: Chat initiation error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error initiating chat: $e')),
@@ -247,12 +243,13 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   }
 
   Future<void> _showCreateDialog() async {
+    if (!mounted) return;
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
     final quantityController = TextEditingController();
     List<String> imageUrls = [];
 
-    return showDialog(
+    await showDialog(
       context: context,
       builder: (BuildContext dialogContext) => AlertDialog(
         title: const Text('Create Resource'),

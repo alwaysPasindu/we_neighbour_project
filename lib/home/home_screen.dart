@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:we_neighbour/features/services/service_detailsPage.dart';
 import 'package:we_neighbour/features/services/service_details_page.dart';
 import '../widgets/header_widget.dart';
 import '../widgets/feature_grid.dart';
@@ -12,7 +11,6 @@ import '../widgets/bottom_navigation.dart';
 import '../constants/colors.dart';
 import '../main.dart';
 import '../models/service.dart';
-import '../utils/auth_utils.dart';
 import 'package:logger/logger.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -63,9 +61,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Future<void> _initializePrefs() async {
     prefs = await SharedPreferences.getInstance();
     await _loadUserData();
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
+    if (!mounted) return;
+    setState(() => _isLoading = false);
   }
 
   Future<void> _loadUserData() async {
@@ -144,12 +141,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Future<void> _signOut() async {
-    await prefs.clear();
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-  }
-
   void _startAutoSlide() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (_featuredServices.isEmpty) return;
@@ -173,27 +164,32 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     switch (index) {
       case 1:
+        if (!mounted) return;
         Navigator.pushNamed(context, '/chat-list', arguments: widget.userType);
         break;
       case 2:
+        if (!mounted) return;
         Navigator.pushNamed(context, '/resource');
         break;
       case 3:
+        if (!mounted) return;
         Navigator.pushNamed(context, '/service', arguments: widget.userType);
         break;
       case 4:
         if (_token == null) {
+          if (!mounted) return;
           Navigator.pushReplacementNamed(context, '/login');
           return;
         }
-        final userType = await AuthUtils.getUserType();
-        Navigator.pushNamed(context, '/profile', arguments: userType);
+        if (!mounted) return;
+        Navigator.pushNamed(context, '/profile', arguments: widget.userType);
         break;
     }
   }
 
   void _onServiceTap(Service service) async {
     final currentUserId = prefs.getString('userId') ?? '';
+    if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -251,9 +247,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               child: RefreshIndicator(
                 color: AppColors.primary,
                 backgroundColor: isDarkMode ? AppColors.darkCardBackground : Colors.white,
-                onRefresh: () async {
-                  await _loadServices();
-                },
+                onRefresh: _loadServices,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
@@ -286,6 +280,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               const Spacer(),
                               TextButton(
                                 onPressed: () {
+                                  if (!mounted) return;
                                   Navigator.pushNamed(context, '/service', arguments: widget.userType);
                                 },
                                 child: const Text(
@@ -582,7 +577,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           ),
                         ),
                         const SizedBox(height: 24),
-                        // Recent Services Section
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
@@ -732,9 +726,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               Icon(
                                 Icons.search_off_rounded,
                                 size: 80,
-                                color: isDarkMode
-                                    ? Colors.grey[600]
-                                    : Colors.grey[400],
+                                color: isDarkMode ? Colors.grey[600] : Colors.grey[400],
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -742,9 +734,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w500,
-                                  color: isDarkMode
-                                      ? Colors.grey[400]
-                                      : Colors.grey[600],
+                                  color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -752,9 +742,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 'Check back later or try refreshing',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: isDarkMode
-                                      ? Colors.grey[500]
-                                      : Colors.grey[600],
+                                  color: isDarkMode ? Colors.grey[500] : Colors.grey[600],
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -790,9 +778,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       bottomNavigationBar: BottomNavigation(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
-        userType: widget
-
-.userType,
+        userType: widget.userType,
         isDarkMode: isDarkMode,
       ),
     );

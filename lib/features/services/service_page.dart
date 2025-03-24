@@ -9,7 +9,7 @@ import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/constants/colors.dart';
-import 'package:we_neighbour/features/services/service_detailsPage.dart';
+import 'package:we_neighbour/features/services/service_details_page.dart';
 import 'package:we_neighbour/main.dart';
 import 'package:we_neighbour/models/service.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';

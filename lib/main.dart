@@ -115,7 +115,6 @@ class _MyAppState extends State<MyApp> {
 
         if (userType == UserType.resident && userStatus == 'pending') {
           if (!mounted) return;
-          // Store the navigation action to execute after build
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               Navigator.pushReplacementNamed(context, '/pending-approval');
@@ -143,6 +142,35 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
+        if (_isLoading) {
+          return MaterialApp(
+            home: const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ),
+              ),
+            ),
+            themeMode: themeProvider.themeMode,
+            theme: ThemeData(
+              colorScheme: const ColorScheme.light(
+                primary: AppColors.primary,
+                secondary: Colors.blue,
+              ),
+              primaryColor: AppColors.primary,
+              scaffoldBackgroundColor: AppColors.background,
+            ),
+            darkTheme: ThemeData.dark().copyWith(
+              colorScheme: const ColorScheme.dark(
+                primary: AppColors.primary,
+                secondary: Colors.blue,
+              ),
+              primaryColor: AppColors.primary,
+              scaffoldBackgroundColor: Colors.grey[900],
+            ),
+          );
+        }
+
         return MaterialApp(
           title: 'We Neighbour',
           debugShowCheckedModeBanner: false,
@@ -182,7 +210,11 @@ class _MyAppState extends State<MyApp> {
             '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
             '/provider-home': (context) => const ProviderHomePage(),
             '/provider-profile': (context) => const CompanyProfileScreen(),
-            '/chat-list': (context) => ChatListPage(),
+            '/chat-list': (context) {
+              final args = ModalRoute.of(context)?.settings.arguments;
+              final userType = args is UserType ? args : _userType;
+              return ChatListPage(userType: userType);
+            },
             '/pending-approval': (context) => const PendingApprovalPage(),
             '/resource': (context) => const ResourceSharingPage(),
             '/resident-req': (context) => const ResidentsRequestScreen(),

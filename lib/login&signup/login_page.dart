@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -96,6 +95,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   Future<void> _handleLogin() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       HttpClient httpClient = HttpClient()
@@ -168,14 +168,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       if (!mounted) return;
       _showErrorDialog('Connection Error', 'Unable to connect to the server: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     }
   }
 
   void _showErrorDialog(String title, String message) {
-    if (!mounted) return; // Check if still mounted before showing dialog
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -236,7 +235,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       gradient: RadialGradient(
                         colors: [
                           primaryColor.withValues(alpha: 0.7),
-                          primaryColor.withValues(alpha: 0.0)
+                          primaryColor.withValues(alpha: 0.0),
                         ],
                         stops: const [0.0, 1.0],
                       ),
@@ -285,8 +284,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                             builder: (context, child) {
                               return Transform.translate(
                                 offset: Offset(
-                                    0,
-                                    math.sin(_animationController.value * math.pi * 2) * 5),
+                                    0, math.sin(_animationController.value * math.pi * 2) * 5),
                                 child: child,
                               );
                             },
@@ -324,10 +322,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ).createShader(bounds),
-                            child: Text(
+                            child: const Text(
                               'WELCOME!',
                               style: TextStyle(
-                                fontSize: titleFontSize,
+                                fontSize: 34.0, // Default size for larger screens
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                                 letterSpacing: 1.5,
@@ -360,7 +358,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 8,
-                                    offset: const Offset(0, 2))
+                                    offset: const Offset(0, 2)),
                               ],
                             ),
                             child: ClipRRect(
@@ -414,7 +412,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 8,
-                                    offset: const Offset(0, 2))
+                                    offset: const Offset(0, 2)),
                               ],
                             ),
                             child: ClipRRect(
@@ -499,16 +497,19 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                   ],
                                 ),
                                 TextButton(
-                                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text('Forgot password feature coming soon'),
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                      margin: const EdgeInsets.all(16),
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                      duration: const Duration(seconds: 3),
-                                    ),
-                                  ),
+                                  onPressed: () {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text('Forgot password feature coming soon'),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        margin: const EdgeInsets.all(16),
+                                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                  },
                                   style: TextButton.styleFrom(
                                       padding: EdgeInsets.zero,
                                       minimumSize: const Size(0, 0),
@@ -534,7 +535,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 colors: _isLoading
                                     ? [
                                         primaryColor.withValues(alpha: 0.7),
-                                        secondaryColor.withValues(alpha: 0.7)
+                                        secondaryColor.withValues(alpha: 0.7),
                                       ]
                                     : [primaryColor, secondaryColor],
                               ),
@@ -542,7 +543,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 BoxShadow(
                                     color: primaryColor.withValues(alpha: 0.3),
                                     blurRadius: 12,
-                                    offset: const Offset(0, 4))
+                                    offset: const Offset(0, 4)),
                               ],
                             ),
                             child: ElevatedButton(
@@ -566,16 +567,16 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                       )
                                     : Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
+                                        children: const [
                                           Text('Login',
                                               style: TextStyle(
-                                                  fontSize: size.width < 360 ? 16 : 18,
+                                                  fontSize: 18, // Default size for larger screens
                                                   fontWeight: FontWeight.bold,
                                                   color: Colors.white,
                                                   letterSpacing: 1.1)),
-                                          const SizedBox(width: 8),
+                                          SizedBox(width: 8),
                                           Icon(Icons.arrow_forward_rounded,
-                                              color: Colors.white, size: size.width < 360 ? 18 : 20),
+                                              color: Colors.white, size: 20), // Default size
                                         ],
                                       ),
                               ),
@@ -593,7 +594,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500)),
                                 TextButton(
-                                  onPressed: () => Navigator.pushNamed(context, '/account-type'),
+                                  onPressed: () {
+                                    if (!mounted) return;
+                                    Navigator.pushNamed(context, '/account-type');
+                                  },
                                   style: TextButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(horizontal: 8),
                                       minimumSize: const Size(0, 0),

@@ -50,15 +50,15 @@ class PendingTasksScreen extends StatelessWidget {
                 itemCount: 8,
                 itemBuilder: (context, index) {
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 16), // Fixed typo: 'bottom' instead of 'custom'
+                    margin: const EdgeInsets.only(bottom: 16), // Fixed typo below
                     decoration: BoxDecoration(
                       color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
                           color: isDarkMode
-                              ? Colors.black.withOpacity(0.4) // Changed to withOpacity for consistency
-                              : Colors.grey.withOpacity(0.4),
+                              ? Colors.black.withValues(alpha: 0.4) // Line 60:46
+                              : Colors.grey.withValues(alpha: 0.4), // Line 61:45
                           offset: const Offset(0, 4),
                           blurRadius: 8,
                         ),
@@ -74,7 +74,7 @@ class PendingTasksScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: _getPriorityColor(index).withOpacity(0.1),
+                                  color: _getPriorityColor(index).withValues(alpha: 0.1), // Line 77:67
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
@@ -115,7 +115,7 @@ class PendingTasksScreen extends StatelessWidget {
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: _getPriorityColor(index).withOpacity(0.1),
+                                            color: _getPriorityColor(index).withValues(alpha: 0.1), // Line 118:77
                                             borderRadius: BorderRadius.circular(20),
                                           ),
                                           child: Text(
@@ -167,7 +167,7 @@ class PendingTasksScreen extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: isDarkMode
-                                  ? Colors.black.withOpacity(0.2)
+                                  ? Colors.black.withValues(alpha: 0.2) // Line 170:50
                                   : Colors.grey.shade50,
                               borderRadius: const BorderRadius.vertical(
                                 bottom: Radius.circular(16),

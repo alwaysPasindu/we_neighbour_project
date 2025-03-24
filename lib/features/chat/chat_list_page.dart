@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
+import 'package:we_neighbour/main.dart';
 import 'package:we_neighbour/models/chat.dart';
 import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
@@ -11,7 +12,7 @@ import 'package:logger/logger.dart';
 import 'chat_screen.dart';
 
 class ChatListPage extends StatefulWidget {
-  const ChatListPage({super.key});
+  const ChatListPage({super.key, required UserType userType});
 
   @override
   State<ChatListPage> createState() => _ChatListPageState();
