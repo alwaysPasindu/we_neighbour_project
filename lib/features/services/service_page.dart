@@ -9,7 +9,6 @@ import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/constants/colors.dart';
-import 'package:we_neighbour/features/services/service_details_page.dart';
 import 'package:we_neighbour/main.dart';
 import 'package:we_neighbour/models/service.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
@@ -195,7 +194,6 @@ class _ServicesPageState extends State<ServicesPage> {
         });
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service deleted successfully')));
         if (ModalRoute.of(context)?.settings.name == '/provider-home') {
           await _loadServices();
@@ -211,6 +209,7 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   void _showDeleteDialog(Service service) {
+    if (!mounted) return;
     final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
 
     showDialog(
@@ -240,6 +239,7 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   void _editService(Service service) {
+    if (!mounted) return;
     String title = service.title;
     String description = service.description;
     String address = service.location.address;
@@ -333,6 +333,7 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   void _addNewService() {
+    if (!mounted) return;
     final isDarkMode = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
 
     showDialog(
@@ -417,9 +418,7 @@ class _ServicesPageState extends State<ServicesPage> {
                               latitude = selectedLocation.latitude;
                               longitude = selectedLocation.longitude;
                             });
-                            if (mounted) {
-                              await _fetchLocationAddress(latitude, longitude);
-                            }
+                            await _fetchLocationAddress(latitude, longitude);
                           }
                         },
                         child: Container(

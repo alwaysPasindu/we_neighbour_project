@@ -211,7 +211,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     final contentPadding =
         EdgeInsets.symmetric(horizontal: size.width < 360 ? 20.0 : 24.0, vertical: 12.0);
     final logoSize = size.width < 360 ? 110.0 : 130.0;
-    final titleFontSize = size.width < 360 ? 30.0 : 34.0;
     final buttonHeight = size.width < 360 ? 48.0 : 52.0;
 
     return Scaffold(

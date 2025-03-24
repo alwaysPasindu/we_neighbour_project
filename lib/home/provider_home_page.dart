@@ -147,11 +147,6 @@ class _ProviderHomePageState extends State<ProviderHomePage> {
     }
   }
 
-  Future<void> _signOut() async {
-    await prefs.clear();
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-  }
 
   void _startAutoSlide() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {

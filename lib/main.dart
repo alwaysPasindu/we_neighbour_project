@@ -70,7 +70,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool _isLoggedIn = false;
   UserType _userType = UserType.resident;
   String? _token;
   bool _isLoading = true;
@@ -107,7 +106,6 @@ class _MyAppState extends State<MyApp> {
 
         if (!mounted) return;
         setState(() {
-          _isLoggedIn = true;
           _userType = userType;
           _token = token;
           _isLoading = false;
@@ -124,7 +122,6 @@ class _MyAppState extends State<MyApp> {
       } else {
         if (!mounted) return;
         setState(() {
-          _isLoggedIn = false;
           _isLoading = false;
         });
       }
@@ -132,7 +129,6 @@ class _MyAppState extends State<MyApp> {
       logger.d('Error checking login status: $e');
       if (!mounted) return;
       setState(() {
-        _isLoggedIn = false;
         _isLoading = false;
       });
     }
