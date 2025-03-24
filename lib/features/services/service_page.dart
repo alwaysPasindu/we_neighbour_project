@@ -103,7 +103,6 @@ class _ServicesPageState extends State<ServicesPage> {
       if (_token == null || _token!.isEmpty) {
         logger.d('No token found in SharedPreferences');
         if (!mounted || ModalRoute.of(context)?.settings.name == '/login') return;
-        // Store context-dependent objects before async gap
         final scaffoldMessenger = ScaffoldMessenger.of(context);
         final navigator = Navigator.of(context);
         scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Please log in again')));
@@ -112,7 +111,8 @@ class _ServicesPageState extends State<ServicesPage> {
     } catch (e) {
       logger.d('Error loading user data: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
     }
   }
 
@@ -156,7 +156,6 @@ class _ServicesPageState extends State<ServicesPage> {
     } catch (e) {
       logger.d('Error loading services: $e');
       if (!mounted) return;
-      // Store ScaffoldMessenger before async gap
       final scaffoldMessenger = ScaffoldMessenger.of(context);
       scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error loading services: $e')));
       final prefs = await SharedPreferences.getInstance();
@@ -199,7 +198,6 @@ class _ServicesPageState extends State<ServicesPage> {
         });
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-        // Store ScaffoldMessenger before async gap
         final scaffoldMessenger = ScaffoldMessenger.of(context);
         scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Service deleted successfully')));
         if (ModalRoute.of(context)?.settings.name == '/provider-home') {
@@ -211,7 +209,8 @@ class _ServicesPageState extends State<ServicesPage> {
     } catch (e) {
       logger.d('Error deleting service: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting service: $e')));
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error deleting service: $e')));
     }
   }
 
@@ -290,6 +289,7 @@ class _ServicesPageState extends State<ServicesPage> {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () async {
+                        final scaffoldMessenger = ScaffoldMessenger.of(context); // Store before async
                         try {
                           final response = await http.put(
                             Uri.parse('$baseUrl/api/service/${service.id}'),
@@ -315,7 +315,7 @@ class _ServicesPageState extends State<ServicesPage> {
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
                             if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service updated successfully')));
+                            scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Service updated successfully')));
                             if (ModalRoute.of(context)?.settings.name == '/provider-home') {
                               await _loadServices();
                             }
@@ -324,7 +324,7 @@ class _ServicesPageState extends State<ServicesPage> {
                           }
                         } catch (e) {
                           if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                          scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error: $e')));
                         }
                       },
                       child: const Text('Save'),
@@ -620,21 +620,24 @@ class _ServicesPageState extends State<ServicesPage> {
                             onPressed: () async {
                               if (_token == null) {
                                 if (!mounted || ModalRoute.of(context)?.settings.name == '/login') return;
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Not authenticated')));
-                                Navigator.pushReplacementNamed(context, '/login');
+                                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                                final navigator = Navigator.of(context);
+                                scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Not authenticated')));
+                                navigator.pushReplacementNamed('/login');
                                 return;
                               }
 
                               if (title.isEmpty || description.isEmpty || imageFiles.isEmpty) {
                                 if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
+                                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                                scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Please fill all required fields')));
                                 return;
                               }
 
                               setDialogState(() => isLoading = true);
 
-                              // Store ScaffoldMessenger before async gap
                               final scaffoldMessenger = ScaffoldMessenger.of(context);
+                              final navigator = Navigator.of(context);
 
                               try {
                                 List<String> imagePaths = [];
@@ -677,7 +680,7 @@ class _ServicesPageState extends State<ServicesPage> {
                                   final prefs = await SharedPreferences.getInstance();
                                   await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
                                   if (!mounted) return;
-                                  Navigator.pop(dialogContext);
+                                  navigator.pop();
                                   scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Service added successfully')));
                                   if (ModalRoute.of(context)?.settings.name == '/provider-home') {
                                     await _loadServices();
