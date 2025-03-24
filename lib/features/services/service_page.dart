@@ -118,6 +118,7 @@ class _ServicesPageState extends State<ServicesPage> {
   Future<void> _loadServices() async {
     if (_token == null) return;
     final scaffoldMessenger = ScaffoldMessenger.of(context); // Store before async
+    final navigator = Navigator.of(context); // Store before async
     setState(() => _isLoading = true);
     try {
       final queryParams = {
@@ -146,8 +147,8 @@ class _ServicesPageState extends State<ServicesPage> {
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
       } else if (response.statusCode == 401) {
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/login');
-        throw Exception('Unauthorized: Invalid or expired token');
+        navigator.pushReplacementNamed('/login');
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Unauthorized: Invalid or expired token')));
       } else {
         throw Exception('Failed to load services: ${response.statusCode} - ${response.body}');
       }
