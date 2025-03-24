@@ -92,33 +92,33 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   Future<void> _loadUserData() async {
-  final scaffoldMessenger = ScaffoldMessenger.of(context);
-  final navigator = Navigator.of(context);  // Move here
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      _currentUserId = prefs.getString('userId') ?? '';
-      _token = prefs.getString('token');
-    });
-    logger.d('Token loaded: $_token');
-    if (_token == null || _token!.isEmpty) {
-      logger.d('No token found in SharedPreferences');
-      if (!mounted || ModalRoute.of(context)?.settings.name == '/login') return;
-      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Please log in again')));
-      navigator.pushReplacementNamed('/login');
+    final scaffoldMessenger = ScaffoldMessenger.of(context); // Store before async
+    final navigator = Navigator.of(context); // Store before async
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
+      setState(() {
+        _currentUserId = prefs.getString('userId') ?? '';
+        _token = prefs.getString('token');
+      });
+      logger.d('Token loaded: $_token');
+      if (_token == null || _token!.isEmpty) {
+        logger.d('No token found in SharedPreferences');
+        if (!mounted || ModalRoute.of(context)?.settings.name == '/login') return;
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Please log in again')));
+        navigator.pushReplacementNamed('/login');
+      }
+    } catch (e) {
+      logger.d('Error loading user data: $e');
+      if (!mounted) return;
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
     }
-  } catch (e) {
-    logger.d('Error loading user data: $e');
-    if (!mounted) return;
-    scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
   }
-}
+
   Future<void> _loadServices() async {
     if (_token == null) return;
-
+    final scaffoldMessenger = ScaffoldMessenger.of(context); // Store before async
     setState(() => _isLoading = true);
-
     try {
       final queryParams = {
         'latitude': (_userLatitude ?? 6.9271).toString(),
@@ -154,7 +154,6 @@ class _ServicesPageState extends State<ServicesPage> {
     } catch (e) {
       logger.d('Error loading services: $e');
       if (!mounted) return;
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
       scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error loading services: $e')));
       final prefs = await SharedPreferences.getInstance();
       final String? servicesJson = prefs.getString('services');
@@ -177,7 +176,7 @@ class _ServicesPageState extends State<ServicesPage> {
       logger.d('No authentication token found');
       return;
     }
-
+    final scaffoldMessenger = ScaffoldMessenger.of(context); // Store before async
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/api/service/${service.id}'),
@@ -196,7 +195,6 @@ class _ServicesPageState extends State<ServicesPage> {
         });
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('services', jsonEncode(_allServices.map((s) => s.toJson()).toList()));
-        final scaffoldMessenger = ScaffoldMessenger.of(context);
         scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Service deleted successfully')));
         if (ModalRoute.of(context)?.settings.name == '/provider-home') {
           await _loadServices();
@@ -207,7 +205,6 @@ class _ServicesPageState extends State<ServicesPage> {
     } catch (e) {
       logger.d('Error deleting service: $e');
       if (!mounted) return;
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
       scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error deleting service: $e')));
     }
   }
