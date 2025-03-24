@@ -92,30 +92,28 @@ class _ServicesPageState extends State<ServicesPage> {
   }
 
   Future<void> _loadUserData() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      if (!mounted) return;
-      setState(() {
-        _currentUserId = prefs.getString('userId') ?? '';
-        _token = prefs.getString('token');
-      });
-      logger.d('Token loaded: $_token');
-      if (_token == null || _token!.isEmpty) {
-        logger.d('No token found in SharedPreferences');
-        if (!mounted || ModalRoute.of(context)?.settings.name == '/login') return;
-        final scaffoldMessenger = ScaffoldMessenger.of(context);
-        final navigator = Navigator.of(context);
-        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Please log in again')));
-        navigator.pushReplacementNamed('/login');
-      }
-    } catch (e) {
-      logger.d('Error loading user data: $e');
-      if (!mounted) return;
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
+  final scaffoldMessenger = ScaffoldMessenger.of(context);
+  final navigator = Navigator.of(context);  // Move here
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _currentUserId = prefs.getString('userId') ?? '';
+      _token = prefs.getString('token');
+    });
+    logger.d('Token loaded: $_token');
+    if (_token == null || _token!.isEmpty) {
+      logger.d('No token found in SharedPreferences');
+      if (!mounted || ModalRoute.of(context)?.settings.name == '/login') return;
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Please log in again')));
+      navigator.pushReplacementNamed('/login');
     }
+  } catch (e) {
+    logger.d('Error loading user data: $e');
+    if (!mounted) return;
+    scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error loading user data: $e')));
   }
-
+}
   Future<void> _loadServices() async {
     if (_token == null) return;
 
