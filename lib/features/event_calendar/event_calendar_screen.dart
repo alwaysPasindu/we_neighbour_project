@@ -15,7 +15,8 @@ class EventCalendarScreen extends StatefulWidget {
   const EventCalendarScreen({super.key});
 
   @override
-  State<EventCalendarScreen> createState() => _EventCalendarScreenState(); // Made public by using State<EventCalendarScreen>
+  State<EventCalendarScreen> createState() =>
+      _EventCalendarScreenState(); // Made public by using State<EventCalendarScreen>
 }
 
 class _EventCalendarScreenState extends State<EventCalendarScreen> {
@@ -128,7 +129,8 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   void _addEvent(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) { // Renamed for clarity
+      builder: (BuildContext dialogContext) {
+        // Renamed for clarity
         String newEventTitle = "";
         DateTime selectedDate = DateTime.now();
         TimeOfDay selectedTime = TimeOfDay.now();
@@ -252,7 +254,8 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                         _focusedDay = selectedDate;
                       });
 
-                      if (!dialogContext.mounted) return; // Check dialog mounted state
+                      if (!dialogContext.mounted)
+                        return; // Check dialog mounted state
                       ScaffoldMessenger.of(dialogContext).showSnackBar(
                         const SnackBar(
                             content: Text('Event added successfully')),
@@ -260,7 +263,8 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                       Navigator.of(dialogContext).pop();
                     } catch (e) {
                       logger.d('Error adding event: $e');
-                      if (!dialogContext.mounted) return; // Check dialog mounted state
+                      if (!dialogContext.mounted)
+                        return; // Check dialog mounted state
                       ScaffoldMessenger.of(dialogContext).showSnackBar(
                         SnackBar(content: Text('Failed to add event: $e')),
                       );
@@ -278,7 +282,8 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
   void _deleteEvent(BuildContext context, String eventId, String eventTitle) {
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) { // Renamed for clarity
+      builder: (BuildContext dialogContext) {
+        // Renamed for clarity
         return AlertDialog(
           title: const Text('Delete Event'),
           content: Text('Are you sure you want to delete "$eventTitle"?'),
@@ -297,14 +302,16 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               onPressed: () async {
                 try {
                   await _firebaseService.deleteEvent(eventId);
-                  if (!dialogContext.mounted) return; // Check dialog mounted state
+                  if (!dialogContext.mounted)
+                    return; // Check dialog mounted state
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
                     const SnackBar(content: Text('Event deleted successfully')),
                   );
                   Navigator.of(dialogContext).pop();
                 } catch (e) {
                   logger.d('Error deleting event: $e');
-                  if (!dialogContext.mounted) return; // Check dialog mounted state
+                  if (!dialogContext.mounted)
+                    return; // Check dialog mounted state
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
                     SnackBar(content: Text('Failed to delete event: $e')),
                   );
@@ -365,7 +372,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                 'Time: ${DateFormat('h:mm a').format(event['date'])}',
                 style: const TextStyle(fontSize: 16),
               ),
-
               if ((isAmenity || isHealth) && event['endTime'] != null) ...[
                 Text(
                   'End Time: ${DateFormat('h:mm a').format(event['endTime'])}',
@@ -393,7 +399,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                     ),
                   ),
               ],
-
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -450,7 +455,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                     const Spacer(),
                     Image.asset(
                       'assets/images/logo.png',
-                      height: 40,
+                      height: 70,
                       fit: BoxFit.contain,
                     ),
                     const Spacer(),
@@ -458,9 +463,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
               const Text(
                 'Event Calendar',
                 style: TextStyle(
@@ -469,9 +472,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 20),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Align(
@@ -491,9 +492,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
               if (_isLoading)
                 const Expanded(
                   child: Center(
@@ -579,13 +578,13 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
             ),
           ),
         ),
-
         if (_selectedDay != null && _getEventsForDay(_selectedDay!).isNotEmpty)
           Expanded(
             child: Container(
               margin: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1), // Fixed deprecated withOpacity
+                color: Colors.white
+                    .withValues(alpha: 0.1), // Fixed deprecated withOpacity
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListView.builder(
@@ -682,15 +681,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               onPressed: () => _addEvent(context),
               backgroundColor: const Color(0xFF0A1A3B),
             ),
-            const SizedBox(height: 16),
-            CalendarCustomButton(
-              text: 'Manage RSVPs',
-              onPressed: () {
-                // Handle Manage RSVPs
-              },
-              backgroundColor: const Color(0xFF0A1A3B),
-            ),
-
             const SizedBox(height: 30),
             const Align(
               alignment: Alignment.centerLeft,
