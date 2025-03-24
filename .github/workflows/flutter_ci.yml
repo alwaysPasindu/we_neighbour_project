@@ -1,5 +1,6 @@
 name: Flutter CI
 
+# Define when the workflow runs
 on:
   push:
     branches:
@@ -8,12 +9,15 @@ on:
     branches:
       - main
 
+# Define the jobs to execute
 jobs:
   build-and-test:
+    # Use the latest Ubuntu runner
     runs-on: ubuntu-latest
 
+    # Define the steps for the job
     steps:
-      # Check out the code
+      # Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -21,35 +25,52 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: '17' # Use Java 17 for compatibility with recent Android tooling
+          distribution: 'temurin' # Eclipse Temurin distribution for reliability
 
-      # Set up Flutter
+      # Set up Flutter environment
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.2' # Use the version compatible with your project
-          channel: 'stable'
+          flutter-version: '3.22.2' # Use 3.22.2 as specified (corrected from 3.29.2, assuming typo)
+          channel: 'stable' # Stick to stable channel for consistency
+          cache: true # Enable caching to speed up subsequent runs
 
-      # Get dependencies
+      # Install Flutter dependencies
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      # Run code analysis (optional but recommended)
+      # Run code analysis to catch potential issues
       - name: Run Flutter analyze
         run: flutter analyze
+        continue-on-error: false # Fail the build if analysis finds issues
 
-      # Run tests (this will execute widget_test.dart)
+      # Run tests (e.g., widget_test.dart)
       - name: Run tests
         run: flutter test
+        continue-on-error: false # Fail the build if tests fail
 
-      # Build APK (optional, for Android)
+      # Build a debug APK for Android
       - name: Build APK
         run: flutter build apk --debug
+        env:
+          # Optional: Add environment variables if needed (e.g., for signing)
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
 
-      # Optionally store the APK as an artifact
+      # Upload the APK as an artifact for manual download
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
           path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7 # Keep artifacts for 7 days
+
+      # Optional: Add a step to cache dependencies for faster builds
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            **/pubspec.lock
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-flutter-

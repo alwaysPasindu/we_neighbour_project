@@ -10,14 +10,15 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/features/services/service_detailsPage.dart';
-import 'package:we_neighbour/features/services/service_details_page.dart';
-import 'package:we_neighbour/features/services/location_picker.dart';
 import 'package:we_neighbour/main.dart';
 import 'package:we_neighbour/models/service.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:logger/logger.dart';
+
+import 'location_picker.dart';
+import 'service_details_page.dart' show ServiceDetailsPage;
 
 class ServicesPage extends StatefulWidget {
   final UserType userType;

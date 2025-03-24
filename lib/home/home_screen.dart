@@ -790,7 +790,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       bottomNavigationBar: BottomNavigation(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
-        userType: widget.userType,
+        userType: widget
+
+.userType,
         isDarkMode: isDarkMode,
       ),
     );

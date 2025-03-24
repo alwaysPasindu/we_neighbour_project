@@ -83,7 +83,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       if (rememberMe) {
         final savedEmail = prefs.getString('savedEmail');
         if (savedEmail != null && savedEmail.isNotEmpty) {
-          if (!mounted) return; // Check if still mounted
+          if (!mounted) return;
           setState(() {
             _emailController.text = savedEmail;
             _rememberMe = true;
@@ -159,13 +159,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           Navigator.pushReplacementNamed(context, '/pending-approval');
         }
       } else {
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         _showErrorDialog('Login failed', data['message'] ?? 'Invalid credentials');
       }
     } catch (e, stackTrace) {
       logger.d('Login error: $e');
       logger.d('Stack trace: $stackTrace');
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       _showErrorDialog('Connection Error', 'Unable to connect to the server: $e');
     } finally {
       if (mounted) {
@@ -175,6 +175,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   void _showErrorDialog(String title, String message) {
+    if (!mounted) return; // Check if still mounted before showing dialog
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

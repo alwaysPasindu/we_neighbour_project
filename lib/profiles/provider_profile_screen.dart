@@ -45,12 +45,12 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     _token = prefs.getString('token');
     if (_token == null) {
       logger.d('No token found, navigating to login');
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       return;
     }
 
-    if (!mounted) return; // Check if still mounted
+    if (!mounted) return;
     setState(() {
       _nameController.text = prefs.getString('userName') ?? 'Company Name';
       _emailController.text = prefs.getString('userEmail') ?? 'company@email.com';
@@ -67,7 +67,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
       final prefs = await SharedPreferences.getInstance();
       final imagePath = prefs.getString('profile_image');
       if (imagePath != null && await File(imagePath).exists()) {
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         setState(() => _profileImagePath = imagePath);
       }
     } catch (e) {
@@ -90,16 +90,16 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
           await File(_profileImagePath!).delete();
         }
 
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         setState(() => _profileImagePath = savedImage.path);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('profile_image', savedImage.path);
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile photo updated')));
       }
     } catch (e) {
       logger.d('Error picking image: $e');
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
@@ -129,18 +129,18 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         await prefs.setString('userAddress', _addressController.text);
         await prefs.setString('userDescription', _descriptionController.text);
         await prefs.setString('username', _usernameController.text);
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
       } else {
         logger.d('Failed to update profile: ${response.statusCode} - ${response.body}');
-        if (!mounted) return; // Check if still mounted
+        if (!mounted) return;
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Failed to update profile on server')));
       }
     } catch (e) {
       logger.d('Error saving profile data: $e');
-      if (!mounted) return; // Check if still mounted
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
@@ -157,11 +157,12 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   }
 
   void _toggleEdit() {
+    if (!mounted) return; // Ensure widget is mounted before proceeding
     setState(() {
       if (_isEditing) {
         if (_formKey.currentState?.validate() ?? false) {
           _saveProfileData().then((_) {
-            if (!mounted) return; // Check if still mounted
+            if (!mounted) return;
             setState(() => _isEditing = false);
           });
         }
@@ -222,8 +223,10 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
                       onPressed: _toggleEdit),
                   IconButton(
                     icon: const Icon(Icons.settings, color: Colors.white),
-                    onPressed: () =>
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                    onPressed: () {
+                      if (!mounted) return; // Check if still mounted before navigation
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+                    },
                   ),
                 ],
               ),

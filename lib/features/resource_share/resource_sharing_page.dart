@@ -61,9 +61,11 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     if (token == null) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No authentication token available')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No authentication token available')),
+        );
+      }
       return;
     }
 
@@ -75,10 +77,12 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        setState(() {
-          resources = data.map((r) => model.Resource.fromJson(r)).toList();
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            resources = data.map((r) => model.Resource.fromJson(r)).toList();
+            _isLoading = false;
+          });
+        }
         logger.d('ResourceSharingPage: Resources fetched successfully - count: ${resources.length}');
       } else {
         throw Exception('Failed to load resources: ${response.statusCode}');
@@ -86,9 +90,11 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching resources: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error fetching resources: $e')),
+        );
+      }
       logger.d('ResourceSharingPage: Error fetching resources: $e');
     }
   }
@@ -125,22 +131,26 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
 
       if (response.statusCode == 201) {
         final newResource = model.Resource.fromJson(jsonDecode(response.body));
-        setState(() {
-          resources.insert(0, newResource);
-        });
-        if (!mounted) return;
-        ScaffoldMessenger.of(dialogContext).showSnackBar(
-          const SnackBar(content: Text('Resource request created successfully')),
-        );
+        if (mounted) {
+          setState(() {
+            resources.insert(0, newResource);
+          });
+        }
+        if (dialogContext.mounted) {
+          ScaffoldMessenger.of(dialogContext).showSnackBar(
+            const SnackBar(content: Text('Resource request created successfully')),
+          );
+        }
         logger.d('ResourceSharingPage: Resource created - id: ${newResource.id}');
       } else {
         throw Exception('Failed to create resource: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(dialogContext).showSnackBar(
-        SnackBar(content: Text('Error creating resource: $e')),
-      );
+      if (dialogContext.mounted) {
+        ScaffoldMessenger.of(dialogContext).showSnackBar(
+          SnackBar(content: Text('Error creating resource: $e')),
+        );
+      }
       logger.d('ResourceSharingPage: Error creating resource: $e');
     }
   }
@@ -159,22 +169,26 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
-        setState(() {
-          resources.removeWhere((resource) => resource.id == id);
-        });
-        if (!mounted) return;
-        ScaffoldMessenger.of(dialogContext).showSnackBar(
-          const SnackBar(content: Text('Resource request deleted successfully')),
-        );
+        if (mounted) {
+          setState(() {
+            resources.removeWhere((resource) => resource.id == id);
+          });
+        }
+        if (dialogContext.mounted) {
+          ScaffoldMessenger.of(dialogContext).showSnackBar(
+            const SnackBar(content: Text('Resource request deleted successfully')),
+          );
+        }
         logger.d('ResourceSharingPage: Resource deleted - id: $id');
       } else {
         throw Exception('Failed to delete resource: ${response.statusCode}');
       }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(dialogContext).showSnackBar(
-        SnackBar(content: Text('Error deleting resource: $e')),
-      );
+      if (dialogContext.mounted) {
+        ScaffoldMessenger.of(dialogContext).showSnackBar(
+          SnackBar(content: Text('Error deleting resource: $e')),
+        );
+      }
       logger.d('ResourceSharingPage: Error deleting resource: $e');
     }
   }
@@ -183,9 +197,11 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
     if (chatProvider.currentUserId == null || chatProvider.currentUserId!.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not authenticated. Please log in again.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not authenticated. Please log in again.')),
+        );
+      }
       logger.d('ResourceSharingPage: User not authenticated - currentUserId: ${chatProvider.currentUserId}');
       return;
     }
@@ -194,19 +210,22 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       final resourceMessage = "[Resource Share] $message";
       await chatProvider.sendResourceMessage(chatId, resourceMessage, resourceUserId);
       logger.d('ResourceSharingPage: Chat initiated - chatId: $chatId, resourceUserId: $resourceUserId');
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChatScreen(chatId: chatId, isGroup: false),
-        ),
-      );
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatScreen(chatId: chatId, isGroup: false),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       logger.d('ResourceSharingPage: Chat initiation error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error initiating chat: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error initiating chat: $e')),
+        );
+      }
     }
   }
 
@@ -276,9 +295,11 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                 if (titleController.text.isEmpty ||
                     descriptionController.text.isEmpty ||
                     quantityController.text.isEmpty) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(content: Text('Please fill in all fields')),
-                  );
+                  if (dialogContext.mounted) {
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(
+                      const SnackBar(content: Text('Please fill in all fields')),
+                    );
+                  }
                   return;
                 }
 
@@ -298,8 +319,9 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                   imageUrls,
                   dialogContext,
                 );
-                if (!mounted) return;
-                Navigator.pop(dialogContext);
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext);
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -338,8 +360,9 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           ElevatedButton(
             onPressed: () async {
               await _deleteResource(id, dialogContext);
-              if (!mounted) return;
-              Navigator.pop(dialogContext);
+              if (dialogContext.mounted) {
+                Navigator.pop(dialogContext);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
