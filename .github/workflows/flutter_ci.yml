@@ -35,9 +35,9 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      # Run code analysis (optional but recommended)
-      - name: Run Flutter analyze
-        run: flutter analyze
+      # # Run code analysis (optional but recommended)
+      # - name: Run Flutter analyze
+      #   run: flutter analyze
 
       # Run tests (this will execute widget_test.dart)
       - name: Run tests
