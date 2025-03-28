@@ -399,7 +399,7 @@ class _ChatListPageState extends State<ChatListPage> with SingleTickerProviderSt
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -426,7 +426,7 @@ class _ChatListPageState extends State<ChatListPage> with SingleTickerProviderSt
                   decoration: BoxDecoration(
                     color: isLoading 
                         ? (isDarkMode ? Colors.grey[700] : Colors.grey[300])
-                        : AppColors.primary.withOpacity(0.8),
+                        : AppColors.primary.withValues(alpha: 0.8),
                     shape: BoxShape.circle,
                   ),
                   child: isLoading
@@ -685,7 +685,7 @@ class _ChatListPageState extends State<ChatListPage> with SingleTickerProviderSt
               leading: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

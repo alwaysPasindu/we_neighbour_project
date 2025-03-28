@@ -418,7 +418,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08) ,
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -472,10 +472,10 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(card.status).withOpacity(0.1),
+                      color: _getStatusColor(card.status).withValues(alpha: 0.1) ,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: _getStatusColor(card.status).withOpacity(0.5),
+                        color: _getStatusColor(card.status).withValues(alpha: 0.5) ,
                         width: 1,
                       ),
                     ),

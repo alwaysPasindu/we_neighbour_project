@@ -169,7 +169,7 @@ class _CreateMaintenanceRequestScreenState
                   color: isDarkMode ? const Color(0xFF0F2445) : Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05) ,
                       blurRadius: 6,
                       offset: const Offset(0, 3),
                     ),
@@ -240,7 +240,7 @@ class _CreateMaintenanceRequestScreenState
                           ),
                           filled: true,
                           fillColor: isDarkMode
-                              ? Colors.grey[800]!.withOpacity(0.5)
+                              ? Colors.grey[800]!.withValues(alpha: 0.5) 
                               : Colors.grey[100],
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 16),
@@ -297,7 +297,7 @@ class _CreateMaintenanceRequestScreenState
                           ),
                           filled: true,
                           fillColor: isDarkMode
-                              ? Colors.grey[800]!.withOpacity(0.5)
+                              ? Colors.grey[800]!.withValues(alpha: 0.5) 
                               : Colors.grey[100],
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 20),

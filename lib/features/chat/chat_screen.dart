@@ -464,8 +464,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: isDarkMode 
-                ? Colors.grey[800]!.withOpacity(0.7) 
-                : Colors.grey[300]!.withOpacity(0.7),
+                ? Colors.grey[800]!.withValues(alpha: 0.7) 
+                : Colors.grey[300]!.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
@@ -666,7 +666,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05) ,
                           blurRadius: 3,
                           offset: Offset(0, 1),
                         ),
@@ -722,7 +722,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   height: 28,
                   margin: const EdgeInsets.only(left: 8, bottom: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.7),
+                    color: AppColors.primary.withValues(alpha: 0.7) ,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.person, size: 16, color: Colors.white),
@@ -741,7 +741,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         color: isDarkMode ? Colors.grey[850] : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05) ,
             blurRadius: 5,
             offset: Offset(0, -1),
           ),

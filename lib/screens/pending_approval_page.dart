@@ -362,7 +362,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> with SingleTi
                                     width: size,
                                     height: size,
                                     decoration: BoxDecoration(
-                                      color: accentColor.withOpacity(opacity),
+                                      color: accentColor.withValues(alpha: 0.05),
                                       shape: BoxShape.circle,
                                     ),
                                   );
