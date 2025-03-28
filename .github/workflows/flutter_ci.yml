@@ -3,7 +3,7 @@ name: Flutter CI
 on:
   push:
     branches:
-      - dev_test_new
+      - main
   pull_request:
     branches:
       - dev_test
