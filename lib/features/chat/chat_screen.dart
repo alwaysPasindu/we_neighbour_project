@@ -181,7 +181,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.white24,
                       shape: BoxShape.circle,
                     ),
@@ -198,7 +198,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           fontSize: 16,
                         ),
                       ),
-                      Text(
+                      const Text(
                         'Fetching details',
                         style: TextStyle(
                           color: Colors.white70,
@@ -227,7 +227,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.white24,
                     shape: BoxShape.circle,
                   ),
@@ -265,7 +265,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       ),
                       Text(
                         status ?? (widget.isGroup ? 'Group chat' : 'Private chat'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
                         ),
@@ -281,13 +281,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         elevation: 2,
         actions: [
           IconButton(
-            icon: Icon(Icons.info_outline),
+            icon: const Icon(Icons.info_outline),
             onPressed: () {
               // Show chat info dialog
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: Text('Chat Information'),
+                  title: const Text('Chat Information'),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +301,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text('Close'),
+                      child: const Text('Close'),
                     ),
                   ],
                 ),
@@ -317,7 +317,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           image: DecorationImage(
             image: AssetImage(isDarkMode 
               ? 'assets/images/white.png' 
-              : 'assets/images/No_BG.png'),
+              : 'assets/images/logo.jpeg'),
             opacity: 0.05,
             repeat: ImageRepeat.repeat,
           ),
@@ -346,7 +346,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.error_outline, color: Colors.red, size: 48),
+                          const Icon(Icons.error_outline, color: Colors.red, size: 48),
                           const SizedBox(height: 16),
                           Text(
                             'Error loading messages',
@@ -364,8 +364,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
-                            icon: Icon(Icons.refresh),
-                            label: Text('Retry'),
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Retry'),
                             onPressed: () {
                               setState(() {});
                             },
@@ -703,7 +703,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                             ),
                             if (isSender) ...[
                               const SizedBox(width: 4),
-                              Icon(
+                              const Icon(
                                 Icons.done_all,
                                 size: 12,
                                 color: Colors.white70,
