@@ -1,3 +1,4 @@
+// providers/chat_provider.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:we_neighbour/models/chat.dart';
@@ -12,14 +13,12 @@ class ChatProvider with ChangeNotifier {
   String? get currentUserId => _currentUserId;
   String? get currentApartmentName => _currentApartmentName;
 
-  /// Sets the current user and apartment name, notifying listeners of the change
   void setUser(String userId, String apartmentName) {
     _currentUserId = userId;
     _currentApartmentName = apartmentName;
     notifyListeners();
   }
 
-  /// Streams a list of chats for the current user (non-group chats only)
   Stream<List<Chat>> getChats() {
     if (_currentUserId == null) {
       logger.w('No current user ID set, returning empty stream');
@@ -36,7 +35,22 @@ class ChatProvider with ChangeNotifier {
     });
   }
 
-  /// Gets or creates a one-on-one chat with another user, returning the chat ID
+  Stream<List<Chat>> getGroupChats() {
+    if (_currentUserId == null) {
+      logger.w('No current user ID set, returning empty stream');
+      return const Stream.empty();
+    }
+    return _firestore
+        .collection('chats')
+        .where('participants', arrayContains: _currentUserId)
+        .where('isGroup', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Chat.fromMap(doc.id, doc.data())).toList())
+        .handleError((e) {
+      logger.e('Error streaming group chats: $e');
+    });
+  }
+
   Future<String> getOrCreateChat(String otherUserId) async {
     if (_currentUserId == null) {
       logger.e('Current user ID is not set');
@@ -79,7 +93,34 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  /// Sends a message in the specified chat
+  Future<String> createGroupChat(String groupName, List<String> memberIds) async {
+    if (_currentUserId == null) {
+      logger.e('Current user ID is not set');
+      throw Exception('Current user ID is not set.');
+    }
+
+    try {
+      final chatId = _firestore.collection('chats').doc().id;
+      final participants = [...memberIds, _currentUserId!];
+
+      await _firestore.collection('chats').doc(chatId).set({
+        'participants': participants,
+        'isGroup': true,
+        'groupName': groupName,
+        'lastMessage': null,
+        'timestamp': FieldValue.serverTimestamp(),
+        'members': participants,
+        'createdBy': _currentUserId,
+      });
+
+      logger.d('Created new group chat with ID: $chatId, Name: $groupName');
+      return chatId;
+    } catch (e) {
+      logger.e('Error creating group chat: $e');
+      rethrow;
+    }
+  }
+
   Future<void> sendMessage(String chatId, String content) async {
     if (_currentUserId == null) {
       logger.e('Current user ID is not set');
@@ -115,7 +156,6 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  /// Sends a resource message, creating or updating the chat as a resource chat
   Future<void> sendResourceMessage(String chatId, String content, String otherUserId) async {
     if (_currentUserId == null) {
       logger.e('Current user ID is not set');
@@ -158,7 +198,6 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  /// Deletes a message, either for everyone or just for the sender
   Future<void> deleteMessage(String chatId, String messageId, bool deleteForEveryone) async {
     if (_currentUserId == null) {
       logger.e('Current user ID is not set');
@@ -182,4 +221,39 @@ class ChatProvider with ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<List<Map<String, dynamic>>> getApartmentUsers() async {
+  if (_currentApartmentName == null || _currentUserId == null) {
+    logger.w('Apartment name or user ID not set. Apartment: $_currentApartmentName, UserID: $_currentUserId');
+    return [];
+  }
+
+  try {
+    logger.d('Fetching users from apartments/$_currentApartmentName/users');
+    final usersSnapshot = await _firestore
+        .collection('apartments')
+        .doc(_currentApartmentName)
+        .collection('users')
+        .get();
+
+    if (usersSnapshot.docs.isEmpty) {
+      logger.w('No users found in apartments/$_currentApartmentName/users');
+      return [];
+    }
+
+    final users = usersSnapshot.docs
+        .where((doc) => doc.id != _currentUserId)
+        .map((doc) => {
+              'id': doc.id,
+              'name': doc.data()['name'] ?? 'Unknown User',
+            })
+        .toList();
+
+    logger.d('Fetched ${users.length} users: $users');
+    return users;
+  } catch (e) {
+    logger.e('Error fetching apartment users: $e');
+    return [];
+  }
+}
 }
