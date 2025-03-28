@@ -10,7 +10,7 @@ import '../utils/auth_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class ResidentProfileScreen extends StatefulWidget {
   const ResidentProfileScreen({super.key});
@@ -28,7 +28,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
   bool _isEditing = false;
   bool _isLoading = true;
   String? _token;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void initState() {
@@ -50,7 +50,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('token');
     if (_token == null) {
-      logger.d('No token found, navigating to login'); // Replaced print
+      logger.d('No token found, navigating to login');
       if (mounted) Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       return;
     }
@@ -59,7 +59,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
       _nameController.text = prefs.getString('userName') ?? '';
       _emailController.text = prefs.getString('userEmail') ?? '';
       _phoneController.text = prefs.getString('userPhone') ?? '';
-      _apartmentController.text = prefs.getString('apartmentComplexName') ?? '';
+      _apartmentController.text = prefs.getString('userApartment') ?? ''; // Changed key to 'userApartment'
       _isLoading = false;
     });
   }
@@ -71,7 +71,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
         setState(() => _profileImage = File(imagePath));
       }
     } catch (e) {
-      logger.d('Error loading profile image: $e'); // Replaced print
+      logger.d('Error loading profile image: $e');
     }
   }
 
@@ -94,7 +94,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile photo updated')));
       }
     } catch (e) {
-      logger.d('Error picking image: $e'); // Replaced print
+      logger.d('Error picking image: $e');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
     }
   }
@@ -123,11 +123,11 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
         );
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
       } else {
-        logger.d('Failed to update profile: ${response.statusCode} - ${response.body}'); // Replaced print
+        logger.d('Failed to update profile: ${response.statusCode} - ${response.body}');
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to update profile on server')));
       }
     } catch (e) {
-      logger.d('Error updating profile: $e'); // Replaced print
+      logger.d('Error updating profile: $e');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating profile: $e')));
     }
   }
@@ -223,8 +223,6 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
                   ? _buildEditableField(_apartmentController, 'Apartment Complex', isDarkMode)
                   : _buildInfoField('Apartment Complex', _apartmentController.text, isDarkMode),
               const SizedBox(height: 140),
-              // _buildOption('Event Participation', Icons.event, isDarkMode),
-              // const SizedBox(height: 16),
               _buildOption('Settings', Icons.settings, isDarkMode, onTap: () => Navigator.pushNamed(context, '/settings')),
               const SizedBox(height: 32),
             ],
