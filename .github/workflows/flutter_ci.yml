@@ -3,10 +3,10 @@ name: Flutter CI
 on:
   push:
     branches:
-      - dev_user_test
+      - dev_test_new
   pull_request:
     branches:
-      - main
+      - dev_test
 
 jobs:
   build-and-test:
