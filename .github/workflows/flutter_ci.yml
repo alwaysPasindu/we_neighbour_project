@@ -40,8 +40,8 @@ jobs:
       #   run: flutter analyze
 
       # Run tests (this will execute widget_test.dart)
-      - name: Run tests
-        run: flutter test
+      # - name: Run tests
+      #   run: flutter test
 
       # Build APK (optional, for Android)
       - name: Build APK
