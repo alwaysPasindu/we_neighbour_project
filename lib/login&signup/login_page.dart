@@ -96,83 +96,84 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   Future<void> _handleLogin() async {
-    setState(() => _isLoading = true);
-    try {
-      HttpClient httpClient = HttpClient()
-        ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
-      final client = IOClient(httpClient);
+  setState(() => _isLoading = true);
+  try {
+    HttpClient httpClient = HttpClient()
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+    final client = IOClient(httpClient);
 
-      final response = await client
-          .post(
-        Uri.parse('$baseUrl/api/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': _emailController.text,
-          'password': _passwordController.text,
-        }),
-      )
-          .timeout(const Duration(seconds: 50), onTimeout: () {
-        throw TimeoutException('Request timed out after 50 seconds');
-      });
+    final response = await client
+        .post(
+      Uri.parse('$baseUrl/api/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': _emailController.text,
+        'password': _passwordController.text,
+      }),
+    )
+        .timeout(const Duration(seconds: 50), onTimeout: () {
+      throw TimeoutException('Request timed out after 50 seconds');
+    });
 
-      logger.d('Response status: ${response.statusCode}');
-      logger.d('Raw response body: ${response.body}');
+    logger.d('Response status: ${response.statusCode}');
+    logger.d('Raw response body: ${response.body}');
 
-      if (response.body.isEmpty) {
-        throw Exception('Empty response body');
-      }
+    if (response.body.isEmpty) {
+      throw Exception('Empty response body');
+    }
 
-      final data = jsonDecode(response.body);
+    final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200 || response.statusCode == 403) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.clear();
-        await prefs.setString('token', data['token']);
-        await prefs.setString('userId', data['user']['id']);
-        await prefs.setString('userRole', data['user']['role'].toLowerCase());
-        await prefs.setString('userName', data['user']['name'] ?? 'User');
-        await prefs.setString('userEmail', data['user']['email'] ?? 'N/A');
-        await prefs.setString('userStatus', data['user']['status'] ?? 'approved');
-        // Save the apartment name under the correct key
-        await prefs.setString('userApartment', data['user']['apartmentComplexName'] ?? 'N/A');
+    if (response.statusCode == 200 || response.statusCode == 403) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      await prefs.setString('token', data['token']);
+      await prefs.setString('userId', data['user']['id']);
+      await prefs.setString('userRole', data['user']['role'].toLowerCase());
+      await prefs.setString('userName', data['user']['name'] ?? 'User');
+      await prefs.setString('userEmail', data['user']['email'] ?? 'N/A');
+      await prefs.setString('userStatus', data['user']['status'] ?? 'approved');
+      await prefs.setString('userApartment', data['user']['apartmentComplexName'] ?? 'N/A');
+      // Save the phone number
+      await prefs.setString('userPhone', data['user']['phone'] ?? 'N/A');
 
-        if (_rememberMe) {
-          await prefs.setString('savedEmail', _emailController.text);
-          await prefs.setBool('rememberMe', true);
-        } else {
-          await prefs.remove('savedEmail');
-          await prefs.setBool('rememberMe', false);
-        }
-
-        final role = data['user']['role'].toLowerCase();
-        final status = data['user']['status'];
-
-        if (!mounted) return;
-
-        if (role == 'resident' && status == 'approved') {
-          Navigator.pushReplacementNamed(context, '/home');
-        } else if (role == 'manager') {
-          Navigator.pushReplacementNamed(context, '/home');
-        } else if (role == 'serviceprovider') {
-          Navigator.pushReplacementNamed(context, '/provider-home');
-        } else if (status == 'pending') {
-          Navigator.pushReplacementNamed(context, '/pending-approval');
-        }
+      if (_rememberMe) {
+        await prefs.setString('savedEmail', _emailController.text);
+        await prefs.setBool('rememberMe', true);
       } else {
-        if (!mounted) return; // Check if still mounted
-        _showErrorDialog('Login failed', data['message'] ?? 'Invalid credentials');
+        await prefs.remove('savedEmail');
+        await prefs.setBool('rememberMe', false);
       }
-    } catch (e, stackTrace) {
-      logger.d('Login error: $e');
-      logger.d('Stack trace: $stackTrace');
+
+      final role = data['user']['role'].toLowerCase();
+      final status = data['user']['status'];
+
+      if (!mounted) return;
+
+      if (role == 'resident' && status == 'approved') {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else if (role == 'manager') {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else if (role == 'serviceprovider') {
+        Navigator.pushReplacementNamed(context, '/provider-home');
+      } else if (status == 'pending') {
+        Navigator.pushReplacementNamed(context, '/pending-approval');
+      }
+    } else {
       if (!mounted) return; // Check if still mounted
-      _showErrorDialog('Connection Error', 'Unable to connect to the server: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      _showErrorDialog('Login failed', data['message'] ?? 'Invalid credentials');
+    }
+  } catch (e, stackTrace) {
+    logger.d('Login error: $e');
+    logger.d('Stack trace: $stackTrace');
+    if (!mounted) return; // Check if still mounted
+    _showErrorDialog('Connection Error', 'Unable to connect to the server: $e');
+  } finally {
+    if (mounted) {
+      setState(() => _isLoading = false);
     }
   }
+}
 
   void _showErrorDialog(String title, String message) {
     showDialog(
