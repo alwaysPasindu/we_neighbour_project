@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
@@ -12,7 +13,7 @@ import 'package:we_neighbour/widgets/resource_card.dart';
 import 'package:we_neighbour/features/chat/chat_screen.dart';
 import 'package:we_neighbour/providers/chat_provider.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
-import 'package:logger/logger.dart';
+import 'package:logger/logger.dart'; // Added logger import
 
 class ResourceSharingPage extends StatefulWidget {
   const ResourceSharingPage({super.key});
@@ -26,7 +27,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
   bool _isLoading = true;
   String? userId;
   String? authToken;
-  final Logger logger = Logger();
+  final Logger logger = Logger(); // Added logger instance
 
   @override
   void initState() {
@@ -42,14 +43,10 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     });
 
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    final apartmentName =
-        prefs.getString('userApartment') ?? 'UnknownApartment';
-    if (userId != null &&
-        userId!.isNotEmpty &&
-        chatProvider.currentUserId != userId) {
+    final apartmentName = prefs.getString('userApartment') ?? 'UnknownApartment';
+    if (userId != null && userId!.isNotEmpty && chatProvider.currentUserId != userId) {
       chatProvider.setUser(userId!, apartmentName);
-      logger.d(
-          'ResourceSharingPage: User data loaded - userId: $userId, apartmentName: $apartmentName');
+      logger.d('ResourceSharingPage: User data loaded - userId: $userId, apartmentName: $apartmentName'); // Replaced print
     }
   }
 
@@ -62,7 +59,6 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     final token = await _getToken();
     if (token == null) {
       setState(() => _isLoading = false);
-      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No authentication token available')),
       );
@@ -81,23 +77,20 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
           resources = data.map((r) => model.Resource.fromJson(r)).toList();
           _isLoading = false;
         });
-        logger.d(
-            'ResourceSharingPage: Resources fetched successfully - count: ${resources.length}');
+        logger.d('ResourceSharingPage: Resources fetched successfully - count: ${resources.length}'); // Replaced print
       } else {
         throw Exception('Failed to load resources: ${response.statusCode}');
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching resources: $e')),
       );
-      logger.d('ResourceSharingPage: Error fetching resources: $e');
+      logger.d('ResourceSharingPage: Error fetching resources: $e'); // Replaced print
     }
   }
 
-  Future<void> _addResource(
-      String title, String description, String quantity) async {
+  Future<void> _addResource(String title, String description, String quantity) async {
     final token = await _getToken();
     if (token == null) return;
 
@@ -125,24 +118,18 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         setState(() {
           resources.insert(0, newResource);
         });
-        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Resource request created successfully')),
+          const SnackBar(content: Text('Resource request created successfully')),
         );
-        logger.d(
-            'ResourceSharingPage: Resource created - id: ${newResource.id}');
+        logger.d('ResourceSharingPage: Resource created - id: ${newResource.id}'); // Replaced print
       } else {
-        throw Exception(
-            'Failed to create resource: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to create resource: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      if (!context.mounted) return;
-      // Uncomment if you want to show the error to the user
       // ScaffoldMessenger.of(context).showSnackBar(
       //   SnackBar(content: Text('Error creating resource: $e')),
       // );
-      logger.d('ResourceSharingPage: Error creating resource: $e');
+      logger.d('ResourceSharingPage: Error creating resource: $e'); // Replaced print
     }
   }
 
@@ -163,45 +150,35 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         setState(() {
           resources.removeWhere((resource) => resource.id == id);
         });
-        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Resource request deleted successfully')),
+          const SnackBar(content: Text('Resource request deleted successfully')),
         );
-        logger.d('ResourceSharingPage: Resource deleted - id: $id');
+        logger.d('ResourceSharingPage: Resource deleted - id: $id'); // Replaced print
       } else {
         throw Exception('Failed to delete resource: ${response.statusCode}');
       }
     } catch (e) {
-      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error deleting resource: $e')),
       );
-      logger.d('ResourceSharingPage: Error deleting resource: $e');
+      logger.d('ResourceSharingPage: Error deleting resource: $e'); // Replaced print
     }
   }
 
   void _initiateChat(String resourceUserId, String message) async {
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    if (chatProvider.currentUserId == null ||
-        chatProvider.currentUserId!.isEmpty) {
-      if (!context.mounted) return;
+    if (chatProvider.currentUserId == null || chatProvider.currentUserId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('User not authenticated. Please log in again.')),
+        const SnackBar(content: Text('User not authenticated. Please log in again.')),
       );
-      logger.d(
-          'ResourceSharingPage: User not authenticated - currentUserId: ${chatProvider.currentUserId}');
+      logger.d('ResourceSharingPage: User not authenticated - currentUserId: ${chatProvider.currentUserId}'); // Replaced print
       return;
     }
     try {
       final chatId = await chatProvider.getOrCreateChat(resourceUserId);
       final resourceMessage = "[Resource Share] $message";
-      await chatProvider.sendResourceMessage(
-          chatId, resourceMessage, resourceUserId);
-      logger.d(
-          'ResourceSharingPage: Chat initiated - chatId: $chatId, resourceUserId: $resourceUserId');
-      if (!context.mounted) return;
+      await chatProvider.sendResourceMessage(chatId, resourceMessage, resourceUserId); // Add resourceUserId
+      logger.d('ResourceSharingPage: Chat initiated - chatId: $chatId, resourceUserId: $resourceUserId'); // Replaced print
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -209,8 +186,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         ),
       );
     } catch (e) {
-      logger.d('ResourceSharingPage: Chat initiation error: $e');
-      if (!context.mounted) return;
+      logger.d('ResourceSharingPage: Chat initiation error: $e'); // Replaced print
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error initiating chat: $e')),
       );
@@ -228,11 +204,8 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          backgroundColor: isDarkMode
-              ? AppColors.darkCardBackground
-              : AppColors.cardBackground,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           title: Text(
             'New Resource Request',
             style: AppTextStyles.getGreetingStyle(isDarkMode),
@@ -258,21 +231,20 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 10),
+              
               ],
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel',
-                  style: AppTextStyles.getBodyTextStyle(isDarkMode)),
+              child: Text('Cancel', style: AppTextStyles.getBodyTextStyle(isDarkMode)),
             ),
             ElevatedButton(
               onPressed: () async {
                 if (titleController.text.isEmpty ||
                     descriptionController.text.isEmpty ||
                     quantityController.text.isEmpty) {
-                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Please fill in all fields')),
                   );
@@ -284,16 +256,13 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                   descriptionController.text,
                   quantityController.text,
                 );
-                if (!context.mounted) return;
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: Text('Create',
-                  style: AppTextStyles.getButtonTextStyle(isDarkMode)),
+              child: Text('Create', style: AppTextStyles.getButtonTextStyle(isDarkMode)),
             ),
           ],
         ),
@@ -308,9 +277,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: isDarkMode
-            ? AppColors.darkCardBackground
-            : AppColors.cardBackground,
+        backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: Text(
           'Delete Resource Request',
@@ -323,8 +290,7 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel',
-                style: AppTextStyles.getBodyTextStyle(isDarkMode)),
+            child: Text('Cancel', style: AppTextStyles.getBodyTextStyle(isDarkMode)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -333,11 +299,9 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: Text('Delete',
-                style: AppTextStyles.getButtonTextStyle(isDarkMode)),
+            child: Text('Delete', style: AppTextStyles.getButtonTextStyle(isDarkMode)),
           ),
         ],
       ),
@@ -350,14 +314,12 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
     final isDarkMode = themeProvider.isDarkMode;
 
     return Scaffold(
-      backgroundColor:
-          isDarkMode ? AppColors.darkBackground : AppColors.background,
+      backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         title: const Text(
           'Resources',
-          style: TextStyle(
-              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
       body: _isLoading
@@ -380,17 +342,14 @@ class _ResourceSharingPageState extends State<ResourceSharingPage> {
                       ? () async {
                           final message = await showDialog<String>(
                             context: context,
-                            builder: (context) =>
-                                ShareDialog(resource: resource),
+                            builder: (context) => ShareDialog(resource: resource),
                           );
                           if (message != null && message.isNotEmpty) {
                             _initiateChat(resource.userId, message);
                           }
                         }
                       : null,
-                  onDelete: userId == resource.userId
-                      ? () => _showDeleteDialog(resource.id)
-                      : null,
+                  onDelete: userId == resource.userId ? () => _showDeleteDialog(resource.id) : null,
                 );
               },
             ),
