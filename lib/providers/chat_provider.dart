@@ -16,7 +16,6 @@ class ChatProvider with ChangeNotifier {
   void setUser(String userId, String apartmentName) {
     _currentUserId = userId;
     _currentApartmentName = apartmentName;
-    logger.d('User set: userId=$userId, apartmentName=$apartmentName');
     notifyListeners();
   }
 
@@ -24,29 +23,24 @@ class ChatProvider with ChangeNotifier {
   Stream<List<Chat>> getChats() {
     if (_currentUserId == null) {
       logger.w('No current user ID set, returning empty stream');
-      return Stream.value([]); // Return an empty list instead of empty stream for consistency
+      return const Stream.empty();
     }
     return _firestore
         .collection('chats')
         .where('participants', arrayContains: _currentUserId)
         .where('isGroup', isEqualTo: false)
         .snapshots()
-        .map((snapshot) {
-          final chats = snapshot.docs.map((doc) => Chat.fromMap(doc.id, doc.data())).toList();
-          logger.d('Fetched ${chats.length} chats for user $_currentUserId');
-          return chats;
-        })
+        .map((snapshot) => snapshot.docs.map((doc) => Chat.fromMap(doc.id, doc.data())).toList())
         .handleError((e) {
-          logger.e('Error streaming chats: $e');
-          return <Chat>[]; // Return empty list on error to keep stream alive
-        });
+      logger.e('Error streaming chats: $e');
+    });
   }
 
   /// Gets or creates a one-on-one chat with another user, returning the chat ID
   Future<String> getOrCreateChat(String otherUserId) async {
     if (_currentUserId == null) {
       logger.e('Current user ID is not set');
-      throw Exception('Current user ID is not set');
+      throw Exception('Current user ID is not set.');
     }
 
     try {
@@ -61,7 +55,6 @@ class ChatProvider with ChangeNotifier {
         final participants = List<String>.from(doc.data()['participants'] ?? []);
         if (participants.contains(_currentUserId) && participants.contains(otherUserId)) {
           chatId = doc.id;
-          logger.d('Found existing chat: $chatId');
           break;
         }
       }
@@ -90,12 +83,7 @@ class ChatProvider with ChangeNotifier {
   Future<void> sendMessage(String chatId, String content) async {
     if (_currentUserId == null) {
       logger.e('Current user ID is not set');
-      throw Exception('Current user ID is not set');
-    }
-
-    if (content.trim().isEmpty) {
-      logger.w('Attempted to send empty message in chat $chatId');
-      return; // Prevent sending empty messages
+      throw Exception('Current user ID is not set.');
     }
 
     try {
@@ -121,7 +109,6 @@ class ChatProvider with ChangeNotifier {
         'timestamp': FieldValue.serverTimestamp(),
         'userId': _currentUserId,
       });
-      notifyListeners(); // Notify UI of message update
     } catch (e) {
       logger.e('Error sending message: $e');
       rethrow;
@@ -132,12 +119,7 @@ class ChatProvider with ChangeNotifier {
   Future<void> sendResourceMessage(String chatId, String content, String otherUserId) async {
     if (_currentUserId == null) {
       logger.e('Current user ID is not set');
-      throw Exception('Current user ID is not set');
-    }
-
-    if (content.trim().isEmpty) {
-      logger.w('Attempted to send empty resource message in chat $chatId');
-      return; // Prevent sending empty messages
+      throw Exception('Current user ID is not set.');
     }
 
     try {
@@ -170,7 +152,6 @@ class ChatProvider with ChangeNotifier {
         'isResourceMessage': true,
         'userId': _currentUserId,
       });
-      notifyListeners(); // Notify UI of resource message update
     } catch (e) {
       logger.e('Error sending resource message: $e');
       rethrow;
@@ -181,17 +162,10 @@ class ChatProvider with ChangeNotifier {
   Future<void> deleteMessage(String chatId, String messageId, bool deleteForEveryone) async {
     if (_currentUserId == null) {
       logger.e('Current user ID is not set');
-      throw Exception('Current user ID is not set');
+      throw Exception('Current user ID is not set.');
     }
 
     try {
-      final messageDoc =
-          await _firestore.collection('chats').doc(chatId).collection('messages').doc(messageId).get();
-      if (!messageDoc.exists) {
-        logger.w('Message $messageId does not exist in chat $chatId');
-        return;
-      }
-
       if (deleteForEveryone) {
         await _firestore.collection('chats').doc(chatId).collection('messages').doc(messageId).delete();
         logger.d('Message $messageId deleted for everyone in chat $chatId');
@@ -203,7 +177,6 @@ class ChatProvider with ChangeNotifier {
         });
         logger.d('Message $messageId marked as deleted for sender in chat $chatId');
       }
-      notifyListeners(); // Notify UI of message deletion
     } catch (e) {
       logger.e('Error deleting message: $e');
       rethrow;

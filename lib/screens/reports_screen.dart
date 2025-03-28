@@ -9,7 +9,7 @@ class ReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final Logger logger = Logger();
+    final Logger logger = Logger(); // Added logger instance (not used yet)
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
@@ -50,15 +50,15 @@ class ReportsScreen extends StatelessWidget {
                 itemCount: 5,
                 itemBuilder: (context, index) {
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 16), // Fixed typo below
+                    margin: const EdgeInsets.only(bottom: 16), // Fixed typo: 'custom' to 'bottom'
                     decoration: BoxDecoration(
                       color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
                           color: isDarkMode
-                              ? Colors.black.withValues(alpha: 0.4) // Line 60:46
-                              : Colors.grey.withValues(alpha: 0.4), // Line 61:45
+                              ? Colors.black.withValues(alpha: 0.4)
+                              : Colors.grey.withValues(alpha: 0.4),
                           offset: const Offset(0, 4),
                           blurRadius: 8,
                         ),
@@ -73,7 +73,7 @@ class ReportsScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.1), // Line 76:60
+                                  color: AppColors.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
@@ -114,7 +114,7 @@ class ReportsScreen extends StatelessWidget {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: _getStatusColor(index).withValues(alpha: 0.1), // Line 117:65
+                                  color: _getStatusColor(index).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -131,10 +131,7 @@ class ReportsScreen extends StatelessWidget {
                         ),
                         InkWell(
                           onTap: () {
-                            logger.d('Viewing report: ${_getReportTitle(index)}');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Viewing ${_getReportTitle(index)}')),
-                            );
+                            // Handle view report action
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -143,7 +140,7 @@ class ReportsScreen extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: isDarkMode
-                                  ? Colors.black.withValues(alpha: 0.2) // Line 146:50
+                                  ? Colors.black.withValues(alpha: 0.2)
                                   : Colors.grey.shade50,
                               borderRadius: const BorderRadius.vertical(
                                 bottom: Radius.circular(16),

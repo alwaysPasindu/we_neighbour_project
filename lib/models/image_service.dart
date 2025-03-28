@@ -141,10 +141,9 @@ class ImageService {
     }
   }
 
-  /// Show image picker dialog with mounted check
+  /// Show image picker dialog
   static Future<XFile?> showImagePickerDialog(BuildContext context) async {
     XFile? pickedFile;
-    if (!context.mounted) return null; // Early return if context is not mounted
     await showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -158,9 +157,7 @@ class ImageService {
                   title: const Text('Gallery'),
                   onTap: () async {
                     pickedFile = await pickImage(source: ImageSource.gallery);
-                    if (dialogContext.mounted) {
-                      Navigator.of(dialogContext).pop();
-                    }
+                    Navigator.of(dialogContext).pop();
                   },
                 ),
                 ListTile(
@@ -168,9 +165,7 @@ class ImageService {
                   title: const Text('Camera'),
                   onTap: () async {
                     pickedFile = await pickImage(source: ImageSource.camera);
-                    if (dialogContext.mounted) {
-                      Navigator.of(dialogContext).pop();
-                    }
+                    Navigator.of(dialogContext).pop();
                   },
                 ),
               ],

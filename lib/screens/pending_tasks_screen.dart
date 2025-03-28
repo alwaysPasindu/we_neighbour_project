@@ -9,7 +9,7 @@ class PendingTasksScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final Logger logger = Logger();
+    final Logger logger = Logger(); // Added logger instance (not used yet)
 
     return Scaffold(
       backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
@@ -50,15 +50,15 @@ class PendingTasksScreen extends StatelessWidget {
                 itemCount: 8,
                 itemBuilder: (context, index) {
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 16), // Fixed typo below
+                    margin: const EdgeInsets.only(bottom: 16), // Fixed typo: 'custom' to 'bottom'
                     decoration: BoxDecoration(
                       color: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
                           color: isDarkMode
-                              ? Colors.black.withValues(alpha: 0.4) // Line 60:46
-                              : Colors.grey.withValues(alpha: 0.4), // Line 61:45
+                              ? Colors.black.withValues(alpha: 0.4)
+                              : Colors.grey.withValues(alpha: 0.4),
                           offset: const Offset(0, 4),
                           blurRadius: 8,
                         ),
@@ -74,7 +74,7 @@ class PendingTasksScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: _getPriorityColor(index).withValues(alpha: 0.1), // Line 77:67
+                                  color: _getPriorityColor(index).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
@@ -115,7 +115,7 @@ class PendingTasksScreen extends StatelessWidget {
                                             vertical: 4,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: _getPriorityColor(index).withValues(alpha: 0.1), // Line 118:77
+                                            color: _getPriorityColor(index).withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(20),
                                           ),
                                           child: Text(
@@ -155,10 +155,7 @@ class PendingTasksScreen extends StatelessWidget {
                         ),
                         InkWell(
                           onTap: () {
-                            logger.d('Task $index marked as complete');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('${_getTaskTitle(index)} marked as complete')),
-                            );
+                            // Handle mark as complete
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -167,21 +164,21 @@ class PendingTasksScreen extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: isDarkMode
-                                  ? Colors.black.withValues(alpha: 0.2) // Line 170:50
+                                  ? Colors.black.withValues(alpha: 0.2)
                                   : Colors.grey.shade50,
                               borderRadius: const BorderRadius.vertical(
                                 bottom: Radius.circular(16),
                               ),
                             ),
-                            child: Row(
+                            child: const Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.check_circle_outline,
                                   size: 16,
                                   color: AppColors.primary,
                                 ),
-                                const SizedBox(width: 4),
-                                const Text(
+                                SizedBox(width: 4),
+                                Text(
                                   'Mark as Complete',
                                   style: TextStyle(
                                     fontSize: 12,
@@ -189,32 +186,20 @@ class PendingTasksScreen extends StatelessWidget {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const Spacer(),
-                                GestureDetector(
-                                  onTap: () {
-                                    logger.d('Viewing details for task $index');
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Viewing details for ${_getTaskTitle(index)}')),
-                                    );
-                                  },
-                                  child: const Row(
-                                    children: [
-                                      Text(
-                                        'View Details',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      SizedBox(width: 4),
-                                      Icon(
-                                        Icons.arrow_forward_ios,
-                                        size: 12,
-                                        color: AppColors.primary,
-                                      ),
-                                    ],
+                                Spacer(),
+                                Text(
+                                  'View Details',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
                                   ),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 12,
+                                  color: AppColors.primary,
                                 ),
                               ],
                             ),
@@ -231,10 +216,7 @@ class PendingTasksScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          logger.d('Add new task button pressed');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Add new task functionality not implemented yet')),
-          );
+          // Handle add new task
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),

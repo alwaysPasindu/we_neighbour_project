@@ -32,6 +32,7 @@ dependencies:
   geolocator: ^10.1.0
   latlong2: ^0.9.1
   flutter_typeahead: ^5.0.1
+  permission_handler: ^11.4.0
   http: ^1.2.2
   barcode_scan2: ^4.2.0
   logger: ^2.5.0
@@ -44,7 +45,6 @@ dependencies:
   # firebase_database: ^11.3.4
   cloud_firestore: ^5.6.5
   flutter_keyboard_visibility: 6.0.0
-  permission_handler: 11.3.1
   # async: ^2.13.0
 
 dev_dependencies:

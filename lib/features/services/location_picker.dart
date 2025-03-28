@@ -45,7 +45,7 @@ class _LocationPickerState extends State<LocationPicker> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      if (!mounted) return;
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location services are disabled.')));
       return;
     }
@@ -54,20 +54,21 @@ class _LocationPickerState extends State<LocationPicker> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        if (!mounted) return;
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions are denied.')));
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      if (!mounted) return;
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions are permanently denied, we cannot request permissions.')));
       return;
     }
 
+    // Get current location if needed
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    if (!mounted) return;
+    if (!mounted) return; // Check if still mounted before setState
     setState(() {
       _currentPosition = LatLng(position.latitude, position.longitude);
     });
@@ -86,27 +87,28 @@ class _LocationPickerState extends State<LocationPicker> {
       final placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
-        if (!mounted) return;
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _searchController.text = '${placemark.street ?? ''}, ${placemark.locality ?? ''}, ${placemark.country ?? ''}'.trim();
         });
       }
     } catch (e) {
       logger.d('Error fetching address: $e');
-      if (!mounted) return;
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error fetching address')));
     }
   }
 
   Future<void> _searchLocation(String query) async {
     try {
+      // Parse query as coordinates (e.g., "6.9271, 79.8612") or address
       if (query.contains(',')) {
         final coords = query.split(',').map((e) => e.trim()).toList();
         if (coords.length == 2) {
           final latitude = double.tryParse(coords[0]) ?? 0.0;
           final longitude = double.tryParse(coords[1]) ?? 0.0;
           if (latitude != 0.0 && longitude != 0.0) {
-            if (!mounted) return;
+            if (!mounted) return; // Check if still mounted before setState
             setState(() {
               _currentPosition = LatLng(latitude, longitude);
             });
@@ -117,22 +119,23 @@ class _LocationPickerState extends State<LocationPicker> {
         }
       }
 
+      // If not coordinates, treat as address
       final locations = await locationFromAddress(query);
       if (locations.isNotEmpty) {
         final location = locations.first;
-        if (!mounted) return;
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _currentPosition = LatLng(location.latitude, location.longitude);
         });
         _mapController.animateCamera(CameraUpdate.newLatLng(_currentPosition));
         await _fetchAddress(location.latitude, location.longitude);
       } else {
-        if (!mounted) return;
+        if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location not found')));
       }
     } catch (e) {
       logger.d('Error searching location: $e');
-      if (!mounted) return;
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error searching location')));
     }
   }
@@ -188,7 +191,7 @@ class _LocationPickerState extends State<LocationPicker> {
             padding: const EdgeInsets.all(16),
             child: ElevatedButton(
               onPressed: () {
-                if (!mounted) return;
+                if (!mounted) return; // Check if still mounted before popping
                 Navigator.pop(context, _currentPosition);
               },
               child: const Text('Select Location'),

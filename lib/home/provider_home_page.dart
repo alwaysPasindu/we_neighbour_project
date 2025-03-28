@@ -6,10 +6,9 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/constants/colors.dart';
-import 'package:we_neighbour/features/services/service_details_page.dart';
-// import 'package:we_neighbour/features/services/service_details_page.dart';
 import '../widgets/provider_header_widget.dart';
 import '../../providers/theme_provider.dart';
+import '../features/services/service_detailsPage.dart';
 import '../widgets/provider_bottom_navigation.dart';
 import '../main.dart';
 import '../models/service.dart';
@@ -96,7 +95,7 @@ class _ProviderHomePageState extends State<ProviderHomePage> {
   Future<void> _loadUserData() async {
     _token = prefs.getString('token');
     if (_token == null) {
-      if (!mounted) return;
+      if (!mounted) return; // Check if still mounted
       Navigator.pushReplacementNamed(context, '/login');
       return;
     }
@@ -119,13 +118,13 @@ class _ProviderHomePageState extends State<ProviderHomePage> {
       if (response.statusCode == 200) {
         final List<dynamic> servicesJson = jsonDecode(response.body);
         final services = servicesJson.map((json) => Service.fromJson(json)).toList();
-        if (!mounted) return;
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _featuredServices = services;
         });
         await prefs.setString('services', jsonEncode(services.map((s) => s.toJson()).toList()));
       } else if (response.statusCode == 401) {
-        if (!mounted) return;
+        if (!mounted) return; // Check if still mounted
         Navigator.pushReplacementNamed(context, '/login');
         throw Exception('Unauthorized: Invalid or expired token');
       } else {
@@ -133,13 +132,13 @@ class _ProviderHomePageState extends State<ProviderHomePage> {
       }
     } catch (e) {
       logger.d('Error loading services: $e');
-      if (!mounted) return;
+      if (!mounted) return; // Check if still mounted
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading services: $e')));
       final String? servicesJson = prefs.getString('services');
       if (servicesJson != null) {
         final List<dynamic> decodedServices = jsonDecode(servicesJson);
-        if (!mounted) return;
+        if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _featuredServices = decodedServices.map((service) => Service.fromJson(service)).toList();
         });
@@ -147,6 +146,11 @@ class _ProviderHomePageState extends State<ProviderHomePage> {
     }
   }
 
+  Future<void> _signOut() async {
+    await prefs.clear();
+    if (!mounted) return; // Check if still mounted
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
 
   void _startAutoSlide() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {

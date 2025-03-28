@@ -7,35 +7,28 @@ class ShareAppScreen extends StatelessWidget {
   ShareAppScreen({super.key});
 
   final Logger logger = Logger();
-  static const String appLink = 'https://weneighbour.com/app';
-  static const String shareMessage =
-      'Check out We-Neighbour, the ultimate community management app for apartment residents! Download now: $appLink';
-  static const String shareSubject = 'Join your community on We-Neighbour!';
 
-  void _shareApp(BuildContext context, {String? platform}) {
-    final scaffoldMessenger = ScaffoldMessenger.of(context); // Capture ScaffoldMessenger early
-
-    logger.d('Sharing app${platform != null ? " via $platform" : ""}');
+  void _shareApp(BuildContext context) {
+    logger.d('Sharing app via general share');
     try {
       Share.share(
-        shareMessage,
-        subject: shareSubject,
-        // Add platform-specific handling if needed in the future
+        'Check out We-Neighbour, the ultimate community management app for apartment residents! Download now: https://weneighbour.com/app',
+        subject: 'Join your community on We-Neighbour!',
       );
     } catch (e) {
       logger.e('Error sharing app: $e');
-      scaffoldMessenger.showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to share: $e')),
       );
     }
   }
 
   void _copyLink(BuildContext context) {
-    final scaffoldMessenger = ScaffoldMessenger.of(context); // Capture ScaffoldMessenger early
-
     logger.d('Copying app link to clipboard');
-    Clipboard.setData(const ClipboardData(text: appLink)).then((_) {
-      scaffoldMessenger.showSnackBar(
+    Clipboard.setData(const ClipboardData(
+      text: 'https://weneighbour.com/app',
+    )).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Link copied to clipboard'),
           duration: Duration(seconds: 2),
@@ -43,7 +36,7 @@ class ShareAppScreen extends StatelessWidget {
       );
     }).catchError((e) {
       logger.e('Error copying link: $e');
-      scaffoldMessenger.showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to copy link: $e')),
       );
     });
@@ -54,7 +47,7 @@ class ShareAppScreen extends StatelessWidget {
     final List<Map<String, dynamic>> platforms = [
       {
         'name': 'WhatsApp',
-        'icon': Icons.chat,
+        'icon': Icons.chat, // Changed to a more generic chat icon
         'color': const Color(0xFF25D366),
       },
       {
@@ -64,7 +57,7 @@ class ShareAppScreen extends StatelessWidget {
       },
       {
         'name': 'Twitter',
-        'icon': Icons.share,
+        'icon': Icons.share, // Changed from flutter_dash to a generic share icon
         'color': const Color(0xFF1DA1F2),
       },
       {
@@ -112,7 +105,7 @@ class ShareAppScreen extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1), // Line 115:64
+                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
@@ -153,11 +146,10 @@ class ShareAppScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   return InkWell(
                     onTap: () {
-                      final platformName = platforms[index]['name'];
-                      if (platformName == 'Copy Link') {
+                      if (platforms[index]['name'] == 'Copy Link') {
                         _copyLink(context);
                       } else {
-                        _shareApp(context, platform: platformName);
+                        _shareApp(context);
                       }
                     },
                     borderRadius: BorderRadius.circular(16),
@@ -168,7 +160,7 @@ class ShareAppScreen extends StatelessWidget {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: platforms[index]['color'].withValues(alpha: 0.1), // Line 150:58
+                            color: platforms[index]['color'].withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Icon(
