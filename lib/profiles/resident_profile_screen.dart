@@ -184,12 +184,12 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
     if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return Scaffold(
-      backgroundColor: isDarkMode ? AppColors.darkBackground : AppColors.background,
+      backgroundColor: isDarkMode ? AppColors.darkBackground : const Color(0xFF0A1A3B),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : const Color.fromARGB(255, 237, 237, 237)),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -211,7 +211,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
               const SizedBox(height: 16),
               _isEditing
                   ? _buildEditableField(_nameController, 'Name', isDarkMode)
-                  : Text(_nameController.text, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary)),
+                  : Text(_nameController.text, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: isDarkMode ? AppColors.darkTextPrimary : const Color.fromARGB(255, 255, 255, 255))),
               const SizedBox(height: 32),
               _isEditing
                   ? _buildEditableField(_emailController, 'Email', isDarkMode)
@@ -239,7 +239,7 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
           onTap: _isEditing ? _pickImage : null,
           child: CircleAvatar(
             radius: 50,
-            backgroundColor: isDarkMode ? AppColors.darkCardBackground : AppColors.cardBackground,
+            backgroundColor: isDarkMode ? AppColors.darkCardBackground : const Color.fromARGB(255, 71, 136, 197),
             child: _profileImage != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(50),
@@ -264,18 +264,18 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
     );
   }
 
-  Widget _buildDefaultIcon(bool isDarkMode) => Icon(Icons.person, size: 50, color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary);
+  Widget _buildDefaultIcon(bool isDarkMode) => Icon(Icons.person, size: 50, color: isDarkMode ? AppColors.darkTextSecondary : const Color.fromARGB(255, 255, 255, 255));
 
   Widget _buildEditableField(TextEditingController controller, String label, bool isDarkMode) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: controller,
-        style: TextStyle(color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary),
+        style: TextStyle(color: isDarkMode ? AppColors.darkTextPrimary : const Color.fromARGB(255, 255, 255, 255)),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary),
-          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary)),
+          labelStyle: TextStyle(color: isDarkMode ? AppColors.darkTextSecondary : const Color.fromARGB(255, 252, 252, 252)),
+          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: isDarkMode ? AppColors.darkTextSecondary : const Color.fromARGB(255, 255, 255, 255))),
           focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
         ),
         autocorrect: false,
@@ -291,10 +291,10 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary)),
+        Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isDarkMode ? AppColors.darkTextSecondary : const Color.fromARGB(255, 255, 255, 255))),
         const SizedBox(height: 8),
-        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary)),
-        Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Divider(color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary)),
+        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: isDarkMode ? AppColors.darkTextPrimary : const Color.fromARGB(255, 255, 255, 255))),
+        Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Divider(color: isDarkMode ? AppColors.darkTextSecondary : const Color.fromARGB(255, 255, 255, 255))),
       ],
     );
   }
@@ -305,14 +305,14 @@ class _ResidentProfileScreenState extends State<ResidentProfileScreen> {
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(border: Border.all(color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(border: Border.all(color: isDarkMode ? AppColors.darkTextSecondary : const Color.fromARGB(255, 255, 255, 255)), borderRadius: BorderRadius.circular(8)),
         child: Row(
           children: [
             Icon(icon, color: AppColors.primary),
             const SizedBox(width: 12),
-            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: isDarkMode ? AppColors.darkTextPrimary : AppColors.textPrimary)),
+            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: isDarkMode ? AppColors.darkTextPrimary : const Color.fromARGB(255, 255, 255, 255))),
             const Spacer(),
-            Icon(Icons.arrow_forward_ios, color: isDarkMode ? AppColors.darkTextSecondary : AppColors.textSecondary, size: 16),
+            Icon(Icons.arrow_forward_ios, color: isDarkMode ? AppColors.darkTextSecondary : const Color.fromARGB(255, 248, 248, 248), size: 16),
           ],
         ),
       ),
