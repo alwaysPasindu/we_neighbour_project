@@ -57,7 +57,7 @@ app.*.map.json
 **/android/app/release
 **/.dart_tool
 **/.dart_tool
-**/android
+# **/android
 .gradle/
 gradle-app.setting
 local.properties
