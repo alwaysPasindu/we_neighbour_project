@@ -23,7 +23,6 @@ class _LocationPickerState extends State<LocationPicker> {
   late GoogleMapController _mapController;
   late LatLng _currentPosition;
   final TextEditingController _searchController = TextEditingController();
-  List<Placemark> _placemarks = [];
   final Logger logger = Logger();
 
   @override
@@ -91,7 +90,6 @@ class _LocationPickerState extends State<LocationPicker> {
         if (!mounted) return; // Check if still mounted before setState
         setState(() {
           _searchController.text = '${placemark.street ?? ''}, ${placemark.locality ?? ''}, ${placemark.country ?? ''}'.trim();
-          _placemarks = placemarks;
         });
       }
     } catch (e) {

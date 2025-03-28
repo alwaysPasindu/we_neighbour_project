@@ -129,7 +129,6 @@ class _CreateMaintenanceRequestScreenState
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
     const primaryColor = Color(0xFF4080FF);
 
     return Scaffold(

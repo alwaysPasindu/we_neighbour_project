@@ -174,7 +174,7 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(
+                  const CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                   ),
                   const SizedBox(height: 16),
