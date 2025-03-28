@@ -64,14 +64,14 @@ class _CreateMaintenanceRequestScreenState
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Row(
+                content: const Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.white),
-                    const SizedBox(width: 12),
+                    Icon(Icons.check_circle, color: Colors.white),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Maintenance request submitted successfully',
-                        style: const TextStyle(fontSize: 16),
+                        style: TextStyle(fontSize: 16),
                       ),
                     ),
                   ],
@@ -130,7 +130,7 @@ class _CreateMaintenanceRequestScreenState
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
-    final primaryColor = const Color(0xFF4080FF);
+    const primaryColor = Color(0xFF4080FF);
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0A1A3B) : Colors.grey[50],
@@ -370,12 +370,12 @@ class _CreateMaintenanceRequestScreenState
                                     strokeWidth: 2.5,
                                   ),
                                 )
-                              : Row(
+                              : const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.send_rounded, size: 20),
-                                    const SizedBox(width: 10),
-                                    const Text('Submit Request'),
+                                    Icon(Icons.send_rounded, size: 20),
+                                    SizedBox(width: 10),
+                                    Text('Submit Request'),
                                   ],
                                 ),
                         ),

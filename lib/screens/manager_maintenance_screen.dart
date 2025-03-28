@@ -28,7 +28,7 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
 
   Future<void> _fetchPendingRequests() async {
     try {
-      final url = '$baseUrl/api/maintenance/get-pending-request';
+      const url = '$baseUrl/api/maintenance/get-pending-request';
 
       logger.d('Fetching pending requests with URL: $url');
       logger.d('Authorization header: x-auth-token: ${widget.authToken}');
@@ -96,11 +96,11 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
         if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 12),
-                const Text('Request marked as completed'),
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Request marked as completed'),
               ],
             ),
             backgroundColor: Colors.green.shade700,
@@ -135,7 +135,7 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF4080FF);
+    const primaryColor = Color(0xFF4080FF);
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0A1A3B) : Colors.grey[50],
@@ -245,7 +245,7 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
   }
 
   Widget _buildMaintenanceCard(MaintenanceCard card, bool isDarkMode) {
-    final primaryColor = const Color(0xFF4080FF);
+    const primaryColor = Color(0xFF4080FF);
 
     return Container(
       decoration: BoxDecoration(

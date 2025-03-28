@@ -146,11 +146,11 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 12),
-                const Text('Request marked as completed'),
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Request marked as completed'),
               ],
             ),
             backgroundColor: Colors.green.shade700,
@@ -203,11 +203,11 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
         if (!mounted) return; // Check if still mounted
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
-                const Icon(Icons.thumb_up, color: Colors.white),
-                const SizedBox(width: 12),
-                const Text('Rating submitted successfully'),
+                Icon(Icons.thumb_up, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Rating submitted successfully'),
               ],
             ),
             backgroundColor: Colors.green.shade700,
@@ -260,7 +260,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF4080FF);
+    const primaryColor = Color(0xFF4080FF);
 
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0A1A3B) : Colors.grey[50],
@@ -410,7 +410,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
     )['stars'];
 
     final totalReviews = card.ratings?.length ?? 0;
-    final primaryColor = const Color(0xFF4080FF);
+    const primaryColor = Color(0xFF4080FF);
 
     return Container(
       decoration: BoxDecoration(
@@ -564,7 +564,7 @@ class _MaintenanceScreenState extends State<MaintenanceScreen> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${card.averageRating!.toStringAsFixed(1)}',
+                              card.averageRating!.toStringAsFixed(1),
                               style: TextStyle(
                                 color:
                                     isDarkMode ? Colors.white : Colors.black87,

@@ -5,7 +5,6 @@ import 'package:we_neighbour/features/event_calendar/event_calendar_screen.dart'
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'package:we_neighbour/screens/manager_maintenance_screen.dart';
 import '../features/visitor_management/visitor_management_screen.dart';
-import '../constants/colors.dart';
 import '../constants/text_styles.dart';
 
 class FeatureItem {

@@ -254,8 +254,9 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                         _focusedDay = selectedDate;
                       });
 
-                      if (!dialogContext.mounted)
+                      if (!dialogContext.mounted) {
                         return; // Check dialog mounted state
+                      }
                       ScaffoldMessenger.of(dialogContext).showSnackBar(
                         const SnackBar(
                             content: Text('Event added successfully')),
@@ -263,8 +264,9 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                       Navigator.of(dialogContext).pop();
                     } catch (e) {
                       logger.d('Error adding event: $e');
-                      if (!dialogContext.mounted)
+                      if (!dialogContext.mounted) {
                         return; // Check dialog mounted state
+                      }
                       ScaffoldMessenger.of(dialogContext).showSnackBar(
                         SnackBar(content: Text('Failed to add event: $e')),
                       );
@@ -302,16 +304,18 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               onPressed: () async {
                 try {
                   await _firebaseService.deleteEvent(eventId);
-                  if (!dialogContext.mounted)
+                  if (!dialogContext.mounted) {
                     return; // Check dialog mounted state
+                  }
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
                     const SnackBar(content: Text('Event deleted successfully')),
                   );
                   Navigator.of(dialogContext).pop();
                 } catch (e) {
                   logger.d('Error deleting event: $e');
-                  if (!dialogContext.mounted)
+                  if (!dialogContext.mounted) {
                     return; // Check dialog mounted state
+                  }
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
                     SnackBar(content: Text('Failed to delete event: $e')),
                   );

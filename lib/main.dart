@@ -177,7 +177,7 @@ class _MyAppState extends State<MyApp> {
             '/service-provider-signup': (context) => const ServiceProviderSignUpPage(),
             '/provider-home': (context) => const ProviderHomePage(),
             '/provider-profile': (context) => const CompanyProfileScreen(),
-            '/chat-list': (context) => ChatListPage(),
+            '/chat-list': (context) => const ChatListPage(),
             '/pending-approval': (context) => const PendingApprovalPage(),
             '/resource': (context) => const ResourceSharingPage(),
             '/resident-req': (context) => const ResidentsRequestScreen(),

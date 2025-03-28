@@ -1,10 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:we_neighbour/constants/text_styles.dart';
 import 'package:we_neighbour/main.dart';
-import 'package:we_neighbour/models/image_service.dart';
 import 'package:we_neighbour/models/resource.dart' as model;
 import 'package:we_neighbour/widgets/share_dialog.dart';
 import '../../constants/colors.dart';
