@@ -179,7 +179,7 @@ class _CreateMaintenanceRequestScreenState
                   children: [
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.home_repair_service_rounded,
                           color: primaryColor,
                           size: 28,
@@ -253,7 +253,7 @@ class _CreateMaintenanceRequestScreenState
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                               color: primaryColor,
                               width: 2,
                             ),
@@ -310,7 +310,7 @@ class _CreateMaintenanceRequestScreenState
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
+                            borderSide: const BorderSide(
                               color: primaryColor,
                               width: 2,
                             ),

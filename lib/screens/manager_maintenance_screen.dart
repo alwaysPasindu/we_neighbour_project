@@ -264,9 +264,9 @@ class _ManagerMaintenanceScreenState extends State<ManagerMaintenanceScreen> {
         children: [
           // Header
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: primaryColor,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
