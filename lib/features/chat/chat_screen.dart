@@ -181,7 +181,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Colors.white24,
                       shape: BoxShape.circle,
                     ),
@@ -198,7 +198,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           fontSize: 16,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Fetching details',
                         style: TextStyle(
                           color: Colors.white70,
@@ -227,7 +227,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Colors.white24,
                     shape: BoxShape.circle,
                   ),
@@ -265,7 +265,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       ),
                       Text(
                         status ?? (widget.isGroup ? 'Group chat' : 'Private chat'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
                         ),
@@ -281,13 +281,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         elevation: 2,
         actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline),
+            icon: Icon(Icons.info_outline),
             onPressed: () {
               // Show chat info dialog
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Chat Information'),
+                  title: Text('Chat Information'),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +301,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Close'),
+                      child: Text('Close'),
                     ),
                   ],
                 ),
@@ -346,7 +346,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                          Icon(Icons.error_outline, color: Colors.red, size: 48),
                           const SizedBox(height: 16),
                           Text(
                             'Error loading messages',
@@ -364,8 +364,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Retry'),
+                            icon: Icon(Icons.refresh),
+                            label: Text('Retry'),
                             onPressed: () {
                               setState(() {});
                             },
@@ -464,8 +464,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: isDarkMode 
-                ? Colors.grey[800]!.withValues(alpha: 0.7) 
-                : Colors.grey[300]!.withValues(alpha: 0.7),
+                ? Colors.grey[800]!.withOpacity(0.7) 
+                : Colors.grey[300]!.withOpacity(0.7),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
@@ -661,14 +661,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           ? AppColors.primary 
                           : isDarkMode ? Colors.grey[800] : Colors.white,
                       borderRadius: BorderRadius.circular(18).copyWith(
-                        bottomLeft: isSender ? const Radius.circular(18) : const Radius.circular(0),
-                        bottomRight: isSender ? const Radius.circular(0) : const Radius.circular(18),
+                        bottomLeft: isSender ? Radius.circular(18) : Radius.circular(0),
+                        bottomRight: isSender ? Radius.circular(0) : Radius.circular(18),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05) ,
+                          color: Colors.black.withOpacity(0.05),
                           blurRadius: 3,
-                          offset: const Offset(0, 1),
+                          offset: Offset(0, 1),
                         ),
                       ],
                     ),
@@ -703,7 +703,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                             ),
                             if (isSender) ...[
                               const SizedBox(width: 4),
-                              const Icon(
+                              Icon(
                                 Icons.done_all,
                                 size: 12,
                                 color: Colors.white70,
@@ -722,7 +722,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   height: 28,
                   margin: const EdgeInsets.only(left: 8, bottom: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.7) ,
+                    color: AppColors.primary.withOpacity(0.7),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.person, size: 16, color: Colors.white),
@@ -741,9 +741,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         color: isDarkMode ? Colors.grey[850] : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05) ,
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 5,
-            offset: const Offset(0, -1),
+            offset: Offset(0, -1),
           ),
         ],
       ),
@@ -751,7 +751,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.emoji_emotions_outlined),
+              icon: Icon(Icons.emoji_emotions_outlined),
               color: AppColors.primary,
               onPressed: () {
                 // Emoji picker functionality could be added here

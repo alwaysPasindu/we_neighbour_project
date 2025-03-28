@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -133,8 +133,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         await prefs.setString('userName', data['user']['name'] ?? 'User');
         await prefs.setString('userEmail', data['user']['email'] ?? 'N/A');
         await prefs.setString('userStatus', data['user']['status'] ?? 'approved');
-        await prefs.setString(
-            'apartmentComplexName', data['user']['apartmentComplexName'] ?? 'N/A');
+        // Save the apartment name under the correct key
+        await prefs.setString('userApartment', data['user']['apartmentComplexName'] ?? 'N/A');
 
         if (_rememberMe) {
           await prefs.setString('savedEmail', _emailController.text);
@@ -512,7 +512,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                       padding: EdgeInsets.zero,
                                       minimumSize: const Size(0, 0),
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                                  child: const Text('Forgot password?',
+                                  child: Text('Forgot password?',
                                       style: TextStyle(
                                           color: primaryColor,
                                           fontWeight: FontWeight.w600,
@@ -597,7 +597,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                       padding: const EdgeInsets.symmetric(horizontal: 8),
                                       minimumSize: const Size(0, 0),
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                                  child: const Text('Register',
+                                  child: Text('Register',
                                       style: TextStyle(
                                           color: primaryColor,
                                           fontWeight: FontWeight.bold,
