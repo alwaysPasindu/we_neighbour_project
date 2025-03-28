@@ -316,8 +316,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           color: isDarkMode ? Colors.grey[900] : Colors.grey[100],
           image: DecorationImage(
             image: AssetImage(isDarkMode 
-              ? 'assets/images/chat_bg_dark.png' 
-              : 'assets/images/chat_bg_light.png'),
+              ? 'assets/images/white.png' 
+              : 'assets/images/No_BG.png'),
             opacity: 0.05,
             repeat: ImageRepeat.repeat,
           ),
