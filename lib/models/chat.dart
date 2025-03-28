@@ -30,4 +30,6 @@ class Chat {
       members: data['members'] != null ? List<String>.from(data['members']) : null,
     );
   }
+
+  get unreadCount => null;
 }

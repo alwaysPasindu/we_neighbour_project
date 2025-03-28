@@ -13,18 +13,15 @@ class PendingApprovalPage extends StatefulWidget {
   State<PendingApprovalPage> createState() => _PendingApprovalPageState();
 }
 
-class _PendingApprovalPageState extends State<PendingApprovalPage>
-    with SingleTickerProviderStateMixin {
+class _PendingApprovalPageState extends State<PendingApprovalPage> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _rotationAnimation;
   late Animation<double> _pulseAnimation;
   late Animation<double> _fadeInAnimation;
   late Animation<Offset> _slideAnimation;
   Timer? _statusCheckTimer;
-  static const String baseUrl =
-      'https://we-neighbour-app-9modf.ondigitalocean.app';
+  static const String baseUrl = 'https://we-neighbour-app-9modf.ondigitalocean.app';
   bool _isLoadingToken = true;
-  bool _isCheckingStatus = false; // Track status check in progress
   final Logger logger = Logger();
 
   @override
@@ -32,14 +29,13 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
     super.initState();
 
     _animationController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 3))
-          ..repeat(reverse: false);
+        AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat(reverse: false);
 
-    _rotationAnimation = Tween<double>(begin: 0, end: 2 * math.pi).animate(
-        CurvedAnimation(parent: _animationController, curve: Curves.linear));
+    _rotationAnimation = Tween<double>(begin: 0, end: 2 * math.pi)
+        .animate(CurvedAnimation(parent: _animationController, curve: Curves.linear));
 
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-        CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1)
+        .animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
 
     _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -48,8 +44,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
       ),
     );
 
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.5, curve: Curves.easeOutCubic),
@@ -74,11 +69,11 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
 
   Future<void> _checkInitialToken() async {
     final token = await _getToken();
-    if (!mounted) return;
+    if (!mounted) return; // Check if still mounted
     setState(() => _isLoadingToken = false);
     if (token == null) {
       logger.d('No token found on init, prompting re-login');
-      if (!mounted) return;
+      if (!mounted) return; // Check if still mounted
       _showReloginDialog();
     } else {
       _startStatusCheck();
@@ -86,25 +81,20 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
   }
 
   Future<void> _checkApprovalStatus() async {
-    if (_isCheckingStatus) return; // Prevent overlapping checks
-    setState(() => _isCheckingStatus = true);
-
     final token = await _getToken();
     if (token == null) {
       logger.d('No token found, cannot check status');
-      if (!mounted) return;
+      if (!mounted) return; // Check if still mounted
       _showReloginDialog();
-      setState(() => _isCheckingStatus = false);
       return;
     }
     logger.d('Token being sent: $token');
 
     final prefs = await SharedPreferences.getInstance();
     final role = prefs.getString('userRole');
-    if (role?.toLowerCase() != 'resident') {
+    if (role != 'Resident') {
       logger.d('Invalid role for this page: $role');
       await _signOut();
-      setState(() => _isCheckingStatus = false);
       return;
     }
 
@@ -117,8 +107,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
         },
       ).timeout(const Duration(seconds: 10));
 
-      logger.d(
-          'Status check response: ${response.statusCode} - ${response.body}');
+      logger.d('Status check response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -129,36 +118,26 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
           Navigator.pushReplacementNamed(context, '/home');
         } else if (status == 'rejected' && mounted) {
           logger.d('Resident rejected');
-          _statusCheckTimer?.cancel();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                  'Your request was rejected. Please contact the manager.'),
-            ),
+            const SnackBar(content: Text('Your request was rejected. Please contact the manager.')),
           );
         } else if (status == 'pending') {
           logger.d('Resident still pending');
         } else {
-          logger.w('Unknown status: $status');
+          logger.d('Unknown status: $status');
         }
       } else if (response.statusCode == 401) {
         logger.d('Token expired or invalid, signing out');
         await _signOut();
       } else {
-        logger.w(
-            'Status check failed: ${response.statusCode} - ${response.body}');
+        logger.d('Status check failed: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      logger.e('Error checking approval status: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isCheckingStatus = false);
-      }
+      logger.d('Error checking approval status: $e');
     }
   }
 
   void _startStatusCheck() {
-    _statusCheckTimer?.cancel(); // Cancel any existing timer
     _statusCheckTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       if (mounted) _checkApprovalStatus();
     });
@@ -170,12 +149,12 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
       await prefs.remove('token');
       await prefs.remove('userRole');
       await prefs.remove('userId');
-      if (!mounted) return;
+      if (!mounted) return; // Check if still mounted
       logger.d('Signing out, navigating to login');
       Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     } catch (e) {
-      if (!mounted) return;
-      logger.e('Error signing out: $e');
+      if (!mounted) return; // Check if still mounted
+      logger.d('Error signing out: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error signing out: $e')),
       );
@@ -183,7 +162,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
   }
 
   void _showReloginDialog() {
-    if (!mounted) return;
+    if (!mounted) return; // Check if still mounted
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -193,7 +172,6 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
         actions: [
           TextButton(
             onPressed: () {
-              if (!mounted) return;
               Navigator.pop(context);
               _signOut();
             },
@@ -247,8 +225,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
                             ),
                           ),
                         ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                         AnimatedBuilder(
                           animation: _animationController,
                           builder: (context, child) {
@@ -286,17 +263,12 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
                                             color: accentColor,
                                             shape: BoxShape.circle,
                                           ),
-                                          child: Center(
-                                            child: _isCheckingStatus
-                                                ? const CircularProgressIndicator(
-                                                    color: Colors.white,
-                                                    strokeWidth: 2,
-                                                  )
-                                                : const Icon(
-                                                    Icons.hourglass_top,
-                                                    size: 40,
-                                                    color: Colors.white,
-                                                  ),
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.hourglass_top,
+                                              size: 40,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -330,8 +302,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
                           child: SlideTransition(
                             position: _slideAnimation,
                             child: Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: const Text(
                                 'Your profile has been sent to the apartment manager for verification. You will be able to access the app once your residency is confirmed.',
                                 style: TextStyle(
@@ -350,19 +321,16 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
                           child: SlideTransition(
                             position: _slideAnimation,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 16, horizontal: 24),
+                              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                               decoration: BoxDecoration(
                                 color: Colors.grey.shade100,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color: Colors.grey.shade300, width: 1),
+                                border: Border.all(color: Colors.grey.shade300, width: 1),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.access_time,
-                                      color: Colors.grey.shade700),
+                                  Icon(Icons.access_time, color: Colors.grey.shade700),
                                   const SizedBox(width: 12),
                                   Text(
                                     'Estimated time: 1-2 business days',
@@ -386,21 +354,15 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
                                 animation: _animationController,
                                 builder: (context, child) {
                                   final delay = index * 0.2;
-                                  final animationValue =
-                                      (_animationController.value + delay) %
-                                          1.0;
-                                  final size = 8.0 +
-                                      4.0 * math.sin(animationValue * math.pi);
-                                  final opacity = 0.3 +
-                                      0.7 * math.sin(animationValue * math.pi);
+                                  final animationValue = (_animationController.value + delay) % 1.0;
+                                  final size = 8.0 + 4.0 * math.sin(animationValue * math.pi);
+                                  final opacity = 0.3 + 0.7 * math.sin(animationValue * math.pi);
                                   return Container(
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 4),
+                                    margin: const EdgeInsets.symmetric(horizontal: 4),
                                     width: size,
                                     height: size,
                                     decoration: BoxDecoration(
-                                      color: accentColor.withValues(
-                                          alpha: opacity),
+                                      color: accentColor.withValues(alpha: 0.05),
                                       shape: BoxShape.circle,
                                     ),
                                   );
@@ -418,15 +380,12 @@ class _PendingApprovalPageState extends State<PendingApprovalPage>
                               onPressed: _signOut,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryColor,
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 16, horizontal: 24),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                               child: const Text(
                                 'Sign Out',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16),
+                                style: TextStyle(color: Colors.white, fontSize: 16),
                               ),
                             ),
                           ),
@@ -449,12 +408,10 @@ class WaveClipper extends CustomClipper<Path> {
     path.lineTo(0, size.height * 0.75);
     var firstControlPoint = Offset(size.width * 0.25, size.height);
     var firstEndPoint = Offset(size.width * 0.5, size.height * 0.85);
-    path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy,
-        firstEndPoint.dx, firstEndPoint.dy);
+    path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy, firstEndPoint.dx, firstEndPoint.dy);
     var secondControlPoint = Offset(size.width * 0.75, size.height * 0.7);
     var secondEndPoint = Offset(size.width, size.height * 0.85);
-    path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy,
-        secondEndPoint.dx, secondEndPoint.dy);
+    path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy, secondEndPoint.dx, secondEndPoint.dy);
     path.lineTo(size.width, 0);
     path.close();
     return path;

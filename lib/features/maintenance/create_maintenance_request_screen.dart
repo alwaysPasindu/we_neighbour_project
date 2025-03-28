@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:we_neighbour/main.dart';
 import 'dart:convert';
-import 'package:logger/logger.dart'; // Added logger import
+import 'package:logger/logger.dart';
 
 class CreateMaintenanceRequestScreen extends StatefulWidget {
   final String authToken;
@@ -25,7 +25,7 @@ class _CreateMaintenanceRequestScreenState
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   bool _isLoading = false;
-  final Logger logger = Logger(); // Added logger instance
+  final Logger logger = Logger();
 
   @override
   void dispose() {
@@ -47,10 +47,9 @@ class _CreateMaintenanceRequestScreenState
           'title': _titleController.text,
           'description': _descriptionController.text,
           'status': 'pending',
-          // No need to send apartmentCode here; it’s fetched from Resident on the backend
         });
-        logger.d('Submitting request with headers: $headers'); // Replaced print
-        logger.d('Request body: $body'); // Replaced print
+        logger.d('Submitting request with headers: $headers');
+        logger.d('Request body: $body');
         final response = await http
             .post(
               Uri.parse('$baseUrl/api/maintenance/create-request'),
@@ -59,14 +58,30 @@ class _CreateMaintenanceRequestScreenState
             )
             .timeout(const Duration(seconds: 15));
 
-        logger.d('Create response: ${response.statusCode} - ${response.body}'); // Replaced print
+        logger.d('Create response: ${response.statusCode} - ${response.body}');
 
         if (response.statusCode == 201) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Maintenance request submitted successfully'),
-                backgroundColor: Colors.green,
+              SnackBar(
+                content: const Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.white),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Maintenance request submitted successfully',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.green.shade700,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                duration: const Duration(seconds: 3),
               ),
             );
             Navigator.pop(context, true);
@@ -76,15 +91,30 @@ class _CreateMaintenanceRequestScreenState
           throw Exception(data['message'] ?? 'Failed to create request');
         }
       } on TimeoutException {
-        logger.d('Create request timed out'); // Replaced print
+        logger.d('Create request timed out');
         throw Exception('Request timed out. Please check your network.');
       } catch (e) {
-        logger.d('Error creating request: $e'); // Replaced print
+        logger.d('Error creating request: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              backgroundColor: Colors.red,
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Error: ${e.toString()}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red.shade700,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         }
@@ -99,174 +129,309 @@ class _CreateMaintenanceRequestScreenState
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    const primaryColor = Color(0xFF4080FF);
 
     return Scaffold(
-      backgroundColor: isDarkMode ? const Color(0xFF0A1A3B) : Colors.white,
+      backgroundColor: isDarkMode ? const Color(0xFF0A1A3B) : Colors.grey[50],
       appBar: AppBar(
         backgroundColor: isDarkMode ? const Color(0xFF0A1A3B) : Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back,
-            color: isDarkMode ? Colors.white : Colors.black,
+            Icons.arrow_back_ios_new_rounded,
+            color: isDarkMode ? Colors.white : Colors.black87,
+            size: 22,
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'New Maintenance Request',
           style: TextStyle(
-            color: isDarkMode ? Colors.white : Colors.black,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : Colors.black87,
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
           ),
         ),
+        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Card(
-                  color: isDarkMode ? const Color(0xFF1C2F4F) : Colors.white,
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? const Color(0xFF0F2445) : Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05) ,
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
+                        Icon(
+                          Icons.home_repair_service_rounded,
+                          color: primaryColor,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
                         Text(
-                          'Request Details',
+                          'Submit a new request',
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                             color: isDarkMode ? Colors.white : Colors.black87,
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        TextFormField(
-                          controller: _titleController,
-                          style: TextStyle(
-                            color: isDarkMode ? Colors.white : Colors.black,
-                          ),
-                          decoration: InputDecoration(
-                            labelText: 'Title',
-                            hintText: 'Enter the title of your maintenance request',
-                            labelStyle: TextStyle(
-                              color: isDarkMode ? Colors.white70 : Colors.black87,
-                            ),
-                            hintStyle: TextStyle(
-                              color: isDarkMode ? Colors.white60 : Colors.black54,
-                            ),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Color(0xFF4080FF),
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a title';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                        TextFormField(
-                          controller: _descriptionController,
-                          style: TextStyle(
-                            color: isDarkMode ? Colors.white : Colors.black,
-                          ),
-                          maxLines: 6,
-                          decoration: InputDecoration(
-                            labelText: 'Description',
-                            hintText: 'Describe your maintenance issue in detail',
-                            labelStyle: TextStyle(
-                              color: isDarkMode ? Colors.white70 : Colors.black87,
-                            ),
-                            hintStyle: TextStyle(
-                              color: isDarkMode ? Colors.white60 : Colors.black54,
-                            ),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Color(0xFF4080FF),
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a description';
-                            }
-                            return null;
-                          },
-                        ),
                       ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _submitRequest,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4080FF),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please provide detailed information about your maintenance issue',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDarkMode ? Colors.grey[300] : Colors.grey[600],
                       ),
-                      elevation: 0,
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Submit Request',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Request Information',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: isDarkMode ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildLabel('Title'),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _titleController,
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white : Colors.black,
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          hintText:
+                              'Enter the title of your maintenance request',
+                          hintStyle: TextStyle(
+                            color: isDarkMode ? Colors.white60 : Colors.black45,
+                            fontSize: 15,
+                          ),
+                          filled: true,
+                          fillColor: isDarkMode
+                              ? Colors.grey[800]!.withValues(alpha: 0.5) 
+                              : Colors.grey[100],
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 16),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: primaryColor,
+                              width: 2,
                             ),
                           ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Colors.red.shade400,
+                              width: 1.5,
+                            ),
+                          ),
+                          prefixIcon: Icon(
+                            Icons.title_rounded,
+                            color:
+                                isDarkMode ? Colors.white70 : Colors.grey[600],
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a title';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      _buildLabel('Description'),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _descriptionController,
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white : Colors.black,
+                          fontSize: 16,
+                        ),
+                        maxLines: 6,
+                        decoration: InputDecoration(
+                          hintText: 'Describe your maintenance issue in detail',
+                          hintStyle: TextStyle(
+                            color: isDarkMode ? Colors.white60 : Colors.black45,
+                            fontSize: 15,
+                          ),
+                          filled: true,
+                          fillColor: isDarkMode
+                              ? Colors.grey[800]!.withValues(alpha: 0.5) 
+                              : Colors.grey[100],
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 20),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: primaryColor,
+                              width: 2,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Colors.red.shade400,
+                              width: 1.5,
+                            ),
+                          ),
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.only(bottom: 80),
+                            child: Icon(
+                              Icons.description_rounded,
+                              color: isDarkMode
+                                  ? Colors.white70
+                                  : Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a description';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 36),
+                      Container(
+                        width: double.infinity,
+                        height: 56,
+                        margin: const EdgeInsets.only(bottom: 24),
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _submitRequest,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.send_rounded, size: 20),
+                                    SizedBox(width: 10),
+                                    Text('Submit Request'),
+                                  ],
+                                ),
+                        ),
+                      ),
+                      if (!isDarkMode)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.blue.shade100,
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline_rounded,
+                                color: Colors.blue.shade700,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Our maintenance team typically responds within 24-48 hours of submission.',
+                                  style: TextStyle(
+                                    color: Colors.blue.shade800,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 4),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: isDarkMode ? Colors.white70 : Colors.black87,
         ),
       ),
     );

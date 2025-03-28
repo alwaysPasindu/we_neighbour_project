@@ -5,7 +5,6 @@ import 'package:we_neighbour/features/event_calendar/event_calendar_screen.dart'
 import 'package:we_neighbour/features/maintenance/maintenance_screen.dart';
 import 'package:we_neighbour/screens/manager_maintenance_screen.dart';
 import '../features/visitor_management/visitor_management_screen.dart';
-import '../constants/colors.dart';
 import '../constants/text_styles.dart';
 
 class FeatureItem {
@@ -61,7 +60,7 @@ class FeatureGrid extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05) ,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -214,15 +213,15 @@ class FeatureGrid extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.08),
+                  color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.08),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
               ],
               border: Border.all(
                 color: isDarkMode 
-                    ? Colors.white.withOpacity(0.05)
-                    : Colors.grey.withOpacity(0.1),
+                    ? Colors.white.withValues(alpha: 0.05) 
+                    : Colors.grey.withValues(alpha: 0.05),
                 width: 1,
               ),
             ),

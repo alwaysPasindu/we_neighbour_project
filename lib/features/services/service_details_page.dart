@@ -7,6 +7,7 @@ import 'package:we_neighbour/constants/colors.dart';
 import 'package:we_neighbour/main.dart';
 import 'package:we_neighbour/models/service.dart';
 import 'package:we_neighbour/providers/theme_provider.dart';
+import 'package:we_neighbour/utils/auth_utils.dart';
 import 'dart:io';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -49,7 +50,6 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   }
 
   Future<void> _fetchReviews() async {
-    if (!mounted) return;
     setState(() {
       _isLoadingReviews = true;
     });
@@ -72,10 +72,8 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
 
       if (response.statusCode == 200) {
         final serviceData = jsonDecode(response.body);
-        if (!mounted) return;
         setState(() {
           _reviews = serviceData['reviews'] ?? [];
-          _isLoadingReviews = false;
         });
       } else {
         throw Exception('Failed to fetch reviews: ${response.statusCode} - ${response.body}');
@@ -84,46 +82,30 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
       logger.d('Error fetching reviews: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error fetching reviews: $e')));
-      setState(() {
-        _isLoadingReviews = false;
-      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingReviews = false;
+        });
+      }
     }
   }
 
-  Future<void> _submitReview(int rating, String comment, String token, BuildContext dialogContext) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/service/${widget.service.id}/reviews'),
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token,
-        },
-        body: jsonEncode({
-          'rating': rating,
-          'comment': comment,
-        }),
-      );
-
-      logger.d('Add review response: ${response.statusCode} - ${response.body}');
-
-      if (response.statusCode == 201) {
-        if (!dialogContext.mounted) return;
-        ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('Review added successfully')));
-        await _fetchReviews();
-      } else {
-        final errorData = jsonDecode(response.body);
-        throw Exception('Failed to add review: ${errorData['message'] ?? response.statusCode}');
-      }
-    } catch (e) {
-      if (!dialogContext.mounted) return;
-      ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
+  Future<Map<String, String>> _getUserData() async {
+    final profileData = await AuthUtils.getUserProfileData();
+    final role = await AuthUtils.getUserType().then((userType) => userType.toString().split('.').last);
+    logger.d('Retrieved user data: name=${profileData['name']}, role=$role');
+    return {
+      'name': profileData['name'] ?? 'Anonymous',
+      'role': role,
+    };
   }
 
   void _addReview() async {
     final TextEditingController commentController = TextEditingController();
     int rating = 5;
 
+    final userData = await _getUserData();
     final token = await _getAuthToken();
 
     if (token == null) {
@@ -132,8 +114,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
       return;
     }
 
-    if (!mounted) return;
-    await showDialog(
+    showDialog(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
@@ -174,8 +155,36 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    Navigator.pop(dialogContext);
-                    await _submitReview(rating, commentController.text, token, dialogContext);
+                    try {
+                      final response = await http.post(
+                        Uri.parse('$baseUrl/api/service/${widget.service.id}/reviews'),
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'x-auth-token': token,
+                        },
+                        body: jsonEncode({
+                          'rating': rating,
+                          'comment': commentController.text,
+                        }),
+                      );
+
+                      logger.d('Add review response: ${response.statusCode} - ${response.body}');
+
+                      if (response.statusCode == 201) {
+                        Navigator.pop(dialogContext);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review added successfully')));
+                        await _fetchReviews();
+                        if (mounted) setState(() {});
+                      } else {
+                        final errorData = jsonDecode(response.body);
+                        throw Exception('Failed to add review: ${errorData['message'] ?? response.statusCode}');
+                      }
+                    } catch (e) {
+                      Navigator.pop(dialogContext);
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
                   },
                   child: const Text('Submit'),
                 ),
@@ -188,8 +197,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
   }
 
   void _openGoogleMaps(double latitude, double longitude) async {
-    final url = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
-    final uri = Uri.parse(url);
+    final Uri uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$latitude,$longitude');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
@@ -494,7 +502,7 @@ class _ServiceDetailsPageState extends State<ServiceDetailsPage> {
     required bool isDarkMode,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16), // Fixed to 'bottom'
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDarkMode ? Colors.grey[850] : Colors.grey[100],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -82,7 +83,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       if (rememberMe) {
         final savedEmail = prefs.getString('savedEmail');
         if (savedEmail != null && savedEmail.isNotEmpty) {
-          if (!mounted) return;
+          if (!mounted) return; // Check if still mounted
           setState(() {
             _emailController.text = savedEmail;
             _rememberMe = true;
@@ -95,22 +96,22 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   Future<void> _handleLogin() async {
-    if (!mounted) return;
     setState(() => _isLoading = true);
-
     try {
       HttpClient httpClient = HttpClient()
         ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
       final client = IOClient(httpClient);
 
-      final response = await client.post(
+      final response = await client
+          .post(
         Uri.parse('$baseUrl/api/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': _emailController.text,
           'password': _passwordController.text,
         }),
-      ).timeout(const Duration(seconds: 50), onTimeout: () {
+      )
+          .timeout(const Duration(seconds: 50), onTimeout: () {
         throw TimeoutException('Request timed out after 50 seconds');
       });
 
@@ -158,24 +159,22 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           Navigator.pushReplacementNamed(context, '/pending-approval');
         }
       } else {
-        if (!mounted) return;
+        if (!mounted) return; // Check if still mounted
         _showErrorDialog('Login failed', data['message'] ?? 'Invalid credentials');
       }
     } catch (e, stackTrace) {
       logger.d('Login error: $e');
       logger.d('Stack trace: $stackTrace');
-      if (!mounted) return;
+      if (!mounted) return; // Check if still mounted
       _showErrorDialog('Connection Error', 'Unable to connect to the server: $e');
-    }
-
-    // Moved setState outside finally to avoid control_flow_in_finally issue
-    if (mounted) {
-      setState(() => _isLoading = false);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   void _showErrorDialog(String title, String message) {
-    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -212,6 +211,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     final contentPadding =
         EdgeInsets.symmetric(horizontal: size.width < 360 ? 20.0 : 24.0, vertical: 12.0);
     final logoSize = size.width < 360 ? 110.0 : 130.0;
+    final titleFontSize = size.width < 360 ? 30.0 : 34.0;
     final buttonHeight = size.width < 360 ? 48.0 : 52.0;
 
     return Scaffold(
@@ -235,7 +235,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       gradient: RadialGradient(
                         colors: [
                           primaryColor.withValues(alpha: 0.7),
-                          primaryColor.withValues(alpha: 0.0),
+                          primaryColor.withValues(alpha: 0.0)
                         ],
                         stops: const [0.0, 1.0],
                       ),
@@ -284,7 +284,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                             builder: (context, child) {
                               return Transform.translate(
                                 offset: Offset(
-                                    0, math.sin(_animationController.value * math.pi * 2) * 5),
+                                    0,
+                                    math.sin(_animationController.value * math.pi * 2) * 5),
                                 child: child,
                               );
                             },
@@ -322,10 +323,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ).createShader(bounds),
-                            child: const Text(
+                            child: Text(
                               'WELCOME!',
                               style: TextStyle(
-                                fontSize: 34.0,
+                                fontSize: titleFontSize,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                                 letterSpacing: 1.5,
@@ -358,7 +359,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 8,
-                                    offset: const Offset(0, 2)),
+                                    offset: const Offset(0, 2))
                               ],
                             ),
                             child: ClipRRect(
@@ -412,7 +413,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 8,
-                                    offset: const Offset(0, 2)),
+                                    offset: const Offset(0, 2))
                               ],
                             ),
                             child: ClipRRect(
@@ -497,24 +498,21 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                   ],
                                 ),
                                 TextButton(
-                                  onPressed: () {
-                                    if (!mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text('Forgot password feature coming soon'),
-                                        behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                        margin: const EdgeInsets.all(16),
-                                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                        duration: const Duration(seconds: 3),
-                                      ),
-                                    );
-                                  },
+                                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text('Forgot password feature coming soon'),
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      margin: const EdgeInsets.all(16),
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                      duration: const Duration(seconds: 3),
+                                    ),
+                                  ),
                                   style: TextButton.styleFrom(
                                       padding: EdgeInsets.zero,
                                       minimumSize: const Size(0, 0),
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                                  child: Text('Forgot password?',
+                                  child: const Text('Forgot password?',
                                       style: TextStyle(
                                           color: primaryColor,
                                           fontWeight: FontWeight.w600,
@@ -535,7 +533,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 colors: _isLoading
                                     ? [
                                         primaryColor.withValues(alpha: 0.7),
-                                        secondaryColor.withValues(alpha: 0.7),
+                                        secondaryColor.withValues(alpha: 0.7)
                                       ]
                                     : [primaryColor, secondaryColor],
                               ),
@@ -543,7 +541,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 BoxShadow(
                                     color: primaryColor.withValues(alpha: 0.3),
                                     blurRadius: 12,
-                                    offset: const Offset(0, 4)),
+                                    offset: const Offset(0, 4))
                               ],
                             ),
                             child: ElevatedButton(
@@ -567,16 +565,16 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                       )
                                     : Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
-                                        children: const [
+                                        children: [
                                           Text('Login',
                                               style: TextStyle(
-                                                  fontSize: 18,
+                                                  fontSize: size.width < 360 ? 16 : 18,
                                                   fontWeight: FontWeight.bold,
                                                   color: Colors.white,
                                                   letterSpacing: 1.1)),
-                                          SizedBox(width: 8),
+                                          const SizedBox(width: 8),
                                           Icon(Icons.arrow_forward_rounded,
-                                              color: Colors.white, size: 20),
+                                              color: Colors.white, size: size.width < 360 ? 18 : 20),
                                         ],
                                       ),
                               ),
@@ -594,15 +592,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500)),
                                 TextButton(
-                                  onPressed: () {
-                                    if (!mounted) return;
-                                    Navigator.pushNamed(context, '/account-type');
-                                  },
+                                  onPressed: () => Navigator.pushNamed(context, '/account-type'),
                                   style: TextButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(horizontal: 8),
                                       minimumSize: const Size(0, 0),
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                                  child: Text('Register',
+                                  child: const Text('Register',
                                       style: TextStyle(
                                           color: primaryColor,
                                           fontWeight: FontWeight.bold,

@@ -52,7 +52,7 @@ app.*.symbols
 app.*.map.json
 
 # Android Studio & Gradle
-**/android/app/debug
+# **/android/app/debug
 **/android/app/profile
 **/android/app/release
 **/.dart_tool

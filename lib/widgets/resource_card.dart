@@ -52,7 +52,7 @@ class ResourceCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '⚙️', // Gear icon for resources
+                  '🔄', //  icon for resources
                   style: TextStyle(fontSize: 24),
                 ),
                 const SizedBox(width: 12),
