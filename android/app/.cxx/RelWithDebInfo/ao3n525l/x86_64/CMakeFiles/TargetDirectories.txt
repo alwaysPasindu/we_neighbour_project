@@ -1,0 +1,2 @@
+D:/GitHub Projects/we_neighbour_project/android/app/.cxx/RelWithDebInfo/ao3n525l/x86_64/CMakeFiles/edit_cache.dir
+D:/GitHub Projects/we_neighbour_project/android/app/.cxx/RelWithDebInfo/ao3n525l/x86_64/CMakeFiles/rebuild_cache.dir
