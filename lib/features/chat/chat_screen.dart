@@ -29,10 +29,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final logger = Logger();
   late AnimationController _sendButtonController;
   bool _isComposing = false;
-  
-  // Cache for chat title to avoid repeated Firestore queries
+
+  // Cache for chat title and sender names
   String? _cachedChatTitle;
   String? _otherUserAvatar;
+  final Map<String, String> _senderNameCache = {};
 
   @override
   void initState() {
@@ -118,12 +119,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     try {
       final messageText = _messageController.text;
       _messageController.clear();
-      // Trigger animation and UI update immediately
       setState(() {
         _isComposing = false;
       });
       _sendButtonController.reverse();
-      
+
       await chatProvider.sendMessage(widget.chatId, messageText);
       if (!mounted) return;
       _scrollToBottom();
@@ -143,7 +143,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     try {
       await chatProvider.deleteMessage(widget.chatId, messageId, deleteForEveryone);
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(deleteForEveryone ? 'Message deleted for everyone' : 'Message deleted'),
@@ -161,6 +161,49 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           behavior: SnackBarBehavior.floating,
         ),
       );
+    }
+  }
+
+  Future<String> _getSenderName(String senderId, ChatProvider chatProvider) async {
+    if (_senderNameCache.containsKey(senderId)) {
+      return _senderNameCache[senderId]!;
+    }
+
+    try {
+      String? apartmentName = chatProvider.currentApartmentName;
+      if (apartmentName == null || apartmentName.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        apartmentName = prefs.getString('userApartment');
+      }
+
+      if (apartmentName != null) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('apartments')
+            .doc(apartmentName)
+            .collection('users')
+            .doc(senderId)
+            .get();
+
+        if (userDoc.exists && userDoc.data()?['name'] != null) {
+          final senderName = userDoc.data()!['name'] as String;
+          _senderNameCache[senderId] = senderName;
+          return senderName;
+        }
+      }
+
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(senderId).get();
+      if (userDoc.exists && userDoc.data()?['name'] != null) {
+        final senderName = userDoc.data()!['name'] as String;
+        _senderNameCache[senderId] = senderName;
+        return senderName;
+      }
+
+      _senderNameCache[senderId] = 'Unknown User';
+      return 'Unknown User';
+    } catch (e) {
+      logger.e('Error fetching sender name for $senderId: $e');
+      _senderNameCache[senderId] = 'Unknown User';
+      return 'Unknown User';
     }
   }
 
@@ -210,18 +253,17 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ],
               );
             }
-            
+
             final details = snapshot.data ?? {'name': 'Chat', 'avatar': null, 'status': null};
             final name = details['name'] as String;
             final avatar = details['avatar'] as String?;
             final status = details['status'] as String?;
-            
-            // Cache the results
+
             if (_cachedChatTitle == null) {
               _cachedChatTitle = name;
               _otherUserAvatar = avatar;
             }
-            
+
             return Row(
               children: [
                 Container(
@@ -239,15 +281,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Icon(
-                                widget.isGroup ? Icons.group : Icons.person, 
-                                color: Colors.white
+                                widget.isGroup ? Icons.group : Icons.person,
+                                color: Colors.white,
                               );
                             },
                           ),
                         )
                       : Icon(
-                          widget.isGroup ? Icons.group : Icons.person, 
-                          color: Colors.white
+                          widget.isGroup ? Icons.group : Icons.person,
+                          color: Colors.white,
                         ),
                 ),
                 const SizedBox(width: 10),
@@ -277,47 +319,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             );
           },
         ),
-        backgroundColor: AppColors.primary,
-        elevation: 2,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              // Show chat info dialog
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Chat Information'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Chat ID: ${widget.chatId}'),
-                      Text('Group Chat: ${widget.isGroup}'),
-                      if (_cachedChatTitle != null)
-                        Text('Chatting with: $_cachedChatTitle'),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Close'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Container(
         decoration: BoxDecoration(
-          // Chat background pattern
           color: isDarkMode ? Colors.grey[900] : Colors.grey[100],
           image: DecorationImage(
-            image: AssetImage(isDarkMode 
-              ? 'assets/images/white.png' 
-              : 'assets/images/logo.jpeg'),
+            image: AssetImage(isDarkMode ? 'assets/images/white.png' : 'assets/images/logo.jpeg'),
             opacity: 0.05,
             repeat: ImageRepeat.repeat,
           ),
@@ -378,11 +385,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       ),
                     );
                   }
-                  
+
                   final messages = snapshot.data?.docs.map((doc) {
                     return Message.fromMap(doc.id, doc.data() as Map<String, dynamic>);
                   }).toList() ?? [];
-                  
+
                   if (messages.isEmpty) {
                     return Center(
                       child: Column(
@@ -403,7 +410,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            _cachedChatTitle != null 
+                            _cachedChatTitle != null
                                 ? 'Start a conversation with $_cachedChatTitle'
                                 : 'Start the conversation by sending a message',
                             style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
@@ -423,15 +430,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     itemBuilder: (context, index) {
                       final message = messages[index];
                       final isSender = message.senderId == chatProvider.currentUserId;
-                      
-                      // Group messages by date
-                      final bool showDateHeader = index == 0 || 
-                          !_isSameDay(messages[index-1].timestamp.toDate(), message.timestamp.toDate());
-                      
+
+                      final bool showDateHeader = index == 0 ||
+                          !_isSameDay(messages[index - 1].timestamp.toDate(), message.timestamp.toDate());
+
                       return Column(
                         children: [
-                          if (showDateHeader)
-                            _buildDateHeader(message.timestamp.toDate(), isDarkMode),
+                          if (showDateHeader) _buildDateHeader(message.timestamp.toDate(), isDarkMode),
                           _buildMessageItem(message, isSender, isDarkMode, chatProvider),
                         ],
                       );
@@ -455,7 +460,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildDateHeader(DateTime date, bool isDarkMode) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -463,9 +468,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: isDarkMode 
-                ? Colors.grey[800]!.withOpacity(0.7) 
-                : Colors.grey[300]!.withOpacity(0.7),
+            color: isDarkMode ? Colors.grey[800]!.withOpacity(0.7) : Colors.grey[300]!.withOpacity(0.7),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
@@ -480,13 +483,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   String _formatDateHeader(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = DateTime(now.year, now.month, now.day - 1);
     final messageDate = DateTime(date.year, date.month, date.day);
-    
+
     if (messageDate == today) {
       return 'Today';
     } else if (messageDate == yesterday) {
@@ -495,13 +498,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       return DateFormat('MMMM d, yyyy').format(date);
     }
   }
-  
+
   bool _isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year && 
-           date1.month == date2.month && 
-           date1.day == date2.day;
+    return date1.year == date2.year && date1.month == date2.month && date1.day == date2.day;
   }
-  
+
   Widget _buildMessageItem(Message message, bool isSender, bool isDarkMode, ChatProvider chatProvider) {
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
@@ -512,7 +513,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             mainAxisAlignment: isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (!isSender) 
+              if (!isSender)
                 Container(
                   width: 28,
                   height: 28,
@@ -608,7 +609,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         ),
                       );
                     } else {
-                      // Options for received messages
                       HapticFeedback.mediumImpact();
                       showModalBottomSheet(
                         context: context,
@@ -657,9 +657,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: isSender 
-                          ? AppColors.primary 
-                          : isDarkMode ? Colors.grey[800] : Colors.white,
+                      color: isSender
+                          ? AppColors.primary
+                          : isDarkMode
+                              ? Colors.grey[800]
+                              : Colors.white,
                       borderRadius: BorderRadius.circular(18).copyWith(
                         bottomLeft: isSender ? Radius.circular(18) : Radius.circular(0),
                         bottomRight: isSender ? Radius.circular(0) : Radius.circular(18),
@@ -678,12 +680,34 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Display sender's name inside the bubble
+                        FutureBuilder<String>(
+                          future: _getSenderName(message.senderId, chatProvider),
+                          builder: (context, snapshot) {
+                            final senderName = snapshot.data ?? 'Loading...';
+                            return Text(
+                              senderName,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: isSender
+                                    ? Colors.white.withOpacity(0.9)
+                                    : isDarkMode
+                                        ? Colors.grey[300]
+                                        : Colors.grey[700],
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 4),
                         Text(
                           message.content,
                           style: AppTextStyles.getBodyTextStyle(isDarkMode).copyWith(
-                            color: isSender 
-                                ? Colors.white 
-                                : isDarkMode ? Colors.white : Colors.black87,
+                            color: isSender
+                                ? Colors.white
+                                : isDarkMode
+                                    ? Colors.white
+                                    : Colors.black87,
                             fontSize: 15,
                           ),
                         ),
@@ -696,9 +720,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                               DateFormat('HH:mm').format(message.timestamp.toDate()),
                               style: TextStyle(
                                 fontSize: 10,
-                                color: isSender 
-                                    ? Colors.white70 
-                                    : isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                                color: isSender
+                                    ? Colors.white70
+                                    : isDarkMode
+                                        ? Colors.grey[400]
+                                        : Colors.grey[600],
                               ),
                             ),
                             if (isSender) ...[
@@ -733,7 +759,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
     );
   }
-  
+
   Widget _buildMessageComposer(bool isDarkMode, ChatProvider chatProvider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -754,7 +780,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               icon: Icon(Icons.emoji_emotions_outlined),
               color: AppColors.primary,
               onPressed: () {
-                // Emoji picker functionality could be added here
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Emoji picker coming soon!'),
@@ -773,7 +798,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 child: TextField(
                   controller: _messageController,
                   decoration: InputDecoration(
-                    hintText: _cachedChatTitle != null 
+                    hintText: _cachedChatTitle != null
                         ? 'Message $_cachedChatTitle...'
                         : 'Type a message...',
                     hintStyle: TextStyle(
@@ -826,31 +851,26 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  // Enhanced method to get chat details with multiple approaches
   Future<Map<String, dynamic>> _getChatDetails(ChatProvider chatProvider) async {
-    // Return cached result if available
     if (_cachedChatTitle != null) {
       return {
         'name': _cachedChatTitle!,
         'avatar': _otherUserAvatar,
-        'status': null
+        'status': null,
       };
     }
-    
+
     final chatDoc = await FirebaseFirestore.instance.collection('chats').doc(widget.chatId).get();
     final chatData = chatDoc.data();
-    
-    // For group chats
+
     if (widget.isGroup) {
       final groupName = chatData?['groupName'] ?? 'Group Chat';
       return {'name': groupName, 'avatar': null, 'status': 'Group chat'};
     }
-    
-    // For one-on-one chats
+
     if (chatData?['participants'] != null) {
       final participants = List<String>.from(chatData!['participants']);
-      
-      // Get current user ID from ChatProvider or SharedPreferences
+
       String? currentUserId = chatProvider.currentUserId;
       if (currentUserId == null || currentUserId.isEmpty) {
         final prefs = await SharedPreferences.getInstance();
@@ -860,8 +880,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           return {'name': 'Unknown User', 'avatar': null, 'status': 'Private chat'};
         }
       }
-      
-      // Find the other user's ID
+
       String? otherUserId;
       for (final participantId in participants) {
         if (participantId != currentUserId) {
@@ -869,17 +888,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           break;
         }
       }
-      
+
       if (otherUserId == null) {
         logger.e('Could not find other user ID in participants');
         return {'name': 'Unknown User', 'avatar': null, 'status': 'Private chat'};
       }
-      
-      // Try multiple approaches to get the user name
-      
-      // Approach 1: Try the apartments/[apartment]/users collection
+
       try {
-        // Get apartment name from ChatProvider or SharedPreferences
         String? apartmentName = chatProvider.currentApartmentName;
         if (apartmentName == null || apartmentName.isEmpty) {
           final prefs = await SharedPreferences.getInstance();
@@ -889,87 +904,79 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             throw Exception('Apartment name not found');
           }
         }
-        
+
         logger.d('Fetching user document for ID: $otherUserId in apartment: $apartmentName');
-        
+
         final userDoc = await FirebaseFirestore.instance
             .collection('apartments')
             .doc(apartmentName)
             .collection('users')
             .doc(otherUserId)
             .get();
-        
+
         if (userDoc.exists && userDoc.data()?['name'] != null) {
           final userName = userDoc.data()?['name'] as String;
           final userAvatar = userDoc.data()?['profilePicture'] as String?;
           final userStatus = userDoc.data()?['status'] as String?;
-          
+
           return {
             'name': userName,
             'avatar': userAvatar,
-            'status': userStatus ?? 'Private chat'
+            'status': userStatus ?? 'Private chat',
           };
         }
       } catch (e) {
         logger.e('Error in approach 1: $e');
       }
-      
-      // Approach 2: Try the global users collection
+
       try {
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(otherUserId)
-            .get();
-        
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(otherUserId).get();
+
         if (userDoc.exists && userDoc.data()?['name'] != null) {
           final userName = userDoc.data()?['name'] as String;
           final userAvatar = userDoc.data()?['profilePicture'] as String?;
           final userStatus = userDoc.data()?['status'] as String?;
-          
+
           return {
             'name': userName,
             'avatar': userAvatar,
-            'status': userStatus ?? 'Private chat'
+            'status': userStatus ?? 'Private chat',
           };
         }
       } catch (e) {
         logger.e('Error in approach 2: $e');
       }
-      
-      // Approach 3: Try to get the user name from the chat document itself
+
       try {
         if (chatData.containsKey('otherUserName')) {
           final userName = chatData['otherUserName'] as String;
           final userAvatar = chatData['otherUserAvatar'] as String?;
-          
+
           return {
             'name': userName,
             'avatar': userAvatar,
-            'status': 'Private chat'
+            'status': 'Private chat',
           };
         }
       } catch (e) {
         logger.e('Error in approach 3: $e');
       }
-      
-      // Approach 4: Try to get the user name from SharedPreferences
+
       try {
         final prefs = await SharedPreferences.getInstance();
         final userName = prefs.getString('userName');
         if (userName != null && userName.isNotEmpty) {
-          // This is a fallback that might not be accurate, but better than nothing
           return {
             'name': 'Chat Partner',
             'avatar': null,
-            'status': 'Private chat'
+            'status': 'Private chat',
           };
         }
       } catch (e) {
         logger.e('Error in approach 4: $e');
       }
     }
-    
-    // If all approaches fail, return a default name
+
     return {'name': 'Chat Partner', 'avatar': null, 'status': 'Private chat'};
   }
 }
