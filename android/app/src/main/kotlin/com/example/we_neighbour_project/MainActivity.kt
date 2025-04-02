@@ -1,4 +1,4 @@
-package com.example.we_neighbour_project
+package we.neighbour.sdgp.com
 
 import io.flutter.embedding.android.FlutterActivity
 

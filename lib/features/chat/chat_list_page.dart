@@ -737,7 +737,7 @@ class _ChatListPageState extends State<ChatListPage> with SingleTickerProviderSt
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text('Cancel', style: TextStyle(color: AppColors.primary)),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.primary)),
             ),
             ElevatedButton(
               onPressed: () async {

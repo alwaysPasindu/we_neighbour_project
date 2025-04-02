@@ -513,7 +513,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                       padding: EdgeInsets.zero,
                                       minimumSize: const Size(0, 0),
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                                  child: Text('Forgot password?',
+                                  child: const Text('Forgot password?',
                                       style: TextStyle(
                                           color: primaryColor,
                                           fontWeight: FontWeight.w600,
@@ -598,7 +598,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                       padding: const EdgeInsets.symmetric(horizontal: 8),
                                       minimumSize: const Size(0, 0),
                                       tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                                  child: Text('Register',
+                                  child: const Text('Register',
                                       style: TextStyle(
                                           color: primaryColor,
                                           fontWeight: FontWeight.bold,

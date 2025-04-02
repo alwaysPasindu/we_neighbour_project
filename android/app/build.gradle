@@ -17,7 +17,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace 'com.example.we_neighbour_project'
+    namespace 'we.neighbour.sdgp.com' // Updated to match the new package name
     compileSdkVersion flutter.compileSdkVersion // Use Flutter's predefined value
     ndkVersion flutter.ndkVersion
 
@@ -31,7 +31,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.example.we_neighbour_project'
+        applicationId 'we.neighbour.sdgp.com'
         minSdkVersion 23 // API 23 = Android 6.0
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutter.versionCode
@@ -51,9 +51,10 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release
-            // Optional: Ensure resources are processed correctly
-            minifyEnabled false // Disable minification unless needed
-            shrinkResources false // Disable resource shrinking unless needed
+            minifyEnabled false // You can set this to true for production
+            shrinkResources false // You can set this to true for production
+            // If enabling minification, add ProGuard rules
+            // proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

@@ -65,6 +65,66 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24541811517:android:a7f18e1833ca72a61eeb54",
+        "android_client_info": {
+          "package_name": "we.neighbour.sdgp.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "24541811517-e8k60kkeou1u0pgprfq8a6kemggiu977.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "we.neighbour.sdgp.com",
+            "certificate_hash": "65381090705b5a02c13487ab29fc64e16205a1f2"
+          }
+        },
+        {
+          "client_id": "24541811517-h9j442tc4laoap8tbgpkrn5ihdbddkgf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "we.neighbour.sdgp.com",
+            "certificate_hash": "ab5369d7b1cb95440d958c0d156d25a089388323"
+          }
+        },
+        {
+          "client_id": "24541811517-ko3hk62fa6n44rsh0rndcgqgok3qqtcq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "we.neighbour.sdgp.com",
+            "certificate_hash": "70af7828ec8a2b20c5f508c2e0714816caa9f2b7"
+          }
+        },
+        {
+          "client_id": "24541811517-bvglnf8q0ur6lvu9pedue91cevcro8b1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaOLb9uF8TAzAlPk2S5mP8-5rHNoB1bJ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "24541811517-bvglnf8q0ur6lvu9pedue91cevcro8b1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "24541811517-9rd504g71qggut24f32hta4qbrfjfjql.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.weNeighbourProject"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

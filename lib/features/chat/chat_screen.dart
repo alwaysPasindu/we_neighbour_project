@@ -663,14 +663,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                               ? Colors.grey[800]
                               : Colors.white,
                       borderRadius: BorderRadius.circular(18).copyWith(
-                        bottomLeft: isSender ? Radius.circular(18) : Radius.circular(0),
-                        bottomRight: isSender ? Radius.circular(0) : Radius.circular(18),
+                        bottomLeft: isSender ? const Radius.circular(18) : const Radius.circular(0),
+                        bottomRight: isSender ? const Radius.circular(0) : const Radius.circular(18),
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.05),
                           blurRadius: 3,
-                          offset: Offset(0, 1),
+                          offset: const Offset(0, 1),
                         ),
                       ],
                     ),
@@ -769,7 +769,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 5,
-            offset: Offset(0, -1),
+            offset: const Offset(0, -1),
           ),
         ],
       ),
@@ -777,7 +777,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         child: Row(
           children: [
             IconButton(
-              icon: Icon(Icons.emoji_emotions_outlined),
+              icon: const Icon(Icons.emoji_emotions_outlined),
               color: AppColors.primary,
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
