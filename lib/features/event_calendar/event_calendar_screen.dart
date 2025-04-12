@@ -15,8 +15,7 @@ class EventCalendarScreen extends StatefulWidget {
   const EventCalendarScreen({super.key});
 
   @override
-  State<EventCalendarScreen> createState() =>
-      _EventCalendarScreenState(); // Made public by using State<EventCalendarScreen>
+  State<EventCalendarScreen> createState() => _EventCalendarScreenState();
 }
 
 class _EventCalendarScreenState extends State<EventCalendarScreen> {
@@ -130,7 +129,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
-        // Renamed for clarity
         String newEventTitle = "";
         DateTime selectedDate = DateTime.now();
         TimeOfDay selectedTime = TimeOfDay.now();
@@ -248,14 +246,13 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                       await _firebaseService.addEvent(newEventTitle,
                           eventDateTime, eventEndTime, eventNotes, 'event');
 
-                      if (!mounted) return; // Check widget mounted state
+                      if (!mounted) return;
                       setState(() {
                         _selectedDay = selectedDate;
                         _focusedDay = selectedDate;
                       });
 
-                      if (!dialogContext.mounted)
-                        return; // Check dialog mounted state
+                      if (!dialogContext.mounted) return;
                       ScaffoldMessenger.of(dialogContext).showSnackBar(
                         const SnackBar(
                             content: Text('Event added successfully')),
@@ -263,8 +260,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
                       Navigator.of(dialogContext).pop();
                     } catch (e) {
                       logger.d('Error adding event: $e');
-                      if (!dialogContext.mounted)
-                        return; // Check dialog mounted state
+                      if (!dialogContext.mounted) return;
                       ScaffoldMessenger.of(dialogContext).showSnackBar(
                         SnackBar(content: Text('Failed to add event: $e')),
                       );
@@ -283,7 +279,6 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
-        // Renamed for clarity
         return AlertDialog(
           title: const Text('Delete Event'),
           content: Text('Are you sure you want to delete "$eventTitle"?'),
@@ -302,16 +297,14 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
               onPressed: () async {
                 try {
                   await _firebaseService.deleteEvent(eventId);
-                  if (!dialogContext.mounted)
-                    return; // Check dialog mounted state
+                  if (!dialogContext.mounted) return;
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
                     const SnackBar(content: Text('Event deleted successfully')),
                   );
                   Navigator.of(dialogContext).pop();
                 } catch (e) {
                   logger.d('Error deleting event: $e');
-                  if (!dialogContext.mounted)
-                    return; // Check dialog mounted state
+                  if (!dialogContext.mounted) return;
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
                     SnackBar(content: Text('Failed to delete event: $e')),
                   );
@@ -551,7 +544,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
             calendarStyle: CalendarStyle(
               markersMaxCount: 3,
               markerDecoration: BoxDecoration(
-                color: Colors.blue[700], // Fixed deprecated use
+                color: Colors.blue[700],
                 shape: BoxShape.circle,
               ),
               todayDecoration: const BoxDecoration(
@@ -583,8 +576,7 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
             child: Container(
               margin: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Colors.white
-                    .withValues(alpha: 0.1), // Fixed deprecated withOpacity
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListView.builder(
@@ -702,9 +694,10 @@ class _EventCalendarScreenState extends State<EventCalendarScreen> {
 
   Widget _buildUpcomingEventsList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: _firebaseService.getEvents(),
+      stream: _firebaseService.getUpcomingEvents(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
+          logger.d('Error in upcoming events stream: ${snapshot.error}');
           return Text('Error: ${snapshot.error}');
         }
 
